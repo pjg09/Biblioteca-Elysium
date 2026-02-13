@@ -1,0 +1,129 @@
+# ===================================
+# Java
+# ===================================
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Archivos de compilación
+hs_err_pid*
+replay_pid*
+
+# ===================================
+# Maven
+# ===================================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===================================
+# IDEs - IntelliJ IDEA
+# ===================================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+# ===================================
+# IDEs - Eclipse
+# ===================================
+.classpath
+.project
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# ===================================
+# IDEs - VS Code
+# ===================================
+.vscode/
+*.code-workspace
+.history/
+
+# ===================================
+# IDEs - NetBeans
+# ===================================
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ===================================
+# Sistema Operativo - Linux
+# ===================================
+*~
+.directory
+.Trash-*
+.nfs*
+
+# ===================================
+# Sistema Operativo - macOS
+# ===================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ===================================
+# Sistema Operativo - Windows
+# ===================================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# ===================================
+# Logs y bases de datos temporales
+# ===================================
+*.log
+logs/
+*.sql
+*.sqlite
+*.db
+
+# ===================================
+# Archivos de configuración local
+# ===================================
+application-local.yml
+application-local.properties
+.env
+.env.local
+
+# ===================================
+# Archivos de respaldo
+# ===================================
+*~
+*.orig
+*.rej
+
+# ===================================
+# Carpetas de dependencias (por si usas npm/node para frontend)
+# ===================================
+node_modules/
+package-lock.json
+yarn.lock
