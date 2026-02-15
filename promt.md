@@ -70,3 +70,8 @@ OPCIÓN B: Strategy Pattern (cada tipo su calculador) interface ICalculadorMulta
 * Sí tiene un problema leve de OCP (agregar nuevo tipo = modificar interfaz)
 
 debo hacer estas mejoras en mi diagrama, hazlo porfavorr:
+
+
+
+tambien la parte de multas es algo especifica, deberia ser mas como sancion donde pueden haber una sancin de tipo multa que se paga u otras como sancion que no permite sacar material por unos dias o asi. 
+

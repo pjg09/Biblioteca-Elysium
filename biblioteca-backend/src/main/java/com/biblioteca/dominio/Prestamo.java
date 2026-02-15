@@ -1,6 +1,8 @@
-package com.biblioteca.modelos;
+package com.biblioteca.dominio;
 
 import java.time.LocalDate;
+
+import com.biblioteca.dominio.entidades.Libro;
 
 public class Prestamo {
 
@@ -10,7 +12,7 @@ public class Prestamo {
     public LocalDate fecha;
 
     //Constructor para crear cada prestamo
-    public Prestamo(Libro libro, String persona, LocalDate fecha) {
+    public Prestamo(Libro Material, String persona, LocalDate fecha) {
 
         this.libro = libro;
         this.persona = persona;
