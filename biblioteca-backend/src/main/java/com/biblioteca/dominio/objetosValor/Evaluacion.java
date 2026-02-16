@@ -6,14 +6,10 @@ import java.util.List;
 public class Evaluacion {
     private boolean materialUsable;
     private List<Dano> danosEncontrados;
-    private double costoReparacion;
     
     public Evaluacion(boolean materialUsable, List<Dano> danosEncontrados) {
         this.materialUsable = materialUsable;
         this.danosEncontrados = danosEncontrados != null ? danosEncontrados : new ArrayList<>();
-        this.costoReparacion = this.danosEncontrados.stream()
-                .mapToDouble(Dano::getCostoReparacion)
-                .sum();
     }
     
     public boolean esUsable() {
@@ -24,13 +20,17 @@ public class Evaluacion {
         return new ArrayList<>(danosEncontrados);
     }
     
-    public double getCostoReparacion() {
-        return costoReparacion;
+    public boolean tieneDanos() {
+        return !danosEncontrados.isEmpty();
     }
     
     @Override
     public String toString() {
-        return "Evaluación: " + (materialUsable ? "Material usable" : "Material NO usable") +
-                ", Daños: " + danosEncontrados.size() + ", Costo reparación: $" + costoReparacion;
+        if (!tieneDanos()) {
+            return "Evaluación: Material en buen estado";
+        }
+        return String.format("Evaluación: %s | Daños encontrados: %d", 
+            materialUsable ? "Usable" : "NO usable", 
+            danosEncontrados.size());
     }
 }
