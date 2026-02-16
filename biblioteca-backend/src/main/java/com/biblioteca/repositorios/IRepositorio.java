@@ -2,7 +2,7 @@ package com.biblioteca.repositorios;
 
 import java.util.List;
 
-import com.biblioteca.dominio.objetosvalor.Resultado;
+import com.biblioteca.dominio.objetosValor.Resultado;
 
 public interface IRepositorio<T> {
     Resultado agregar(T entidad);

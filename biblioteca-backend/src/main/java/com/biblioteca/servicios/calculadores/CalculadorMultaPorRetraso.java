@@ -3,7 +3,7 @@ package com.biblioteca.servicios.calculadores;
 import com.biblioteca.dominio.entidades.*;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
 import com.biblioteca.dominio.enumeraciones.TipoMulta;
-import com.biblioteca.dominio.objetosvalor.ContextoMulta;
+import com.biblioteca.dominio.objetosValor.ContextoMulta;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.ICalculadorMulta;
 import java.time.LocalDateTime;

@@ -2,7 +2,7 @@ package com.biblioteca.dominio.entidades;
 
 import java.util.List;
 
-import com.biblioteca.dominio.objetosvalor.Dano;
+import com.biblioteca.dominio.objetosValor.Dano;
 import com.biblioteca.servicios.interfaces.ICalculadorCostoDanoService;
 
 public class MultaPorDano extends Multa {

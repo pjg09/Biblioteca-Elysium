@@ -2,7 +2,7 @@ package com.biblioteca.servicios.interfaces;
 
 import java.util.List;
 
-import com.biblioteca.dominio.objetosvalor.Dano;
+import com.biblioteca.dominio.objetosValor.Dano;
 
 public interface ICalculadorCostoDanoService {
     double calcularCosto(Dano dano);

@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.objetosvalor;
+package com.biblioteca.dominio.objetosValor;
 
 import java.time.LocalDateTime;
 
