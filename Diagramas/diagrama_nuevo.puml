@@ -1,8 +1,7 @@
 @startuml Sistema_Biblioteca_SOLID_FINAL
 
-' ========================================
-' CONFIGURACIÓN Y ESTILOS
-' ========================================
+'ESTILOS
+
 
 skinparam classAttributeIconSize 0
 skinparam roundcorner 10
@@ -18,10 +17,7 @@ skinparam class {
     ArrowColor Black
 }
 
-' ========================================
-' ENTIDADES DEL DOMINIO - MATERIALES
-' SOLO DATOS, SIN LÓGICA
-' ========================================
+' ENTIDADES DEL DOMINIO 
 
 abstract class Material {
     -string id
@@ -83,10 +79,6 @@ note right of Material
   Los SERVICIOS tienen esa lógica.
 end note
 
-' ========================================
-' ENTIDADES DEL DOMINIO - USUARIOS
-' SOLO DATOS, SIN POLÍTICAS
-' ========================================
 
 abstract class Usuario {
     -string id
@@ -141,10 +133,8 @@ note right of Usuario
   Los SERVICIOS leen el tipo y aplican reglas.
 end note
 
-' ========================================
-' TRANSACCIONES - SOLO DATOS
-' CORRECCIÓN: Eliminado PrestamoDigital
-' ========================================
+' TRANSACCIONES
+
 
 abstract class Transaccion {
     -string id
@@ -190,11 +180,6 @@ Transaccion <|-- Prestamo
 Prestamo <|-- PrestamoNormal
 Prestamo <|-- PrestamoInterbibliotecario
 
-note bottom of Prestamo
-  CORRECCIÓN 1:
-  Eliminado PrestamoDigital
-  (simplifica el modelo)
-end note
 
 abstract class Reserva {
     -DateTime fechaReserva
@@ -220,9 +205,7 @@ Transaccion <|-- Reserva
 Reserva <|-- ReservaNormal
 Reserva <|-- ReservaInterbibliotecaria
 
-' ========================================
-' MULTAS - EXTENSIBLES
-' ========================================
+' MULTAS 
 
 abstract class Multa {
     -string id
@@ -271,9 +254,7 @@ Multa <|-- MultaPorDano
 Multa <|-- MultaPorPerdida
 Multa <|-- MultaAdministrativa
 
-' ========================================
-' RELACIONES ENTRE ENTIDADES
-' ========================================
+' RELACIONES  
 
 Usuario "1" -- "0..*" Transaccion : realiza
 Material "1" -- "0..*" Transaccion : involucrado
@@ -281,9 +262,8 @@ Prestamo "1" -- "0..*" Multa : genera
 Usuario "1" -- "0..*" Multa : tiene
 MultaPorDano "1" *-- "1..*" Dano : contiene
 
-' ========================================
-' EXCEPCIONES PERSONALIZADAS
-' ========================================
+' EXCEPCIONES 
+
 
 class BibliotecaException <<exception>> {
     -string mensaje
@@ -331,9 +311,8 @@ BibliotecaException <|-- LimiteExcedidoException
 BibliotecaException <|-- MaterialNoEncontradoException
 BibliotecaException <|-- OperacionNoPermitidaException
 
-' ========================================
-' INTERFACES DE SERVICIOS
-' ========================================
+
+' INTERFACES 
 
 interface IDisponibilidadService {
     +VerificarDisponibilidad(idMaterial : string) : bool
@@ -393,10 +372,7 @@ interface INotificacionService {
     +EnviarNotificacion(idUsuario : string, mensaje : string) : Resultado
 }
 
-' ========================================
-' STRATEGY PATTERN - CALCULADORES DE MULTA
-' CORRECCIÓN: Opción B - Strategy Pattern
-' ========================================
+' CALCULADORES DE MULTA
 
 interface ICalculadorMulta {
     +Calcular(contexto) : Multa
@@ -435,24 +411,7 @@ ICalculadorMulta <|.. CalculadorMultaPorDano
 ICalculadorMulta <|.. CalculadorMultaPorPerdida
 ICalculadorMulta <|.. CalculadorMultaAdministrativa
 
-note right of ICalculadorMulta
-  CORRECCIÓN:
-  Strategy Pattern para multas.
-  - Extensible (OCP)
-  - Cada calculador = 1 responsabilidad (SRP)
-  - Todos intercambiables (LSP)
-  
-  Agregar nueva multa:
-  1. Crear nueva clase
-  2. Implementar ICalculadorMulta
-  3. Registrar en GestorMultasService
-  
-  NO modificar código existente.
-end note
-
-' ========================================
 ' SERVICIO GESTOR DE MULTAS
-' ========================================
 
 class GestorMultasService <<service>> {
     -List<ICalculadorMulta> calculadores
@@ -470,10 +429,8 @@ note right of GestorMultasService
   4. Retorna la multa creada
 end note
 
-' ========================================
 ' SERVICIO CALCULADOR DE COSTO DE DAÑO
-' CORRECCIÓN 3: Dano NO calcula su costo
-' ========================================
+
 
 interface ICalculadorCostoDanoService {
     +CalcularCosto(dano : Dano) : decimal
@@ -491,18 +448,6 @@ ICalculadorCostoDanoService <|.. CalculadorCostoDanoService
 
 CalculadorMultaPorDano --> ICalculadorCostoDanoService : usa
 
-note left of CalculadorCostoDanoService
-  CORRECCIÓN 3:
-  Dano ahora es SOLO datos.
-  Este servicio calcula costos con:
-  Map<TipoDano, Map<NivelGravedad, decimal>>
-  
-  Ej: {PAGINAS_RASGADAS, GRAVE} → $10,000
-end note
-
-' ========================================
-' IMPLEMENTACIONES - OTROS SERVICIOS
-' ========================================
 
 class DisponibilidadStandardService <<service>> {
     -IRepositorio<Material> repoMaterial
@@ -594,9 +539,8 @@ class NotificacionEmailService <<service>> {
     +EnviarNotificacion(idUsuario : string, mensaje : string) : Resultado
 }
 
-' ========================================
 ' RELACIONES IMPLEMENTACIONES
-' ========================================
+
 
 IDisponibilidadService <|.. DisponibilidadStandardService
 ILimitePrestamoService <|.. LimitePorTipoUsuarioService
@@ -661,9 +605,7 @@ CalculadorMultaAdministrativa ..> MultaAdministrativa : crea
 
 InspeccionMaterialService ..> Evaluacion : retorna
 
-' ========================================
 ' REGLAS DE VALIDACIÓN
-' ========================================
 
 interface IReglaValidacion {
     +Validar(contexto) : ResultadoValidacion
@@ -693,9 +635,8 @@ IReglaValidacion <|.. ReglaLimiteNoExcedido
 ValidadorReglasService --> IReglaValidacion : usa lista
 ReglaLimiteNoExcedido --> ILimitePrestamoService : usa
 
-' ========================================
-' REPOSITORIO GENÉRICO
-' ========================================
+' REPOSITORIOS
+
 
 interface "IRepositorio<T>" as IRepositorio {
     +Agregar(entidad : T) : Resultado
@@ -716,8 +657,90 @@ class "RepositorioEnMemoria<T>" as RepositorioEnMemoria {
 IRepositorio <|.. RepositorioEnMemoria
 
 ' ========================================
-' OBJETOS DE VALOR Y RESULTADOS
+' REPOSITORIOS ESPECÍFICOS
 ' ========================================
+
+class RepositorioMaterialEnMemoria {
+    -Dictionary<string, Material> almacenamiento
+    +Agregar(entidad : Material) : Resultado
+    +Actualizar(entidad : Material) : Resultado
+    +Eliminar(id : string) : Resultado
+    +ObtenerPorId(id : string) : Material
+    +ObtenerTodos() : List<Material>
+    +Existe(id : string) : bool
+    +BuscarPorTitulo(titulo : string) : List<Material>
+    +BuscarPorAutor(autor : string) : List<Material>
+    +ObtenerDisponibles() : List<Material>
+}
+
+class RepositorioUsuarioEnMemoria {
+    -Dictionary<string, Usuario> almacenamiento
+    +Agregar(entidad : Usuario) : Resultado
+    +Actualizar(entidad : Usuario) : Resultado
+    +Eliminar(id : string) : Resultado
+    +ObtenerPorId(id : string) : Usuario
+    +ObtenerTodos() : List<Usuario>
+    +Existe(id : string) : bool
+    +BuscarPorEmail(email : string) : Usuario
+    +ObtenerActivos() : List<Usuario>
+    +ObtenerBloqueados() : List<Usuario>
+}
+
+class RepositorioPrestamoEnMemoria {
+    -Dictionary<string, Prestamo> almacenamiento
+    +Agregar(entidad : Prestamo) : Resultado
+    +Actualizar(entidad : Prestamo) : Resultado
+    +Eliminar(id : string) : Resultado
+    +ObtenerPorId(id : string) : Prestamo
+    +ObtenerTodos() : List<Prestamo>
+    +Existe(id : string) : bool
+    +ObtenerPrestamosActivos(idUsuario : string) : List<Prestamo>
+    +ObtenerPrestamosVencidos() : List<Prestamo>
+    +ObtenerHistorial(idUsuario : string) : List<Prestamo>
+    +ObtenerPorMaterial(idMaterial : string) : List<Prestamo>
+}
+
+class RepositorioReservaEnMemoria {
+    -Dictionary<string, Reserva> almacenamiento
+    +Agregar(entidad : Reserva) : Resultado
+    +Actualizar(entidad : Reserva) : Resultado
+    +Eliminar(id : string) : Resultado
+    +ObtenerPorId(id : string) : Reserva
+    +ObtenerTodos() : List<Reserva>
+    +Existe(id : string) : bool
+    +ObtenerReservasPorMaterial(idMaterial : string) : List<Reserva>
+    +ObtenerReservasPendientes(idUsuario : string) : List<Reserva>
+    +ObtenerSiguienteEnCola(idMaterial : string) : Reserva
+}
+
+class RepositorioMultaEnMemoria {
+    -Dictionary<string, Multa> almacenamiento
+    +Agregar(entidad : Multa) : Resultado
+    +Actualizar(entidad : Multa) : Resultado
+    +Eliminar(id : string) : Resultado
+    +ObtenerPorId(id : string) : Multa
+    +ObtenerTodos() : List<Multa>
+    +Existe(id : string) : bool
+    +ObtenerMultasPendientes(idUsuario : string) : List<Multa>
+    +CalcularTotalAdeudado(idUsuario : string) : decimal
+    +ObtenerPorPrestamo(idPrestamo : string) : List<Multa>
+}
+
+"IRepositorio<Material>" <|.. RepositorioMaterialEnMemoria
+"IRepositorio<Usuario>" <|.. RepositorioUsuarioEnMemoria
+"IRepositorio<Prestamo>" <|.. RepositorioPrestamoEnMemoria
+"IRepositorio<Reserva>" <|.. RepositorioReservaEnMemoria
+"IRepositorio<Multa>" <|.. RepositorioMultaEnMemoria
+
+note right of RepositorioMaterialEnMemoria
+  Repositorios específicos con
+  métodos adicionales especializados.
+  
+  Cada uno implementa IRepositorio<T>
+  y agrega consultas propias del dominio.
+end note
+
+' OBJETOS DE VALOR Y RESULTADOS
 
 class ResultadoValidacion {
     -bool esValido
@@ -759,14 +782,6 @@ class Dano {
 
 Evaluacion "1" *-- "0..*" Dano : contiene
 
-note right of Dano
-  CORRECCIÓN 3:
-  Dano ahora es SOLO datos.
-  - NO calcula su costo
-  CalculadorCostoDanoService
-  hace ese trabajo.
-end note
-
 class ContextoMulta {
     -string idPrestamo
     -string idMaterial
@@ -780,15 +795,8 @@ class ContextoMulta {
 
 GestorMultasService ..> ContextoMulta : recibe
 
-note left of ContextoMulta
-  Objeto que encapsula
-  todos los datos necesarios
-  para calcular cualquier multa.
-end note
+' ENUMS
 
-' ========================================
-' ENUMERACIONES
-' ========================================
 
 enum TipoMaterial {
     LIBRO_NORMAL
@@ -862,3 +870,4 @@ Dano --> TipoDano : clasifica
 ContextoMulta --> TipoMulta : especifica
 
 @enduml
+
