@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.biblioteca.dominio.entidades.Multa;
-import com.biblioteca.dominio.objetosValor.ContextoMulta;
+import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.servicios.interfaces.ICalculadorMulta;
 
 public class GestorMultasService {

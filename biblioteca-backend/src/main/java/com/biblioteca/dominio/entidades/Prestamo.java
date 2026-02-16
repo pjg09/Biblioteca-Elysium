@@ -38,4 +38,8 @@ public abstract class Prestamo extends Transaccion {
     public void incrementarRenovaciones() {
         this.renovacionesUsadas++;
     }
+
+    public void setFechaDevolucionEsperada(LocalDateTime nuevaFecha) {
+        this.fechaDevolucionEsperada = nuevaFecha;
+    }
 }

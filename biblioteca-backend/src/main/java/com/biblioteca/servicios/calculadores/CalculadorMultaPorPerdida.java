@@ -7,7 +7,7 @@ import com.biblioteca.dominio.entidades.Multa;
 import com.biblioteca.dominio.entidades.MultaPorPerdida;
 import com.biblioteca.dominio.entidades.Revista;
 import com.biblioteca.dominio.enumeraciones.TipoMulta;
-import com.biblioteca.dominio.objetosValor.ContextoMulta;
+import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.ICalculadorMulta;
 

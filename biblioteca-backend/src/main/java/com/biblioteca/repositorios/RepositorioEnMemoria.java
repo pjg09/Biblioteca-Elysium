@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.biblioteca.dominio.objetosValor.Resultado;
+import com.biblioteca.dominio.objetosvalor.Resultado;
 
 public class RepositorioEnMemoria<T> implements IRepositorio<T> {
     protected Map<String, T> almacenamiento;

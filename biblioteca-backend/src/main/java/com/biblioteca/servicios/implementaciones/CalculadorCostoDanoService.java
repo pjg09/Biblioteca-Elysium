@@ -2,7 +2,7 @@ package com.biblioteca.servicios.implementaciones;
 
 import com.biblioteca.dominio.enumeraciones.NivelGravedad;
 import com.biblioteca.dominio.enumeraciones.TipoDano;
-import com.biblioteca.dominio.objetosValor.Dano;
+import com.biblioteca.dominio.objetosvalor.Dano;
 import com.biblioteca.servicios.interfaces.ICalculadorCostoDanoService;
 import java.util.HashMap;
 import java.util.List;

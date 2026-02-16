@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.objetosValor;
+package com.biblioteca.dominio.objetosvalor;
 
 import com.biblioteca.dominio.enumeraciones.NivelGravedad;
 import com.biblioteca.dominio.enumeraciones.TipoDano;

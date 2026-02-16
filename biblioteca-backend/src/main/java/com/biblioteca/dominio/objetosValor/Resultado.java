@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.objetosValor;
+package com.biblioteca.dominio.objetosvalor;
 
 public class Resultado {
     private boolean exito;

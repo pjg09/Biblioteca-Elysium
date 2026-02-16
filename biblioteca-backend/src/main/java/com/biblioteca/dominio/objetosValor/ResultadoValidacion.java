@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.objetosValor;
+package com.biblioteca.dominio.objetosvalor;
 
 import java.util.ArrayList;
 import java.util.List;
