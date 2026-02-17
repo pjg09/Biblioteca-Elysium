@@ -1,15 +1,11 @@
 @startuml Sistema_Biblioteca_SOLID_FINAL
 
-'ESTILOS Y CONFIGURACIÓN DE SEPARACIÓN
+'ESTILOS
+
 
 skinparam classAttributeIconSize 0
 skinparam roundcorner 10
 skinparam shadowing false
-
-' CONFIGURACIONES PARA MEJORAR SEPARACIÓN
-skinparam ranksep 80
-skinparam nodesep 60
-skinparam linetype ortho
 
 skinparam class {
     BackgroundColor<<abstract>> LightYellow
@@ -244,11 +240,11 @@ Multa <|-- MultaPorPerdida
 
 ' RELACIONES  
 
-Usuario "1" -right- "0..*" Transaccion : realiza
-Material "1" -left- "0..*" Transaccion : involucrado
-Prestamo "1" -down- "0..*" Multa : genera
-Usuario "1" -down- "0..*" Multa : tiene
-MultaPorDano "1" *-down- "1..*" Dano : contiene
+Usuario "1" -- "0..*" Transaccion : realiza
+Material "1" -- "0..*" Transaccion : involucrado
+Prestamo "1" -- "0..*" Multa : genera
+Usuario "1" -- "0..*" Multa : tiene
+MultaPorDano "1" *-- "1..*" Dano : contiene
 
 ' EXCEPCIONES 
 
@@ -322,31 +318,34 @@ interface IValidadorReglasService {
 
 interface IPoliticaTiempoService {
     +CalcularDiasPrestamo(tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : int
-    +ObtenerMaximoRenovaciones(tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : int
+    +ObtenerFechaDevolucion(fechaPrestamo : DateTime, tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : DateTime
 }
 
 interface IGestorBloqueoService {
-    +VerificarBloqueo(idUsuario : string) : ResultadoValidacion
+    +VerificarSiDebeBloquear(idUsuario : string) : ResultadoValidacion
     +BloquearUsuario(idUsuario : string, motivo : string) : Resultado
     +DesbloquearUsuario(idUsuario : string) : Resultado
 }
 
-interface IRenovacionService {
-    +RenovarPrestamo(idPrestamo : string) : ResultadoValidacion
-}
-
 interface IReservaService {
-    +CrearReserva(idUsuario : string, idMaterial : string) : Resultado
+    +CrearReserva(idUsuario : string, idMaterial : string, tipoReserva : string) : Resultado
     +CancelarReserva(idReserva : string) : Resultado
     +NotificarDisponibilidad(idReserva : string) : Resultado
 }
 
+interface IRenovacionService {
+    +ValidarRenovacion(idPrestamo : string) : ResultadoValidacion
+    +RenovarPrestamo(idPrestamo : string) : Resultado
+    +ObtenerRenovacionesDisponibles(idPrestamo : string, tipoUsuario : TipoUsuario) : int
+}
+
 interface IPrestamoService {
-    +CrearPrestamo(idUsuario : string, idMaterial : string) : Resultado
+    +RegistrarPrestamo(idUsuario : string, idMaterial : string, tipoPrestamo : string) : Resultado
+    +ObtenerPrestamosActivos(idUsuario : string) : List<Prestamo>
 }
 
 interface IDevolucionService {
-    +ProcesarDevolucion(idPrestamo : string) : Resultado
+    +RegistrarDevolucion(idPrestamo : string, evaluacion : Evaluacion) : Resultado
 }
 
 interface IInspeccionMaterialService {
@@ -354,29 +353,88 @@ interface IInspeccionMaterialService {
 }
 
 interface INotificacionService {
-    +EnviarNotificacion(destinatario : string, mensaje : string, tipo : TipoNotificacion) : Resultado
+    +EnviarNotificacion(idUsuario : string, mensaje : string) : Resultado
 }
 
+' CALCULADORES DE MULTA
+
 interface ICalculadorMulta {
+    +Calcular(contexto) : Multa
+    +PuedeCalcular(contexto) : bool
+}
+
+class CalculadorMultaPorRetraso <<service>> {
+    -RepositorioPrestamoEnMemoria repoPrestamo
+    -Map<TipoMaterial, decimal> tarifasPorTipo
+    +Calcular(contexto) : Multa
+    +PuedeCalcular(contexto) : bool
+    -CalcularDiasRetraso(prestamo : Prestamo, fechaActual : DateTime) : int
+    -ObtenerTarifa(tipoMaterial : TipoMaterial) : decimal
+}
+
+class CalculadorMultaPorDano <<service>> {
+    -ICalculadorCostoDanoService calculadorCosto
+    +Calcular(contexto) : Multa
+    +PuedeCalcular(contexto) : bool
+}
+
+class CalculadorMultaPorPerdida <<service>> {
+    -RepositorioMaterialEnMemoria repoMaterial
+    -decimal PORCENTAJE_RECARGO
+    +Calcular(contexto) : Multa
+    +PuedeCalcular(contexto) : bool
+}
+
+
+
+ICalculadorMulta <|.. CalculadorMultaPorRetraso
+ICalculadorMulta <|.. CalculadorMultaPorDano
+ICalculadorMulta <|.. CalculadorMultaPorPerdida
+
+' SERVICIO GESTOR DE MULTAS
+
+class GestorMultasService <<service>> {
+    -List<ICalculadorMulta> calculadores
+    +RegistrarCalculador(calculador : ICalculadorMulta)
     +CalcularMulta(contexto : ContextoMulta) : Multa
 }
 
-' SERVICIOS
+GestorMultasService --> ICalculadorMulta : usa lista de
+
+' SERVICIO CALCULADOR DE COSTO DE DAÑO
+
+
+interface ICalculadorCostoDanoService {
+    +CalcularCosto(dano : Dano) : decimal
+    +CalcularCostoTotal(danos : List<Dano>) : decimal
+}
+
+class CalculadorCostoDanoService <<service>> {
+    -Map<TipoDano, Map<NivelGravedad, decimal>> tarifas
+    +CalcularCosto(dano : Dano) : decimal
+    +CalcularCostoTotal(danos : List<Dano>) : decimal
+    -ObtenerTarifa(tipo : TipoDano, gravedad : NivelGravedad) : decimal
+}
+
+ICalculadorCostoDanoService <|.. CalculadorCostoDanoService
+
+CalculadorMultaPorDano --> ICalculadorCostoDanoService : usa
+
 
 class DisponibilidadStandardService <<service>> {
     -RepositorioMaterialEnMemoria repoMaterial
     -RepositorioPrestamoEnMemoria repoPrestamo
+    -Set<TipoMaterial> materialesNoPrestables
     +VerificarDisponibilidad(idMaterial : string) : bool
-    +ObtenerEstadoActual(idMaterial : string) : EstadoMaterial
     +MaterialEsPrestable(idMaterial : string, tipoMaterial : TipoMaterial) : bool
 }
 
 class LimitePorTipoUsuarioService <<service>> {
     -RepositorioUsuarioEnMemoria repoUsuario
     -RepositorioPrestamoEnMemoria repoPrestamo
+    -Map<TipoUsuario, int> limitesPorTipo
     +ValidarLimite(idUsuario : string, tipoUsuario : TipoUsuario) : ResultadoValidacion
     +ObtenerLimiteMaximo(tipoUsuario : TipoUsuario) : int
-    +CantidadActualPrestada(idUsuario : string) : int
 }
 
 class ValidadorReglasService <<service>> {
@@ -385,64 +443,64 @@ class ValidadorReglasService <<service>> {
     -IGestorBloqueoService bloqueoService
     -RepositorioUsuarioEnMemoria repoUsuario
     -RepositorioMaterialEnMemoria repoMaterial
+    -List<IReglaValidacion> reglas
     +ValidarPrestamo(idUsuario : string, idMaterial : string) : ResultadoValidacion
-    +ValidarReserva(idUsuario : string, idMaterial : string) : ResultadoValidacion
-    +ValidarRenovacion(idPrestamo : string) : ResultadoValidacion
 }
 
 class PoliticaTiempoPorTipoService <<service>> {
+    -Map<TipoMaterial, Map<TipoUsuario, int>> politicas
     +CalcularDiasPrestamo(tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : int
-    +ObtenerMaximoRenovaciones(tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : int
+    +ObtenerFechaDevolucion(fechaPrestamo : DateTime, tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : DateTime
 }
 
 class GestorBloqueoService <<service>> {
     -RepositorioUsuarioEnMemoria repoUsuario
     -RepositorioMultaEnMemoria repoMulta
-    +VerificarBloqueo(idUsuario : string) : ResultadoValidacion
+    -decimal UMBRAL_BLOQUEO
+    +VerificarSiDebeBloquear(idUsuario : string) : ResultadoValidacion
     +BloquearUsuario(idUsuario : string, motivo : string) : Resultado
-    +DesbloquearUsuario(idUsuario : string) : Resultado
 }
 
 class RenovacionService <<service>> {
-    -IValidadorReglasService validador
-    -IPoliticaTiempoService politicaTiempo
     -RepositorioPrestamoEnMemoria repoPrestamo
     -RepositorioReservaEnMemoria repoReserva
-    +RenovarPrestamo(idPrestamo : string) : ResultadoValidacion
+    -IValidadorReglasService validador
+    -IPoliticaTiempoService politicaTiempo
+    -Map<TipoUsuario, int> maximoRenovaciones
+    +ValidarRenovacion(idPrestamo : string) : ResultadoValidacion
+    +RenovarPrestamo(idPrestamo : string) : Resultado
 }
 
 class ReservaService <<service>> {
-    -IDisponibilidadService disponibilidadService
-    -IValidadorReglasService validador
-    -INotificacionService notificacionService
     -RepositorioReservaEnMemoria repoReserva
     -RepositorioMaterialEnMemoria repoMaterial
-    +CrearReserva(idUsuario : string, idMaterial : string) : Resultado
-    +CancelarReserva(idReserva : string) : Resultado
-    +NotificarDisponibilidad(idReserva : string) : Resultado
+    -IDisponibilidadService disponibilidad
+    -IValidadorReglasService validador
+    -INotificacionService notificador
+    +CrearReserva(idUsuario : string, idMaterial : string, tipoReserva : string) : Resultado
 }
 
 class PrestamoService <<service>> {
     -IValidadorReglasService validador
-    -IDisponibilidadService disponibilidadService
+    -IDisponibilidadService disponibilidad
     -IPoliticaTiempoService politicaTiempo
-    -INotificacionService notificacionService
     -RepositorioPrestamoEnMemoria repoPrestamo
     -RepositorioMaterialEnMemoria repoMaterial
     -RepositorioUsuarioEnMemoria repoUsuario
-    +CrearPrestamo(idUsuario : string, idMaterial : string) : Resultado
+    -INotificacionService notificador
+    +RegistrarPrestamo(idUsuario : string, idMaterial : string, tipoPrestamo : string) : Resultado
 }
 
 class DevolucionService <<service>> {
-    -IInspeccionMaterialService inspeccionService
+    -IInspeccionMaterialService inspeccion
     -GestorMultasService gestorMultas
-    -IReservaService reservaService
-    -INotificacionService notificacionService
-    -IGestorBloqueoService bloqueoService
     -RepositorioPrestamoEnMemoria repoPrestamo
     -RepositorioMaterialEnMemoria repoMaterial
     -RepositorioUsuarioEnMemoria repoUsuario
-    +ProcesarDevolucion(idPrestamo : string) : Resultado
+    -IReservaService reservas
+    -INotificacionService notificador
+    -IGestorBloqueoService gestorBloqueo
+    +RegistrarDevolucion(idPrestamo : string, evaluacion : Evaluacion) : Resultado
 }
 
 class InspeccionMaterialService <<service>> {
@@ -451,33 +509,12 @@ class InspeccionMaterialService <<service>> {
 }
 
 class NotificacionEmailService <<service>> {
-    +EnviarNotificacion(destinatario : string, mensaje : string, tipo : TipoNotificacion) : Resultado
+    -string servidorSMTP
+    +EnviarNotificacion(idUsuario : string, mensaje : string) : Resultado
 }
 
-class CalculadorMultaPorRetraso <<service>> {
-    -RepositorioPrestamoEnMemoria repoPrestamo
-    +CalcularMulta(contexto : ContextoMulta) : MultaPorRetraso
-}
+' RELACIONES IMPLEMENTACIONES
 
-class CalculadorMultaPorDano <<service>> {
-    -RepositorioMaterialEnMemoria repoMaterial
-    +CalcularMulta(contexto : ContextoMulta) : MultaPorDano
-}
-
-class CalculadorMultaPorPerdida <<service>> {
-    -RepositorioMaterialEnMemoria repoMaterial
-    +CalcularMulta(contexto : ContextoMulta) : MultaPorPerdida
-}
-
-class GestorMultasService <<service>> {
-    -ICalculadorMulta calculadorRetraso
-    -ICalculadorMulta calculadorDano
-    -ICalculadorMulta calculadorPerdida
-    +GenerarMulta(contexto : ContextoMulta) : Multa
-    +ObtenerCalculador(tipoMulta : TipoMulta) : ICalculadorMulta
-}
-
-' IMPLEMENTACIONES DE INTERFACES
 
 IDisponibilidadService <|.. DisponibilidadStandardService
 ILimitePrestamoService <|.. LimitePorTipoUsuarioService
@@ -491,114 +528,110 @@ IDevolucionService <|.. DevolucionService
 IInspeccionMaterialService <|.. InspeccionMaterialService
 INotificacionService <|.. NotificacionEmailService
 
-' ========================================
-' RELACIONES ENTRE SERVICIOS
-' ========================================
+ValidadorReglasService --> ILimitePrestamoService : usa
+ValidadorReglasService --> IDisponibilidadService : usa
+ValidadorReglasService --> IGestorBloqueoService : usa
 
-ValidadorReglasService -right-> ILimitePrestamoService : usa
-ValidadorReglasService -right-> IDisponibilidadService : usa
-ValidadorReglasService -right-> IGestorBloqueoService : usa
+RenovacionService --> IValidadorReglasService : usa
+RenovacionService --> IPoliticaTiempoService : usa
 
-RenovacionService -right-> IValidadorReglasService : usa
-RenovacionService -right-> IPoliticaTiempoService : usa
+ReservaService --> IDisponibilidadService : usa
+ReservaService --> IValidadorReglasService : usa
+ReservaService --> INotificacionService : usa
 
-ReservaService -right-> IDisponibilidadService : usa
-ReservaService -right-> IValidadorReglasService : usa
-ReservaService -right-> INotificacionService : usa
+PrestamoService --> IValidadorReglasService : usa
+PrestamoService --> IDisponibilidadService : usa
+PrestamoService --> IPoliticaTiempoService : usa
+PrestamoService --> INotificacionService : usa
 
-PrestamoService -right-> IValidadorReglasService : usa
-PrestamoService -right-> IDisponibilidadService : usa
-PrestamoService -right-> IPoliticaTiempoService : usa
-PrestamoService -right-> INotificacionService : usa
-
-DevolucionService -right-> IInspeccionMaterialService : usa
-DevolucionService -right-> GestorMultasService : usa
-DevolucionService -right-> IReservaService : usa
-DevolucionService -right-> INotificacionService : usa
-DevolucionService -right-> IGestorBloqueoService : usa
+DevolucionService --> IInspeccionMaterialService : usa
+DevolucionService --> GestorMultasService : usa
+DevolucionService --> IReservaService : usa
+DevolucionService --> INotificacionService : usa
+DevolucionService --> IGestorBloqueoService : usa
 
 ' ========================================
 ' RELACIONES SERVICIOS → REPOSITORIOS
 ' ========================================
 
-DisponibilidadStandardService -down-> RepositorioMaterialEnMemoria : usa
-DisponibilidadStandardService -down-> RepositorioPrestamoEnMemoria : usa
+DisponibilidadStandardService --> RepositorioMaterialEnMemoria : usa
+DisponibilidadStandardService --> RepositorioPrestamoEnMemoria : usa
 
-LimitePorTipoUsuarioService -down-> RepositorioUsuarioEnMemoria : usa
-LimitePorTipoUsuarioService -down-> RepositorioPrestamoEnMemoria : usa
+LimitePorTipoUsuarioService --> RepositorioUsuarioEnMemoria : usa
+LimitePorTipoUsuarioService --> RepositorioPrestamoEnMemoria : usa
 
-ValidadorReglasService -down-> RepositorioUsuarioEnMemoria : usa
-ValidadorReglasService -down-> RepositorioMaterialEnMemoria : usa
+ValidadorReglasService --> RepositorioUsuarioEnMemoria : usa
+ValidadorReglasService --> RepositorioMaterialEnMemoria : usa
 
-GestorBloqueoService -down-> RepositorioUsuarioEnMemoria : usa
-GestorBloqueoService -down-> RepositorioMultaEnMemoria : usa
+GestorBloqueoService --> RepositorioUsuarioEnMemoria : usa
+GestorBloqueoService --> RepositorioMultaEnMemoria : usa
 
-RenovacionService -down-> RepositorioPrestamoEnMemoria : usa
-RenovacionService -down-> RepositorioReservaEnMemoria : usa
+RenovacionService --> RepositorioPrestamoEnMemoria : usa
+RenovacionService --> RepositorioReservaEnMemoria : usa
 
-ReservaService -down-> RepositorioReservaEnMemoria : usa
-ReservaService -down-> RepositorioMaterialEnMemoria : usa
+ReservaService --> RepositorioReservaEnMemoria : usa
+ReservaService --> RepositorioMaterialEnMemoria : usa
 
-PrestamoService -down-> RepositorioPrestamoEnMemoria : usa
-PrestamoService -down-> RepositorioMaterialEnMemoria : usa
-PrestamoService -down-> RepositorioUsuarioEnMemoria : usa
+PrestamoService --> RepositorioPrestamoEnMemoria : usa
+PrestamoService --> RepositorioMaterialEnMemoria : usa
+PrestamoService --> RepositorioUsuarioEnMemoria : usa
 
-DevolucionService -down-> RepositorioPrestamoEnMemoria : usa
-DevolucionService -down-> RepositorioMaterialEnMemoria : usa
-DevolucionService -down-> RepositorioUsuarioEnMemoria : usa
+DevolucionService --> RepositorioPrestamoEnMemoria : usa
+DevolucionService --> RepositorioMaterialEnMemoria : usa
+DevolucionService --> RepositorioUsuarioEnMemoria : usa
 
-InspeccionMaterialService -down-> RepositorioMaterialEnMemoria : usa
+InspeccionMaterialService --> RepositorioMaterialEnMemoria : usa
 
-CalculadorMultaPorRetraso -down-> RepositorioPrestamoEnMemoria : usa
-CalculadorMultaPorDano -down-> RepositorioMaterialEnMemoria : usa
-CalculadorMultaPorPerdida -down-> RepositorioMaterialEnMemoria : usa
+CalculadorMultaPorRetraso --> RepositorioPrestamoEnMemoria : usa
+CalculadorMultaPorDano --> RepositorioMaterialEnMemoria : usa
+CalculadorMultaPorPerdida --> RepositorioMaterialEnMemoria : usa
 
 ' ========================================
 ' USO DE ENUMS DE ESTADOS
 ' ========================================
 
-Material -down-> EstadoMaterial : usa estado
-Usuario -down-> EstadoUsuario : usa estado
-Transaccion -down-> EstadoTransaccion : usa estado
-Multa -down-> EstadoMulta : usa estado
+Material --> EstadoMaterial : usa estado
+Usuario --> EstadoUsuario : usa estado
+Transaccion --> EstadoTransaccion : usa estado
+Multa --> EstadoMulta : usa estado
 
-DisponibilidadStandardService .down.> EstadoMaterial : lee/modifica
-PrestamoService .down.> EstadoMaterial : modifica
-DevolucionService .down.> EstadoMaterial : modifica
+DisponibilidadStandardService ..> EstadoMaterial : lee/modifica
+PrestamoService ..> EstadoMaterial : modifica
+DevolucionService ..> EstadoMaterial : modifica
 
-GestorBloqueoService .down.> EstadoUsuario : modifica
-ValidadorReglasService .down.> EstadoUsuario : verifica
+GestorBloqueoService ..> EstadoUsuario : modifica
+ValidadorReglasService ..> EstadoUsuario : verifica
 
-PrestamoService .down.> EstadoTransaccion : establece
-DevolucionService .down.> EstadoTransaccion : modifica
-ReservaService .down.> EstadoTransaccion : establece
+PrestamoService ..> EstadoTransaccion : establece
+DevolucionService ..> EstadoTransaccion : modifica
+ReservaService ..> EstadoTransaccion : establece
 
-CalculadorMultaPorRetraso .down.> EstadoMulta : establece
-DevolucionService .down.> EstadoMulta : verifica
+CalculadorMultaPorRetraso ..> EstadoMulta : establece
+DevolucionService ..> EstadoMulta : verifica
 
 ' ========================================
 ' RELACIONES CON TIPOS (ENUMS)
 ' ========================================
 
-DisponibilidadStandardService .right.> TipoMaterial : lee tipo
-LimitePorTipoUsuarioService .right.> TipoUsuario : lee tipo
-PoliticaTiempoPorTipoService .right.> TipoMaterial : lee tipo
-PoliticaTiempoPorTipoService .right.> TipoUsuario : lee tipo
-CalculadorMultaPorRetraso .right.> TipoMaterial : lee tipo
+DisponibilidadStandardService ..> TipoMaterial : lee tipo
+LimitePorTipoUsuarioService ..> TipoUsuario : lee tipo
+PoliticaTiempoPorTipoService ..> TipoMaterial : lee tipo
+PoliticaTiempoPorTipoService ..> TipoUsuario : lee tipo
+CalculadorMultaPorRetraso ..> TipoMaterial : lee tipo
 
 ' ========================================
 ' EXCEPCIONES LANZADAS
 ' ========================================
 
-DisponibilidadStandardService .left.> MaterialNoDisponibleException : lanza
-RepositorioMaterialEnMemoria .left.> MaterialNoEncontradoException : lanza
-RepositorioUsuarioEnMemoria .left.> MaterialNoEncontradoException : lanza
-RepositorioPrestamoEnMemoria .left.> MaterialNoEncontradoException : lanza
-RepositorioReservaEnMemoria .left.> MaterialNoEncontradoException : lanza
-RepositorioMultaEnMemoria .left.> MaterialNoEncontradoException : lanza
-LimitePorTipoUsuarioService .left.> LimiteExcedidoException : lanza
-GestorBloqueoService .left.> UsuarioBloqueadoException : lanza
-RenovacionService .left.> OperacionNoPermitidaException : lanza
+DisponibilidadStandardService ..> MaterialNoDisponibleException : lanza
+RepositorioMaterialEnMemoria ..> MaterialNoEncontradoException : lanza
+RepositorioUsuarioEnMemoria ..> MaterialNoEncontradoException : lanza
+RepositorioPrestamoEnMemoria ..> MaterialNoEncontradoException : lanza
+RepositorioReservaEnMemoria ..> MaterialNoEncontradoException : lanza
+RepositorioMultaEnMemoria ..> MaterialNoEncontradoException : lanza
+LimitePorTipoUsuarioService ..> LimiteExcedidoException : lanza
+GestorBloqueoService ..> UsuarioBloqueadoException : lanza
+RenovacionService ..> OperacionNoPermitidaException : lanza
 
 note left of MaterialNoEncontradoException
   Lanzada por todos los repositorios
@@ -606,22 +639,22 @@ note left of MaterialNoEncontradoException
   y no existe.
 end note
 
-LimitePorTipoUsuarioService .up.> ResultadoValidacion : retorna
-ValidadorReglasService .up.> ResultadoValidacion : retorna
-GestorBloqueoService .up.> ResultadoValidacion : retorna
-RenovacionService .up.> ResultadoValidacion : retorna
+LimitePorTipoUsuarioService ..> ResultadoValidacion : retorna
+ValidadorReglasService ..> ResultadoValidacion : retorna
+GestorBloqueoService ..> ResultadoValidacion : retorna
+RenovacionService ..> ResultadoValidacion : retorna
 
-PrestamoService .up.> Resultado : retorna
-DevolucionService .up.> Resultado : retorna
-ReservaService .up.> Resultado : retorna
-RenovacionService .up.> Resultado : retorna
-NotificacionEmailService .up.> Resultado : retorna
+PrestamoService ..> Resultado : retorna
+DevolucionService ..> Resultado : retorna
+ReservaService ..> Resultado : retorna
+RenovacionService ..> Resultado : retorna
+NotificacionEmailService ..> Resultado : retorna
 
-CalculadorMultaPorRetraso .up.> MultaPorRetraso : crea
-CalculadorMultaPorDano .up.> MultaPorDano : crea
-CalculadorMultaPorPerdida .up.> MultaPorPerdida : crea
+CalculadorMultaPorRetraso ..> MultaPorRetraso : crea
+CalculadorMultaPorDano ..> MultaPorDano : crea
+CalculadorMultaPorPerdida ..> MultaPorPerdida : crea
 
-InspeccionMaterialService .up.> Evaluacion : retorna
+InspeccionMaterialService ..> Evaluacion : retorna
 
 ' REGLAS DE VALIDACIÓN
 
@@ -650,8 +683,8 @@ IReglaValidacion <|.. ReglaUsuarioActivo
 IReglaValidacion <|.. ReglaMaterialDisponible
 IReglaValidacion <|.. ReglaLimiteNoExcedido
 
-ValidadorReglasService -down-> IReglaValidacion : usa lista
-ReglaLimiteNoExcedido -right-> ILimitePrestamoService : usa
+ValidadorReglasService --> IReglaValidacion : usa lista
+ReglaLimiteNoExcedido --> ILimitePrestamoService : usa
 
 ' REPOSITORIOS
 
@@ -792,7 +825,7 @@ class Dano {
     +GetTipo() : TipoDano
 }
 
-Evaluacion "1" *-down- "0..*" Dano : contiene
+Evaluacion "1" *-- "0..*" Dano : contiene
 
 class ContextoMulta {
     -string idPrestamo
@@ -805,7 +838,7 @@ class ContextoMulta {
     +GetTipoMulta() : TipoMulta
 }
 
-GestorMultasService .down.> ContextoMulta : recibe
+GestorMultasService ..> ContextoMulta : recibe
 
 ' ENUMS
 
@@ -874,10 +907,11 @@ enum TipoDano {
     NO_FUNCIONAL
 }
 
-Material -down-> TipoMaterial : tiene
-Usuario -down-> TipoUsuario : tiene
-Dano -down-> NivelGravedad : tiene
-Dano -down-> TipoDano : clasifica
-ContextoMulta -down-> TipoMulta : especifica
+Material --> TipoMaterial : tiene
+Usuario --> TipoUsuario : tiene
+Dano --> NivelGravedad : tiene
+Dano --> TipoDano : clasifica
+ContextoMulta --> TipoMulta : especifica
 
 @enduml
+
