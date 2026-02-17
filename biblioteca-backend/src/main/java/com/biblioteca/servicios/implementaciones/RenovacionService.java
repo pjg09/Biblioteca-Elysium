@@ -18,13 +18,7 @@ import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IPoliticaTiempoService;
 import com.biblioteca.servicios.interfaces.IRenovacionService;
 
-/**
- * Implementación del servicio de renovaciones.
- * 
- * Respeta SRP: Solo maneja lógica de renovación de préstamos.
- * Respeta OCP: Límites de renovaciones configurables por tipo de usuario.
- * Respeta DIP: Depende de abstracciones (interfaces).
- */
+
 public class RenovacionService implements IRenovacionService {
     
     private final IRepositorio<Prestamo> repositorioPrestamo;

@@ -17,15 +17,7 @@ import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 
-/**
- * Implementación del servicio de gestión de bloqueos.
- * 
- * Decide cuándo bloquear/desbloquear usuarios según reglas de negocio.
- * 
- * Respeta SRP: Solo maneja lógica de bloqueos.
- * Respeta OCP: Umbrales y reglas configurables.
- * Respeta DIP: Depende de abstracciones (IRepositorio).
- */
+
 public class GestorBloqueoService implements IGestorBloqueoService {
     
     private final IRepositorio<Usuario> repositorioUsuario;
@@ -224,6 +216,9 @@ public class GestorBloqueoService implements IGestorBloqueoService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    public BigDecimal obtenerTotalMultasPendientes(String idUsuario) {
+    return calcularTotalMultasPendientes(idUsuario);
+}
     /**
      * Cuenta cuántas multas pendientes tiene un usuario.
      */

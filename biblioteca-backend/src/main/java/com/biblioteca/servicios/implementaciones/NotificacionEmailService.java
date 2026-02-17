@@ -3,24 +3,22 @@ package com.biblioteca.servicios.implementaciones;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.servicios.interfaces.INotificacionService;
 
-/**
- * Implementación simple de notificaciones (simulación por consola).
- * En producción, esto se conectaría a un servidor SMTP real.
- * 
- * Respeta SRP: Solo envía notificaciones.
- */
 public class NotificacionEmailService implements INotificacionService {
     
     private final String servidorSMTP;
 
+    // Constructor con parámetro
     public NotificacionEmailService(String servidorSMTP) {
         this.servidorSMTP = servidorSMTP != null ? servidorSMTP : "smtp.biblioteca.com";
+    }
+    
+    public NotificacionEmailService() {
+        this.servidorSMTP = "smtp.biblioteca.com";
     }
 
     @Override
     public Resultado enviarNotificacion(String idUsuario, String mensaje) {
         try {
-            // Simulación de envío de email
             System.out.println("===========================================");
             System.out.println("📧 NOTIFICACIÓN ENVIADA");
             System.out.println("Servidor SMTP: " + servidorSMTP);
