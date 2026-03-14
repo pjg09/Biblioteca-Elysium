@@ -68,8 +68,8 @@ public class DevolucionService implements IDevolucionService {
             }
             
             // 2. Obtener material y usuario
-            Material material = repoMaterial.obtenerPorId(prestamo.getIdMaterial());
-            Usuario usuario = repoUsuario.obtenerPorId(prestamo.getIdUsuario());
+            Material material = repoMaterial.obtenerPorId(prestamo.getIdMaterial().getValor());
+            Usuario usuario = repoUsuario.obtenerPorId(prestamo.getIdUsuario().getValor());
             
             if (material == null) {
                 return Resultado.Fallido("Material no encontrado");
@@ -89,8 +89,8 @@ public class DevolucionService implements IDevolucionService {
             if (fechaDevolucion.isAfter(prestamo.getFechaDevolucionEsperada())) {
                 ContextoMulta contextoRetraso = new ContextoMulta.Builder()
                     .conPrestamo(idPrestamo)
-                    .conUsuario(usuario.getId())
-                    .conMaterial(material.getId())
+                    .conUsuario(usuario.getId().getValor())
+                    .conMaterial(material.getId().getValor())
                     .conFechaActual(fechaDevolucion)
                     .deTipo(TipoMulta.POR_RETRASO)
                     .build();
@@ -110,8 +110,8 @@ public class DevolucionService implements IDevolucionService {
                 if (!evaluacion.esUsable() && evaluacion.tieneDanos()) {
                     ContextoMulta contextoDano = new ContextoMulta.Builder()
                         .conPrestamo(idPrestamo)
-                        .conUsuario(usuario.getId())
-                        .conMaterial(material.getId())
+                        .conUsuario(usuario.getId().getValor())
+                        .conMaterial(material.getId().getValor())
                         .conEvaluacion(evaluacion)
                         .deTipo(TipoMulta.POR_DANO)
                         .build();
@@ -128,21 +128,21 @@ public class DevolucionService implements IDevolucionService {
                 
                 // Actualizar estado del material según evaluación
                 if (evaluacion.esUsable()) {
-                    material.setEstado(EstadoMaterial.DISPONIBLE);
+                    material.marcarComoDisponible();
                 } else {
-                    material.setEstado(EstadoMaterial.EN_REPARACION);
+                    material.marcarComoEnReparacion("Daños detectados en inspección");
                 }
             } else {
-                material.setEstado(EstadoMaterial.DISPONIBLE);
+                material.marcarComoDisponible();
             }
             
             repoMaterial.actualizar(material);
             
             // 6. Verificar si debe bloquearse por multas
             if (totalMultasCalculado > 0) {
-                double totalMultasUsuario = calcularTotalMultasPendientes(usuario.getId());
+                double totalMultasUsuario = calcularTotalMultasPendientes(usuario.getId().getValor());
                 if (totalMultasUsuario >= 50000) {
-                    gestorBloqueo.bloquearUsuario(usuario.getId(), 
+                    gestorBloqueo.bloquearUsuario(usuario.getId().getValor(), 
                         "Bloqueado por multas pendientes: $" + totalMultasUsuario);
                 }
             }
@@ -154,7 +154,7 @@ public class DevolucionService implements IDevolucionService {
                 mensajeMultas.toString(), 
                 totalMultasCalculado // ✅ Usar la variable con otro nombre
             );
-            notificador.enviarNotificacion(usuario.getId(), mensajeUsuario);
+            notificador.enviarNotificacion(usuario.getId().getValor(), mensajeUsuario);
             
             // 8. Preparar resultado - usando nombres diferentes para evitar self-reference
             final double totalMultasFinal = totalMultasCalculado; // ✅ Variable final para el objeto anónimo
@@ -189,7 +189,7 @@ public class DevolucionService implements IDevolucionService {
             return Resultado.Fallido("Préstamo no encontrado");
         }
         
-        Evaluacion evaluacion = inspeccion.inspeccionarMaterial(prestamo.getIdMaterial());
+        Evaluacion evaluacion = inspeccion.inspeccionarMaterial(prestamo.getIdMaterial().getValor());
         return registrarDevolucion(idPrestamo, evaluacion);
     }
     

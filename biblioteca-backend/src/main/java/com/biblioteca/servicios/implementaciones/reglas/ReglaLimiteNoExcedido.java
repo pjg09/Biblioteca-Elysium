@@ -22,7 +22,7 @@ public class ReglaLimiteNoExcedido implements IReglaValidacion {
         
         Usuario usuario = contexto.getUsuario();
         
-        return limiteService.validarLimite(usuario.getId(), usuario.getTipo());
+        return limiteService.validarLimite(usuario.getId().getValor(), usuario.getTipo());
     }
     
     @Override

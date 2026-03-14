@@ -1,6 +1,7 @@
 package com.biblioteca.dominio.entidades;
 
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
+import com.biblioteca.dominio.objetosvalor.IdMaterial;
 
 public class Libro extends Material {
     private String isbn;
@@ -8,7 +9,7 @@ public class Libro extends Material {
     private boolean esBestSeller;
     private boolean esReferencia;
     
-    public Libro(String id, String titulo, String autor, String isbn, 
+    public Libro(IdMaterial id, String titulo, String autor, String isbn, 
                  int numeroPaginas, boolean esBestSeller, boolean esReferencia) {
         super(id, titulo, autor, determinarTipo(esBestSeller, esReferencia));
         this.isbn = isbn;

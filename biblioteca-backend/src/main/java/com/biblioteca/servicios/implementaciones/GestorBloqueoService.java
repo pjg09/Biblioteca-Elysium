@@ -133,7 +133,13 @@ public class GestorBloqueoService implements IGestorBloqueoService {
             }
 
             // Bloquear
-            usuario.setEstado(nuevoEstado);
+            if (nuevoEstado == EstadoUsuario.BLOQUEADO_MULTA) {
+                usuario.bloquearPorMulta();
+            } else if (nuevoEstado == EstadoUsuario.BLOQUEADO_PERDIDA) {
+                usuario.bloquearPorPerdida();
+            } else {
+                usuario.suspender();
+            }
             Resultado resultadoActualizacion = repositorioUsuario.actualizar(usuario);
             
             if (!resultadoActualizacion.getExito()) {
@@ -176,7 +182,7 @@ public class GestorBloqueoService implements IGestorBloqueoService {
             }
 
             // Desbloquear
-            usuario.setEstado(EstadoUsuario.ACTIVO);
+            usuario.reactivar();
             Resultado resultadoActualizacion = repositorioUsuario.actualizar(usuario);
             
             if (!resultadoActualizacion.getExito()) {

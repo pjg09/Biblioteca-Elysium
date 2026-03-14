@@ -15,7 +15,7 @@ public class RepositorioMaterialEnMemoria extends RepositorioEnMemoria<Material>
     
     @Override
     protected String extraerId(Material entidad) {
-        return entidad != null ? entidad.getId() : null;
+        return entidad != null && entidad.getId() != null ? entidad.getId().getValor() : null;
     }
     
     public List<Material> buscarPorTitulo(String titulo) {

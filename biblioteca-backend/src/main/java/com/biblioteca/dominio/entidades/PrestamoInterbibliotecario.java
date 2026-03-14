@@ -2,15 +2,26 @@ package com.biblioteca.dominio.entidades;
 
 import java.time.LocalDateTime;
 
+import com.biblioteca.dominio.objetosvalor.IdUsuario;
+import com.biblioteca.dominio.objetosvalor.IdMaterial;
+
 public class PrestamoInterbibliotecario extends Prestamo {
     private String bibliotecaOrigen;
     private String bibliotecaDestino;
     private double costoTransferencia;
     
-    public PrestamoInterbibliotecario(String idUsuario, String idMaterial, LocalDateTime fechaPrestamo,
+    public PrestamoInterbibliotecario(String id, IdUsuario idUsuario, IdMaterial idMaterial, 
                                        LocalDateTime fechaDevolucionEsperada, String bibliotecaOrigen,
                                        String bibliotecaDestino, double costoTransferencia) {
-        super(idUsuario, idMaterial, fechaPrestamo, fechaDevolucionEsperada);
+        super(id, idUsuario, idMaterial, fechaDevolucionEsperada);
+        
+        if (bibliotecaOrigen == null || bibliotecaOrigen.trim().isEmpty()) {
+            throw new IllegalArgumentException("Biblioteca origen no puede ser nula o vacía");
+        }
+        if (bibliotecaDestino == null || bibliotecaDestino.trim().isEmpty()) {
+            throw new IllegalArgumentException("Biblioteca destino no puede ser nula o vacía");
+        }
+        
         this.bibliotecaOrigen = bibliotecaOrigen;
         this.bibliotecaDestino = bibliotecaDestino;
         this.costoTransferencia = costoTransferencia;

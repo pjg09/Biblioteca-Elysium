@@ -23,7 +23,7 @@ public class ReglaMaterialDisponible implements IReglaValidacion {
         Material material = contexto.getMaterial();
         
         // Usar el servicio de disponibilidad
-        boolean disponible = disponibilidadService.verificarDisponibilidad(material.getId());
+        boolean disponible = disponibilidadService.verificarDisponibilidad(material.getId().getValor());
         
         if (!disponible) {
             return ResultadoValidacion.Invalido(

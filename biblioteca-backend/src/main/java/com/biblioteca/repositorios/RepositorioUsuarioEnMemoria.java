@@ -15,7 +15,7 @@ public class RepositorioUsuarioEnMemoria extends RepositorioEnMemoria<Usuario> {
     
     @Override
     protected String extraerId(Usuario entidad) {
-        return entidad != null ? entidad.getId() : null;
+        return entidad != null && entidad.getId() != null ? entidad.getId().getValor() : null;
     }
     
     public List<Usuario> buscarPorNombre(String nombre) {

@@ -1,13 +1,14 @@
 package com.biblioteca.dominio.entidades;
 
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
+import com.biblioteca.dominio.objetosvalor.IdUsuario;
 
 public class Estudiante extends Usuario {
     private String carrera;
     private int semestre;
     private String universidad;
     
-    public Estudiante(String id, String nombre, String email, 
+    public Estudiante(IdUsuario id, String nombre, String email, 
                       String carrera, int semestre, String universidad) {
         super(id, nombre, email, TipoUsuario.ESTUDIANTE);
         this.carrera = carrera;

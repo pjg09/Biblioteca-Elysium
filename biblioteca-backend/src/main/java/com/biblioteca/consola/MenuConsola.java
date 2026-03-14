@@ -6,6 +6,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
 
+import com.biblioteca.dominio.objetosvalor.IdMaterial;
+import com.biblioteca.dominio.objetosvalor.IdUsuario;
+
 import com.biblioteca.dominio.entidades.DVD;
 import com.biblioteca.dominio.entidades.EBook;
 import com.biblioteca.dominio.entidades.Estudiante;
@@ -336,7 +339,7 @@ public class MenuConsola {
                 System.out.print("¿Es referencia? (s/n): ");
                 boolean referencia = scanner.nextLine().equalsIgnoreCase("s");
                 
-                material = new Libro(id, titulo, autor, isbn, paginas, bestSeller, referencia);
+                material = new Libro(new IdMaterial(id), titulo, autor, isbn, paginas, bestSeller, referencia);
                 break;
                 
             case "2": // DVD
@@ -347,7 +350,7 @@ public class MenuConsola {
                 System.out.print("Director: ");
                 String director = scanner.nextLine();
                 
-                material = new DVD(id, titulo, autor, codigo, duracion, director);
+                material = new DVD(new IdMaterial(id), titulo, autor, codigo, duracion, director);
                 break;
                 
             case "3": // Revista
@@ -358,7 +361,7 @@ public class MenuConsola {
                 System.out.print("¿Es último número? (s/n): ");
                 boolean ultimo = scanner.nextLine().equalsIgnoreCase("s");
                 
-                material = new Revista(id, titulo, autor, issn, edicion, ultimo);
+                material = new Revista(new IdMaterial(id), titulo, autor, issn, edicion, ultimo);
                 break;
                 
             case "4": // EBook
@@ -367,7 +370,7 @@ public class MenuConsola {
                 System.out.print("Licencias disponibles: ");
                 int licencias = Integer.parseInt(scanner.nextLine());
                 
-                material = new EBook(id, titulo, autor, url, licencias, LocalDateTime.now().plusMonths(6));
+                material = new EBook(new IdMaterial(id), titulo, autor, url, licencias, LocalDateTime.now().plusMonths(6));
                 break;
         }
         
@@ -402,20 +405,18 @@ public class MenuConsola {
         System.out.print("Seleccione: ");
         
         String opcion = scanner.nextLine();
-        EstadoMaterial nuevoEstado = null;
         
         switch (opcion) {
-            case "1": nuevoEstado = EstadoMaterial.DISPONIBLE; break;
-            case "2": nuevoEstado = EstadoMaterial.PRESTADO; break;
-            case "3": nuevoEstado = EstadoMaterial.RESERVADO; break;
-            case "4": nuevoEstado = EstadoMaterial.EN_REPARACION; break;
-            case "5": nuevoEstado = EstadoMaterial.PERDIDO; break;
+            case "1": m.marcarComoDisponible(); break;
+            case "2": m.marcarComoPrestado(); break;
+            case "3": m.marcarComoReservado(); break;
+            case "4": m.marcarComoEnReparacion("Mantenimiento a través de consola"); break;
+            case "5": m.marcarComoPerdido("Reportado a través de consola"); break;
             default: 
                 System.out.println("❌ Opción no válida");
                 return;
         }
         
-        m.setEstado(nuevoEstado);
         repoMaterial.actualizar(m);
         System.out.println("✅ Estado actualizado");
     }
@@ -597,7 +598,7 @@ public class MenuConsola {
                 System.out.print("Universidad: ");
                 String universidad = scanner.nextLine();
                 
-                usuario = new Estudiante(id, nombre, email, carrera, semestre, universidad);
+                usuario = new Estudiante(new IdUsuario(id), nombre, email, carrera, semestre, universidad);
                 break;
                 
             case "2": // Profesor
@@ -608,7 +609,7 @@ public class MenuConsola {
                 System.out.print("Especialidad: ");
                 String especialidad = scanner.nextLine();
                 
-                usuario = new Profesor(id, nombre, email, departamento, uniProf, especialidad);
+                usuario = new Profesor(new IdUsuario(id), nombre, email, departamento, uniProf, especialidad);
                 break;
                 
             case "3": // Investigador
@@ -617,7 +618,7 @@ public class MenuConsola {
                 System.out.print("Institución: ");
                 String institucion = scanner.nextLine();
                 
-                usuario = new Investigador(id, nombre, email, linea, institucion);
+                usuario = new Investigador(new IdUsuario(id), nombre, email, linea, institucion);
                 break;
                 
             case "4": // Público General
@@ -626,7 +627,7 @@ public class MenuConsola {
                 System.out.print("Nombre del fiador: ");
                 String fiador = scanner.nextLine();
                 
-                usuario = new PublicoGeneral(id, nombre, email, direccion, fiador);
+                usuario = new PublicoGeneral(new IdUsuario(id), nombre, email, direccion, fiador);
                 break;
         }
         
@@ -726,7 +727,7 @@ public class MenuConsola {
         
         String tipoPrestamo = tipo.equals("2") ? "INTERBIBLIOTECARIO" : "NORMAL";
         
-        Resultado resultado = prestamoService.registrarPrestamo(idUsuario, idMaterial, tipoPrestamo);
+        Resultado resultado = prestamoService.registrarPrestamo(new IdUsuario(idUsuario), new IdMaterial(idMaterial), tipoPrestamo);
         
         if (resultado.getExito()) {
             System.out.println("✅ " + resultado.getMensaje());
@@ -768,7 +769,7 @@ public class MenuConsola {
         System.out.print("\nIngrese ID del usuario: ");
         String idUsuario = scanner.nextLine();
         
-        List<Prestamo> prestamos = prestamoService.obtenerPrestamosActivos(idUsuario);
+        List<Prestamo> prestamos = prestamoService.obtenerPrestamosActivos(new IdUsuario(idUsuario));
         
         if (prestamos.isEmpty()) {
             System.out.println("📭 El usuario no tiene préstamos activos");
@@ -779,7 +780,7 @@ public class MenuConsola {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         
         for (Prestamo p : prestamos) {
-            Material m = repoMaterial.obtenerPorId(p.getIdMaterial());
+            Material m = repoMaterial.obtenerPorId(p.getIdMaterial().getValor());
             String titulo = m != null ? m.getTitulo() : "Desconocido";
             
             System.out.printf("  • %s - %s (Vence: %s)%n",
@@ -1046,7 +1047,7 @@ public class MenuConsola {
         
         String tipoReserva = tipo.equals("2") ? "INTERBIBLIOTECARIA" : "NORMAL";
         
-        Resultado resultado = reservaService.crearReserva(idUsuario, idMaterial, tipoReserva);
+        Resultado resultado = reservaService.crearReserva(new IdUsuario(idUsuario), new IdMaterial(idMaterial), tipoReserva);
         
         if (resultado.getExito()) {
             System.out.println("✅ " + resultado.getMensaje());
@@ -1098,7 +1099,7 @@ public class MenuConsola {
         String idMaterial = scanner.nextLine();
         
         List<Reserva> reservas = ((ReservaService)reservaService)
-            .obtenerReservasActivasPorMaterial(idMaterial);
+            .obtenerReservasActivasPorMaterial(new IdMaterial(idMaterial));
         
         if (reservas.isEmpty()) {
             System.out.println("📭 No hay reservas para este material");
@@ -1122,7 +1123,7 @@ public class MenuConsola {
         String idUsuario = scanner.nextLine();
         
         List<Reserva> reservas = ((ReservaService)reservaService)
-            .obtenerReservasActivasPorUsuario(idUsuario);
+            .obtenerReservasActivasPorUsuario(new IdUsuario(idUsuario));
         
         if (reservas.isEmpty()) {
             System.out.println("📭 El usuario no tiene reservas activas");
@@ -1132,7 +1133,7 @@ public class MenuConsola {
         System.out.println("\n🔖 RESERVAS DEL USUARIO " + idUsuario + ":");
         
         for (Reserva r : reservas) {
-            Material m = repoMaterial.obtenerPorId(r.getIdMaterial());
+            Material m = repoMaterial.obtenerPorId(r.getIdMaterial().getValor());
             String titulo = m != null ? m.getTitulo() : "Desconocido";
             
             System.out.printf("  • %s - %s (Pos: %d)%n",
@@ -1267,7 +1268,7 @@ public class MenuConsola {
                     .sum();
                 
                 if (totalPendiente == 0) {
-                    gestorBloqueo.desbloquearUsuario(u.getId());
+                    gestorBloqueo.desbloquearUsuario(u.getId().getValor());
                     System.out.println("✅ Usuario desbloqueado");
                 }
             }
@@ -1405,7 +1406,7 @@ private void verEstadoUsuario() {
     }
     
     ResultadoValidacion validacion = gestorBloqueo.verificarSiDebeBloquear(idUsuario);
-    int prestamosActivos = prestamoService.obtenerPrestamosActivos(idUsuario).size();
+    int prestamosActivos = prestamoService.obtenerPrestamosActivos(new IdUsuario(idUsuario)).size();
     int limite = limiteService.obtenerLimiteMaximo(u.getTipo());
     
     // ✅ CORREGIDO: Usar el método correcto

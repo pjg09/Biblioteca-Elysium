@@ -4,17 +4,26 @@ import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.enumeraciones.EstadoUsuario;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
+import com.biblioteca.dominio.objetosvalor.IdUsuario;
+import java.util.UUID;
 
 public abstract class Usuario {
-    protected String id;
+    protected IdUsuario id;
     protected String nombre;
     protected String email;
     protected TipoUsuario tipo;
     protected EstadoUsuario estado;
     protected LocalDateTime fechaRegistro;
     
-    public Usuario(String id, String nombre, String email, TipoUsuario tipo) {
-        this.id = id;
+    protected Usuario(IdUsuario id, String nombre, String email, TipoUsuario tipo) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre no puede ser nulo o vacío");
+        }
+        if (email == null || !email.matches(".+@.+\\..+")) {
+            throw new IllegalArgumentException("Formato de email inválido");
+        }
+        
+        this.id = id != null ? id : new IdUsuario("USR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
         this.nombre = nombre;
         this.email = email;
         this.tipo = tipo;
@@ -22,7 +31,7 @@ public abstract class Usuario {
         this.fechaRegistro = LocalDateTime.now();
     }
     
-    public String getId() {
+    public IdUsuario getId() {
         return id;
     }
     
@@ -42,18 +51,35 @@ public abstract class Usuario {
         return estado;
     }
     
-    public void setEstado(EstadoUsuario nuevoEstado) {
-        this.estado = nuevoEstado;
-    }
-    
     public LocalDateTime getFechaRegistro() {
         return fechaRegistro;
+    }
+    
+    // Métodos de comportamiento de dominio
+    public void bloquearPorMulta() {
+        this.estado = EstadoUsuario.BLOQUEADO_MULTA;
+    }
+    
+    public void bloquearPorPerdida() {
+        this.estado = EstadoUsuario.BLOQUEADO_PERDIDA;
+    }
+    
+    public void suspender() {
+        this.estado = EstadoUsuario.SUSPENDIDO;
+    }
+    
+    public void reactivar() {
+        this.estado = EstadoUsuario.ACTIVO;
+    }
+    
+    public boolean puedeRealizarTransacciones() {
+        return this.estado == EstadoUsuario.ACTIVO;
     }
     
     @Override
     public String toString() {
         return "Usuario{" +
-                "id='" + id + '\'' +
+                "id='" + id.getValor() + '\'' +
                 ", nombre='" + nombre + '\'' +
                 ", tipo=" + tipo +
                 ", estado=" + estado +

@@ -2,14 +2,17 @@ package com.biblioteca.dominio.entidades;
 
 import java.time.LocalDateTime;
 
+import com.biblioteca.dominio.objetosvalor.IdMaterial;
+import com.biblioteca.dominio.objetosvalor.IdUsuario;
+
 public abstract class Reserva extends Transaccion {
     protected LocalDateTime fechaReserva;
     protected LocalDateTime fechaNotificacion;
     protected LocalDateTime fechaExpiracion;
     protected int posicionCola;
     
-    public Reserva(String idUsuario, String idMaterial) {
-        super(idUsuario, idMaterial);
+    public Reserva(String id, IdUsuario idUsuario, IdMaterial idMaterial) {
+        super(id, idUsuario, idMaterial);
         this.fechaReserva = LocalDateTime.now();
         this.fechaExpiracion = fechaReserva.plusDays(3); // Expira en 3 días
     }

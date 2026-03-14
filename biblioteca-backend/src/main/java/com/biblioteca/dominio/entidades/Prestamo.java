@@ -2,17 +2,36 @@ package com.biblioteca.dominio.entidades;
 
 import java.time.LocalDateTime;
 
+import com.biblioteca.dominio.estados.IEstadoPrestamo;
+import com.biblioteca.dominio.estados.PrestamoActivoState;
+import com.biblioteca.dominio.objetosvalor.Resultado;
+import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
+
+import com.biblioteca.dominio.objetosvalor.IdUsuario;
+import com.biblioteca.dominio.objetosvalor.IdMaterial;
+
 public abstract class Prestamo extends Transaccion {
     protected LocalDateTime fechaPrestamo;
     protected LocalDateTime fechaDevolucionEsperada;
     protected LocalDateTime fechaDevolucionReal;
     protected int renovacionesUsadas;
+    private IEstadoPrestamo estadoActual;
     
-    public Prestamo(String idUsuario, String idMaterial, LocalDateTime fechaPrestamo, LocalDateTime fechaDevolucionEsperada) {
-        super(idUsuario, idMaterial);
-        this.fechaPrestamo = fechaPrestamo;
+    // El Builder usará este constructor protegido (o público según necesidad)
+    public Prestamo(String id, IdUsuario idUsuario, IdMaterial idMaterial, LocalDateTime fechaDevolucionEsperada) {
+        super(id, idUsuario, idMaterial);
+        
+        if (fechaDevolucionEsperada == null) {
+            throw new IllegalArgumentException("Fecha de devolución no puede ser nula");
+        }
+        if (fechaDevolucionEsperada.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Fecha de devolución no puede estar en el pasado");
+        }
+        
+        this.fechaPrestamo = LocalDateTime.now();
         this.fechaDevolucionEsperada = fechaDevolucionEsperada;
         this.renovacionesUsadas = 0;
+        this.estadoActual = new PrestamoActivoState();
     }
     
     public LocalDateTime getFechaPrestamo() {
@@ -41,5 +60,17 @@ public abstract class Prestamo extends Transaccion {
 
     public void setFechaDevolucionEsperada(LocalDateTime nuevaFecha) {
         this.fechaDevolucionEsperada = nuevaFecha;
+    }
+
+    public void cambiarEstado(IEstadoPrestamo nuevoEstado) {
+        this.estadoActual = nuevoEstado;
+    }
+    
+    public ResultadoValidacion puedeRenovarse() {
+        return estadoActual.puedeRenovarse(this);
+    }
+    
+    public Resultado devolver() {
+        return estadoActual.devolver(this);
     }
 }
