@@ -7,7 +7,7 @@ import com.biblioteca.dominio.entidades.Prestamo;
 import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
-import com.biblioteca.dominio.objetosValor.ResultadoValidacion;
+import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 
