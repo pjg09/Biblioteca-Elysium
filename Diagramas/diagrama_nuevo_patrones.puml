@@ -17,7 +17,9 @@ skinparam class {
     ArrowColor Black
 }
 
-' ENTIDADES DEL DOMINIO 
+' ========================================
+' ENTIDADES DEL DOMINIO
+' ========================================
 
 ' OBJETOS DE VALOR CORE
 class IdUsuario <<ValueObject>> {
@@ -31,18 +33,16 @@ class IdMaterial <<ValueObject>> {
 }
 
 class IdTransaccion <<ValueObject>> {
-    -string valor
+    #string valor
     +GetValor() : string
 }
 
 class IdPrestamo <<ValueObject>> {
-    -string valor
-    +GetValor() : string
+    +IdPrestamo(valor: string)
 }
 
 class IdReserva <<ValueObject>> {
-    -string valor
-    +GetValor() : string
+    +IdReserva(valor: string)
 }
 
 class IdMulta <<ValueObject>> {
@@ -53,6 +53,18 @@ class IdMulta <<ValueObject>> {
 IdTransaccion <|-- IdPrestamo
 IdTransaccion <|-- IdReserva
 
+note bottom of IdPrestamo
+  Herencia justificada: IdPrestamo e IdReserva
+  heredan de IdTransaccion para reutilizar la
+  validación de formato. En Java usan "extends".
+  No es herencia de comportamiento, es
+  herencia de validación/formato del valor.
+end note
+
+' ========================================
+' MATERIAL Y SUBCLASES
+' ========================================
+
 abstract class Material {
     -IdMaterial id
     -string titulo
@@ -60,14 +72,18 @@ abstract class Material {
     -TipoMaterial tipo
     -EstadoMaterial estado
     -DateTime fechaAdquisicion
+    -double precio
     +GetId() : IdMaterial
     +GetTitulo() : string
     +GetAutor() : string
     +GetTipo() : TipoMaterial
     +GetEstado() : EstadoMaterial
+    +GetPrecio() : double
+    +SetPrecio(precio: double)
     +MarcarComoPrestado()
     +MarcarComoDisponible()
-    +MarcarComoEnReparacion()
+    +MarcarComoEnReparacion(motivo: string)
+    +MarcarComoPerdido(motivo: string)
     +EstaDisponibleParaPrestamo() : bool
 }
 
@@ -109,7 +125,9 @@ Material <|-- DVD
 Material <|-- Revista
 Material <|-- EBook
 
-
+' ========================================
+' USUARIO Y SUBCLASES
+' ========================================
 
 abstract class Usuario {
     -IdUsuario id
@@ -161,10 +179,9 @@ Usuario <|-- Profesor
 Usuario <|-- Investigador
 Usuario <|-- PublicoGeneral
 
-
-
+' ========================================
 ' TRANSACCIONES
-
+' ========================================
 
 abstract class Transaccion {
     -IdTransaccion id
@@ -210,7 +227,6 @@ Transaccion <|-- Prestamo
 Prestamo <|-- PrestamoNormal
 Prestamo <|-- PrestamoInterbibliotecario
 
-
 abstract class Reserva {
     -DateTime fechaReserva
     -DateTime fechaNotificacion
@@ -235,7 +251,9 @@ Transaccion <|-- Reserva
 Reserva <|-- ReservaNormal
 Reserva <|-- ReservaInterbibliotecaria
 
-' MULTAS 
+' ========================================
+' MULTAS
+' ========================================
 
 abstract class Multa {
     -IdMulta id
@@ -275,49 +293,159 @@ class MultaPorPerdida {
     +CalcularMontoTotal() : decimal
 }
 
-
-
 Multa <|-- MultaPorRetraso
 Multa <|-- MultaPorDano
 Multa <|-- MultaPorPerdida
 
-' BUILDERS
+' ========================================
+' BUILDERS E INTERFACES DE BUILDERS
+' ========================================
+
+' Interfaces de Builders (DIP)
+interface IBuilderMaterial {
+    +conId(id: IdMaterial) : IBuilderMaterial
+    +conTitulo(titulo: string) : IBuilderMaterial
+    +deAutor(autor: string) : IBuilderMaterial
+    +conPrecio(precio: double) : IBuilderMaterial
+    +esLibro() : IBuilderMaterial
+    +esDVD() : IBuilderMaterial
+    +esRevista() : IBuilderMaterial
+    +esEBook() : IBuilderMaterial
+    +construir() : Material
+}
+
+interface IBuilderUsuario {
+    +conId(id: IdUsuario) : IBuilderUsuario
+    +conNombre(nombre: string) : IBuilderUsuario
+    +conEmail(email: string) : IBuilderUsuario
+    +esEstudiante(carrera: string, semestre: int, univ: string) : IBuilderUsuario
+    +esProfesor(depto: string, univ: string, esp: string) : IBuilderUsuario
+    +esInvestigador(lineaInv: string, inst: string) : IBuilderUsuario
+    +esPublicoGeneral(dir: string, fiador: string) : IBuilderUsuario
+    +construir() : Usuario
+}
+
+interface IBuilderPrestamo {
+    +paraUsuario(id: IdUsuario) : IBuilderPrestamo
+    +deMaterial(id: IdMaterial) : IBuilderPrestamo
+    +conId(id: string) : IBuilderPrestamo
+    +conVencimiento(fecha: DateTime) : IBuilderPrestamo
+    +porDias(dias: int) : IBuilderPrestamo
+    +tipoNormal() : IBuilderPrestamo
+    +tipoInterbibliotecario(origen: string, destino: string, costo: double) : IBuilderPrestamo
+    +construir() : Prestamo
+}
+
+interface IBuilderReserva {
+    +paraUsuario(id: IdUsuario) : IBuilderReserva
+    +deMaterial(id: IdMaterial) : IBuilderReserva
+    +conId(id: string) : IBuilderReserva
+    +tipoNormal(ubicacion: string) : IBuilderReserva
+    +tipoInterbibliotecaria(bibliotecaOrigen: string) : IBuilderReserva
+    +construir() : Reserva
+}
+
+interface IBuilderMulta {
+    +paraPrestamo(idPrestamo: string) : IBuilderMulta
+    +aUsuario(idUsuario: string) : IBuilderMulta
+    +porRetraso(diasRetraso: int, tarifaDiaria: double) : IBuilderMulta
+    +porPerdida(costoMaterial: double, recargo: double) : IBuilderMulta
+    +porDano(danos: List<Dano>) : IBuilderMulta
+    +construir() : Multa
+}
+
+' Builders concretos
 class MaterialBuilder {
-    +ConId(IdMaterial id) : MaterialBuilder
-    +ConTitulo(string titulo) : MaterialBuilder
-    +DeAutor(string autor) : MaterialBuilder
-    +EsLibro() : MaterialBuilder
-    +EsDVD() : MaterialBuilder
-    +EsRevista() : MaterialBuilder
-    +EsEBook() : MaterialBuilder
-    +Construir() : Material
+    +conId(id: IdMaterial) : IBuilderMaterial
+    +conTitulo(titulo: string) : IBuilderMaterial
+    +deAutor(autor: string) : IBuilderMaterial
+    +conPrecio(precio: double) : IBuilderMaterial
+    +esLibro() : IBuilderMaterial
+    +esDVD() : IBuilderMaterial
+    +esRevista() : IBuilderMaterial
+    +esEBook() : IBuilderMaterial
+    +construir() : Material
 }
 
 class UsuarioBuilder {
-    +ConId(IdUsuario id) : UsuarioBuilder
-    +ConNombre(string nombre) : UsuarioBuilder
-    +ConEmail(string email) : UsuarioBuilder
-    +EsEstudiante(string carrera, int semestre, string universidad) : UsuarioBuilder
-    +EsProfesor(string departamento, string univ, string especialidad) : UsuarioBuilder
-    +EsInvestigador(string lineaInv, string inst) : UsuarioBuilder
-    +EsPublicoGeneral(string direccion, string fiador) : UsuarioBuilder
-    +Construir() : Usuario
+    +conId(id: IdUsuario) : IBuilderUsuario
+    +conNombre(nombre: string) : IBuilderUsuario
+    +conEmail(email: string) : IBuilderUsuario
+    +esEstudiante(carrera: string, semestre: int, univ: string) : IBuilderUsuario
+    +esProfesor(depto: string, univ: string, esp: string) : IBuilderUsuario
+    +esInvestigador(lineaInv: string, inst: string) : IBuilderUsuario
+    +esPublicoGeneral(dir: string, fiador: string) : IBuilderUsuario
+    +construir() : Usuario
 }
 
 class PrestamoBuilder {
-    +ParaUsuario(IdUsuario idUsuario) : PrestamoBuilder
-    +DeMaterial(IdMaterial idMaterial) : PrestamoBuilder
-    +ConVencimiento(DateTime fechaDevolucion) : PrestamoBuilder
-    +TipoNormal() : PrestamoBuilder
-    +TipoInterbibliotecario(string origen, string destino, decimal costo) : PrestamoBuilder
-    +Construir() : Prestamo
+    +paraUsuario(id: IdUsuario) : IBuilderPrestamo
+    +deMaterial(id: IdMaterial) : IBuilderPrestamo
+    +conId(id: string) : IBuilderPrestamo
+    +conVencimiento(fecha: DateTime) : IBuilderPrestamo
+    +tipoNormal() : IBuilderPrestamo
+    +tipoInterbibliotecario(origen: string, destino: string, costo: double) : IBuilderPrestamo
+    +construir() : Prestamo
 }
 
+class ReservaBuilder {
+    +paraUsuario(id: IdUsuario) : IBuilderReserva
+    +deMaterial(id: IdMaterial) : IBuilderReserva
+    +conId(id: string) : IBuilderReserva
+    +tipoNormal(ubicacion: string) : IBuilderReserva
+    +tipoInterbibliotecaria(bibliotecaOrigen: string) : IBuilderReserva
+    +construir() : Reserva
+}
+
+class MultaBuilder {
+    -string idPrestamo
+    -string idUsuario
+    -string tipoMulta
+    -int diasRetraso
+    -double tarifaDiaria
+    -double costoMaterial
+    -double recargoPorPerdida
+    -List<Dano> danos
+    +paraPrestamo(idPrestamo: string) : IBuilderMulta
+    +aUsuario(idUsuario: string) : IBuilderMulta
+    +porRetraso(diasRetraso: int, tarifaDiaria: double) : IBuilderMulta
+    +porPerdida(costoMaterial: double, recargo: double) : IBuilderMulta
+    +porDano(danos: List<Dano>) : IBuilderMulta
+    +construir() : Multa
+}
+
+' Director (usa interfaces de builders)
+class DirectorCreacion {
+    +construirEstudianteBasico(builder: IBuilderUsuario, nombre: string, email: string, carrera: string)
+    +construirProfesorInvestigador(builder: IBuilderUsuario, nombre: string, email: string, depto: string, linea: string)
+    +construirUsuarioGeneral(builder: IBuilderUsuario, nombre: string, email: string)
+    +construirLibroReferencia(builder: IBuilderMaterial, titulo: string, autor: string, isbn: string)
+    +construirRevistaMensual(builder: IBuilderMaterial, titulo: string, issn: string, edicion: int)
+}
+
+' Implementación de interfaces de builders
+IBuilderMaterial <|.. MaterialBuilder
+IBuilderUsuario <|.. UsuarioBuilder
+IBuilderPrestamo <|.. PrestamoBuilder
+IBuilderReserva <|.. ReservaBuilder
+IBuilderMulta <|.. MultaBuilder
+
+' Relaciones de construcción
 MaterialBuilder ..> Material : construye
 UsuarioBuilder ..> Usuario : construye
 PrestamoBuilder ..> Prestamo : construye
+ReservaBuilder ..> Reserva : construye
+MultaBuilder ..> MultaPorRetraso : construye
+MultaBuilder ..> MultaPorDano : construye
+MultaBuilder ..> MultaPorPerdida : construye
 
-' RELACIONES DE COMPOSICIÓN CON IDS (Value Objects)
+' Director usa interfaces de builders
+DirectorCreacion --> IBuilderUsuario : usa
+DirectorCreacion --> IBuilderMaterial : usa
+
+' ========================================
+' RELACIONES DE COMPOSICIÓN CON IDS
+' ========================================
 
 Usuario *-- IdUsuario : identifica
 Material *-- IdMaterial : identifica
@@ -334,8 +462,9 @@ Prestamo "1" -- "0..*" Multa : genera
 Usuario "1" -- "0..*" Multa : tiene
 MultaPorDano "1" *-- "1..*" Dano : contiene
 
-' EXCEPCIONES 
-
+' ========================================
+' EXCEPCIONES
+' ========================================
 
 class BibliotecaException <<exception>> {
     -string mensaje
@@ -383,8 +512,9 @@ BibliotecaException <|-- LimiteExcedidoException
 BibliotecaException <|-- MaterialNoEncontradoException
 BibliotecaException <|-- OperacionNoPermitidaException
 
-
-' INTERFACES 
+' ========================================
+' INTERFACES DE SERVICIOS
+' ========================================
 
 interface IDisponibilidadService {
     +VerificarDisponibilidad(idMaterial : string) : bool
@@ -404,6 +534,15 @@ interface IValidadorReglasService {
     +ValidarRenovacion(idPrestamo : string) : ResultadoValidacion
 }
 
+note right of IValidadorReglasService
+  ValidarRenovacion existe en la interfaz
+  y está implementado en ValidadorReglasService,
+  pero RenovacionService NO lo usa: tiene su
+  propia validación interna desde IRenovacionService.
+  Se mantiene para consumidores externos
+  que necesiten validar renovación sin ejecutarla.
+end note
+
 interface IPoliticaTiempoService {
     +CalcularDiasPrestamo(tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : int
     +ObtenerFechaDevolucion(fechaPrestamo : DateTime, tipoMaterial : TipoMaterial, tipoUsuario : TipoUsuario) : DateTime
@@ -413,6 +552,8 @@ interface IGestorBloqueoService {
     +VerificarSiDebeBloquear(idUsuario : string) : ResultadoValidacion
     +BloquearUsuario(idUsuario : string, motivo : string) : Resultado
     +DesbloquearUsuario(idUsuario : string) : Resultado
+    +ObtenerTotalMultasPendientes(idUsuario : string) : BigDecimal
+    +TienePrestamosVencidos(idUsuario : string) : bool
 }
 
 interface IReservaService {
@@ -429,7 +570,7 @@ interface IRenovacionService {
 
 interface IPrestamoService {
     +RegistrarPrestamo(idUsuario : string, idMaterial : string, tipoPrestamo : string) : Resultado
-    +ObtenerPrestamosActivos(idUsuario : string) : List<Prestamo>
+    +ObtenerPrestamosActivos(idUsuario : IdUsuario) : List<Prestamo>
 }
 
 interface IDevolucionService {
@@ -444,42 +585,60 @@ interface INotificacionService {
     +EnviarNotificacion(idUsuario : string, mensaje : string) : Resultado
 }
 
+' ========================================
 ' CALCULADORES DE MULTA
+' ========================================
 
 interface ICalculadorMulta {
-    +Calcular(contexto) : Multa
-    +PuedeCalcular(contexto) : bool
+    +Calcular(contexto : ContextoMulta) : Multa
+    +PuedeCalcular(contexto : ContextoMulta) : bool
 }
 
 class CalculadorMultaPorRetraso <<service>> {
-    -RepositorioPrestamoEnMemoria repoPrestamo
+    -IRepositorio<Prestamo> repoPrestamo
+    -IRepositorio<Usuario> repoUsuario
     -Map<TipoMaterial, decimal> tarifasPorTipo
-    +Calcular(contexto) : Multa
-    +PuedeCalcular(contexto) : bool
+    +Calcular(contexto : ContextoMulta) : Multa
+    +PuedeCalcular(contexto : ContextoMulta) : bool
     -CalcularDiasRetraso(prestamo : Prestamo, fechaActual : DateTime) : int
     -ObtenerTarifa(tipoMaterial : TipoMaterial) : decimal
 }
 
 class CalculadorMultaPorDano <<service>> {
     -ICalculadorCostoDanoService calculadorCosto
-    +Calcular(contexto) : Multa
-    +PuedeCalcular(contexto) : bool
+    +Calcular(contexto : ContextoMulta) : Multa
+    +PuedeCalcular(contexto : ContextoMulta) : bool
 }
 
 class CalculadorMultaPorPerdida <<service>> {
-    -RepositorioMaterialEnMemoria repoMaterial
-    -decimal PORCENTAJE_RECARGO
-    +Calcular(contexto) : Multa
-    +PuedeCalcular(contexto) : bool
+    -IRepositorio<Material> repoMaterial
+    -IRepositorio<Usuario> repoUsuario
+    +Calcular(contexto : ContextoMulta) : Multa
+    +PuedeCalcular(contexto : ContextoMulta) : bool
+    -calcularValorMaterial(material : Material) : double
 }
 
-
+note right of CalculadorMultaPorPerdida
+  El recargo varía por TipoUsuario:
+  Estudiante=20%, Profesor=10%,
+  Investigador=0%, PúblicoGeneral=30%.
+  Usa Material.getPrecio() para obtener
+  el valor base del material.
+end note
 
 ICalculadorMulta <|.. CalculadorMultaPorRetraso
 ICalculadorMulta <|.. CalculadorMultaPorDano
 ICalculadorMulta <|.. CalculadorMultaPorPerdida
 
+CalculadorMultaPorRetraso ..> IBuilderMulta : usa
+CalculadorMultaPorDano ..> IBuilderMulta : usa
+CalculadorMultaPorPerdida ..> IBuilderMulta : usa
+
 ' SERVICIO GESTOR DE MULTAS
+
+interface IGestorMultasService {
+    +CalcularMulta(contexto : ContextoMulta) : Multa
+}
 
 class GestorMultasService <<service>> {
     -List<ICalculadorMulta> calculadores
@@ -487,10 +646,10 @@ class GestorMultasService <<service>> {
     +CalcularMulta(contexto : ContextoMulta) : Multa
 }
 
+IGestorMultasService <|.. GestorMultasService
 GestorMultasService --> ICalculadorMulta : usa lista de
 
 ' SERVICIO CALCULADOR DE COSTO DE DAÑO
-
 
 interface ICalculadorCostoDanoService {
     +CalcularCosto(dano : Dano) : decimal
@@ -505,21 +664,25 @@ class CalculadorCostoDanoService <<service>> {
 }
 
 ICalculadorCostoDanoService <|.. CalculadorCostoDanoService
-
 CalculadorMultaPorDano --> ICalculadorCostoDanoService : usa
 
+' ========================================
+' IMPLEMENTACIONES DE SERVICIOS
+' (DIP: dependen de IRepositorio<T>, no de concretos)
+' ========================================
 
 class DisponibilidadStandardService <<service>> {
-    -RepositorioMaterialEnMemoria repoMaterial
-    -RepositorioPrestamoEnMemoria repoPrestamo
+    -IRepositorio<Material> repoMaterial
+    -IRepositorio<Prestamo> repoPrestamo
     -Set<TipoMaterial> materialesNoPrestables
     +VerificarDisponibilidad(idMaterial : string) : bool
+    +ObtenerEstadoActual(idMaterial : string) : EstadoMaterial
     +MaterialEsPrestable(idMaterial : string, tipoMaterial : TipoMaterial) : bool
 }
 
 class LimitePorTipoUsuarioService <<service>> {
-    -RepositorioUsuarioEnMemoria repoUsuario
-    -RepositorioPrestamoEnMemoria repoPrestamo
+    -IRepositorio<Usuario> repoUsuario
+    -IRepositorio<Prestamo> repoPrestamo
     -Map<TipoUsuario, int> limitesPorTipo
     +ValidarLimite(idUsuario : string, tipoUsuario : TipoUsuario) : ResultadoValidacion
     +ObtenerLimiteMaximo(tipoUsuario : TipoUsuario) : int
@@ -529,10 +692,13 @@ class ValidadorReglasService <<service>> {
     -ILimitePrestamoService limiteService
     -IDisponibilidadService disponibilidadService
     -IGestorBloqueoService bloqueoService
-    -RepositorioUsuarioEnMemoria repoUsuario
-    -RepositorioMaterialEnMemoria repoMaterial
+    -IRepositorio<Usuario> repoUsuario
+    -IRepositorio<Material> repoMaterial
     -List<IReglaValidacion> reglas
     +ValidarPrestamo(idUsuario : string, idMaterial : string) : ResultadoValidacion
+    +ValidarReserva(idUsuario : string, idMaterial : string) : ResultadoValidacion
+    +ValidarRenovacion(idPrestamo : string) : ResultadoValidacion
+    +RegistrarRegla(regla : IReglaValidacion)
 }
 
 class PoliticaTiempoPorTipoService <<service>> {
@@ -542,17 +708,21 @@ class PoliticaTiempoPorTipoService <<service>> {
 }
 
 class GestorBloqueoService <<service>> {
-    -RepositorioUsuarioEnMemoria repoUsuario
-    -RepositorioMultaEnMemoria repoMulta
+    -IRepositorio<Usuario> repoUsuario
+    -IRepositorio<Multa> repoMulta
+    -IRepositorio<Prestamo> repoPrestamo
     -decimal UMBRAL_BLOQUEO
     +VerificarSiDebeBloquear(idUsuario : string) : ResultadoValidacion
     +BloquearUsuario(idUsuario : string, motivo : string) : Resultado
+    +ObtenerTotalMultasPendientes(idUsuario : string) : BigDecimal
+    +TienePrestamosVencidos(idUsuario : string) : bool
 }
 
 class RenovacionService <<service>> {
-    -RepositorioPrestamoEnMemoria repoPrestamo
-    -RepositorioReservaEnMemoria repoReserva
-    -IValidadorReglasService validador
+    -IRepositorio<Prestamo> repoPrestamo
+    -IRepositorio<Reserva> repoReserva
+    -IRepositorio<Material> repoMaterial
+    -IRepositorio<Usuario> repoUsuario
     -IPoliticaTiempoService politicaTiempo
     -Map<TipoUsuario, int> maximoRenovaciones
     +ValidarRenovacion(idPrestamo : string) : ResultadoValidacion
@@ -561,8 +731,8 @@ class RenovacionService <<service>> {
 
 class ReservaService <<service>> {
     -ProcesadorReserva procesador
-    -RepositorioReservaEnMemoria repoReserva
-    -RepositorioMaterialEnMemoria repoMaterial
+    -IRepositorio<Reserva> repoReserva
+    -IRepositorio<Material> repoMaterial
     -IDisponibilidadService disponibilidad
     -IValidadorReglasService validador
     -INotificacionService notificador
@@ -574,19 +744,22 @@ class PrestamoService <<service>> {
     -IValidadorReglasService validador
     -IDisponibilidadService disponibilidad
     -IPoliticaTiempoService politicaTiempo
-    -RepositorioPrestamoEnMemoria repoPrestamo
-    -RepositorioMaterialEnMemoria repoMaterial
-    -RepositorioUsuarioEnMemoria repoUsuario
+    -IRepositorio<Prestamo> repoPrestamo
+    -IRepositorio<Material> repoMaterial
+    -IRepositorio<Usuario> repoUsuario
     -INotificacionService notificador
+    -Map<String, IPrestamoFactory> factories
     +RegistrarPrestamo(idUsuario : string, idMaterial : string, tipoPrestamo : string) : Resultado
+    +ObtenerPrestamosActivos(idUsuario : IdUsuario) : List<Prestamo>
 }
 
 class DevolucionService <<service>> {
     -IInspeccionMaterialService inspeccion
-    -GestorMultasService gestorMultas
-    -RepositorioPrestamoEnMemoria repoPrestamo
-    -RepositorioMaterialEnMemoria repoMaterial
-    -RepositorioUsuarioEnMemoria repoUsuario
+    -IGestorMultasService gestorMultas
+    -IRepositorio<Prestamo> repoPrestamo
+    -IRepositorio<Material> repoMaterial
+    -IRepositorio<Usuario> repoUsuario
+    -IRepositorio<Multa> repoMulta
     -IReservaService reservas
     -INotificacionService notificador
     -IGestorBloqueoService gestorBloqueo
@@ -594,7 +767,7 @@ class DevolucionService <<service>> {
 }
 
 class InspeccionMaterialService <<service>> {
-    -RepositorioMaterialEnMemoria repoMaterial
+    -IRepositorio<Material> repoMaterial
     +InspeccionarMaterial(idMaterial : string) : Evaluacion
 }
 
@@ -603,8 +776,9 @@ class NotificacionEmailService <<service>> {
     +EnviarNotificacion(idUsuario : string, mensaje : string) : Resultado
 }
 
-' RELACIONES IMPLEMENTACIONES
-
+' ========================================
+' RELACIONES IMPLEMENTACIONES DE SERVICIOS
+' ========================================
 
 IDisponibilidadService <|.. DisponibilidadStandardService
 ILimitePrestamoService <|.. LimitePorTipoUsuarioService
@@ -622,7 +796,6 @@ ValidadorReglasService --> ILimitePrestamoService : usa
 ValidadorReglasService --> IDisponibilidadService : usa
 ValidadorReglasService --> IGestorBloqueoService : usa
 
-RenovacionService --> IValidadorReglasService : usa
 RenovacionService --> IPoliticaTiempoService : usa
 
 ReservaService --> IDisponibilidadService : usa
@@ -633,48 +806,30 @@ PrestamoService --> IValidadorReglasService : usa
 PrestamoService --> IDisponibilidadService : usa
 PrestamoService --> IPoliticaTiempoService : usa
 PrestamoService --> INotificacionService : usa
+PrestamoService --> IPrestamoFactory : usa factories
 
 DevolucionService --> IInspeccionMaterialService : usa
-DevolucionService --> GestorMultasService : usa
+DevolucionService --> IGestorMultasService : usa
 DevolucionService --> IReservaService : usa
 DevolucionService --> INotificacionService : usa
 DevolucionService --> IGestorBloqueoService : usa
 
 ' ========================================
-' RELACIONES SERVICIOS → REPOSITORIOS
+' RELACIONES SERVICIOS → IRepositorio<T> (DIP)
 ' ========================================
 
-DisponibilidadStandardService --> RepositorioMaterialEnMemoria : usa
-DisponibilidadStandardService --> RepositorioPrestamoEnMemoria : usa
-
-LimitePorTipoUsuarioService --> RepositorioUsuarioEnMemoria : usa
-LimitePorTipoUsuarioService --> RepositorioPrestamoEnMemoria : usa
-
-ValidadorReglasService --> RepositorioUsuarioEnMemoria : usa
-ValidadorReglasService --> RepositorioMaterialEnMemoria : usa
-
-GestorBloqueoService --> RepositorioUsuarioEnMemoria : usa
-GestorBloqueoService --> RepositorioMultaEnMemoria : usa
-
-RenovacionService --> RepositorioPrestamoEnMemoria : usa
-RenovacionService --> RepositorioReservaEnMemoria : usa
-
-ReservaService --> RepositorioReservaEnMemoria : usa
-ReservaService --> RepositorioMaterialEnMemoria : usa
-
-PrestamoService --> RepositorioPrestamoEnMemoria : usa
-PrestamoService --> RepositorioMaterialEnMemoria : usa
-PrestamoService --> RepositorioUsuarioEnMemoria : usa
-
-DevolucionService --> RepositorioPrestamoEnMemoria : usa
-DevolucionService --> RepositorioMaterialEnMemoria : usa
-DevolucionService --> RepositorioUsuarioEnMemoria : usa
-
-InspeccionMaterialService --> RepositorioMaterialEnMemoria : usa
-
-CalculadorMultaPorRetraso --> RepositorioPrestamoEnMemoria : usa
-CalculadorMultaPorDano --> RepositorioMaterialEnMemoria : usa
-CalculadorMultaPorPerdida --> RepositorioMaterialEnMemoria : usa
+DisponibilidadStandardService --> IRepositorio : usa repos
+LimitePorTipoUsuarioService --> IRepositorio : usa repos
+ValidadorReglasService --> IRepositorio : usa repos
+GestorBloqueoService --> IRepositorio : usa repos
+RenovacionService --> IRepositorio : usa repos
+ReservaService --> IRepositorio : usa repos
+PrestamoService --> IRepositorio : usa repos
+DevolucionService --> IRepositorio : usa repos
+InspeccionMaterialService --> IRepositorio : usa repos
+CalculadorMultaPorRetraso --> IRepositorio : usa repos
+CalculadorMultaPorPerdida --> IRepositorio : usa repos
+ServicioReportesImpl --> IRepositorio : usa repos
 
 ' ========================================
 ' USO DE ENUMS DE ESTADOS
@@ -714,20 +869,9 @@ CalculadorMultaPorRetraso ..> TipoMaterial : lee tipo
 ' ========================================
 
 DisponibilidadStandardService ..> MaterialNoDisponibleException : lanza
-RepositorioMaterialEnMemoria ..> MaterialNoEncontradoException : lanza
-RepositorioUsuarioEnMemoria ..> MaterialNoEncontradoException : lanza
-RepositorioPrestamoEnMemoria ..> MaterialNoEncontradoException : lanza
-RepositorioReservaEnMemoria ..> MaterialNoEncontradoException : lanza
-RepositorioMultaEnMemoria ..> MaterialNoEncontradoException : lanza
 LimitePorTipoUsuarioService ..> LimiteExcedidoException : lanza
 GestorBloqueoService ..> UsuarioBloqueadoException : lanza
 RenovacionService ..> OperacionNoPermitidaException : lanza
-
-note left of MaterialNoEncontradoException
-  Lanzada por todos los repositorios
-  cuando se busca una entidad por ID
-  y no existe.
-end note
 
 LimitePorTipoUsuarioService ..> ResultadoValidacion : retorna
 ValidadorReglasService ..> ResultadoValidacion : retorna
@@ -746,38 +890,49 @@ CalculadorMultaPorPerdida ..> MultaPorPerdida : crea
 
 InspeccionMaterialService ..> Evaluacion : retorna
 
+' ========================================
 ' REGLAS DE VALIDACIÓN
+' ========================================
 
 interface IReglaValidacion {
-    +Validar(contexto) : ResultadoValidacion
+    +Validar(contexto : ContextoValidacion) : ResultadoValidacion
     +ObtenerPrioridad() : int
 }
 
 class ReglaUsuarioActivo {
-    +Validar(contexto) : ResultadoValidacion
+    +Validar(contexto : ContextoValidacion) : ResultadoValidacion
     +ObtenerPrioridad() : int
 }
 
 class ReglaMaterialDisponible {
-    +Validar(contexto) : ResultadoValidacion
+    -IDisponibilidadService disponibilidadService
+    +Validar(contexto : ContextoValidacion) : ResultadoValidacion
+    +ObtenerPrioridad() : int
+}
+
+class ReglaMaterialExiste {
+    +Validar(contexto : ContextoValidacion) : ResultadoValidacion
     +ObtenerPrioridad() : int
 }
 
 class ReglaLimiteNoExcedido {
     -ILimitePrestamoService limiteService
-    +Validar(contexto) : ResultadoValidacion
+    +Validar(contexto : ContextoValidacion) : ResultadoValidacion
     +ObtenerPrioridad() : int
 }
 
 IReglaValidacion <|.. ReglaUsuarioActivo
 IReglaValidacion <|.. ReglaMaterialDisponible
+IReglaValidacion <|.. ReglaMaterialExiste
 IReglaValidacion <|.. ReglaLimiteNoExcedido
 
 ValidadorReglasService --> IReglaValidacion : usa lista
 ReglaLimiteNoExcedido --> ILimitePrestamoService : usa
+ReglaMaterialDisponible --> IDisponibilidadService : usa
 
+' ========================================
 ' REPOSITORIOS
-
+' ========================================
 
 interface "IRepositorio<T>" as IRepositorio {
     +Agregar(entidad : T) : Resultado
@@ -786,6 +941,7 @@ interface "IRepositorio<T>" as IRepositorio {
     +ObtenerPorId(id : string) : T
     +ObtenerTodos() : List<T>
     +Existe(id : string) : bool
+    +Contar() : long
 }
 
 class "RepositorioEnMemoria<T>" as RepositorioEnMemoria {
@@ -793,6 +949,7 @@ class "RepositorioEnMemoria<T>" as RepositorioEnMemoria {
     +Agregar(entidad : T) : Resultado
     +ObtenerPorId(id : string) : T
     +ObtenerTodos() : List<T>
+    +Contar() : long
 }
 
 IRepositorio <|.. RepositorioEnMemoria
@@ -821,39 +978,18 @@ RepositorioEnMemoriaFactory ..> RepositorioEnMemoria : crea
 ' ========================================
 
 class RepositorioMaterialEnMemoria {
-    -Dictionary<string, Material> almacenamiento
-    +Agregar(entidad : Material) : Resultado
-    +Actualizar(entidad : Material) : Resultado
-    +Eliminar(id : string) : Resultado
-    +ObtenerPorId(id : string) : Material
-    +ObtenerTodos() : List<Material>
-    +Existe(id : string) : bool
     +BuscarPorTitulo(titulo : string) : List<Material>
     +BuscarPorAutor(autor : string) : List<Material>
     +ObtenerDisponibles() : List<Material>
 }
 
 class RepositorioUsuarioEnMemoria {
-    -Dictionary<string, Usuario> almacenamiento
-    +Agregar(entidad : Usuario) : Resultado
-    +Actualizar(entidad : Usuario) : Resultado
-    +Eliminar(id : string) : Resultado
-    +ObtenerPorId(id : string) : Usuario
-    +ObtenerTodos() : List<Usuario>
-    +Existe(id : string) : bool
     +BuscarPorEmail(email : string) : Usuario
     +ObtenerActivos() : List<Usuario>
     +ObtenerBloqueados() : List<Usuario>
 }
 
 class RepositorioPrestamoEnMemoria {
-    -Dictionary<string, Prestamo> almacenamiento
-    +Agregar(entidad : Prestamo) : Resultado
-    +Actualizar(entidad : Prestamo) : Resultado
-    +Eliminar(id : string) : Resultado
-    +ObtenerPorId(id : string) : Prestamo
-    +ObtenerTodos() : List<Prestamo>
-    +Existe(id : string) : bool
     +ObtenerPrestamosActivos(idUsuario : string) : List<Prestamo>
     +ObtenerPrestamosVencidos() : List<Prestamo>
     +ObtenerHistorial(idUsuario : string) : List<Prestamo>
@@ -861,26 +997,12 @@ class RepositorioPrestamoEnMemoria {
 }
 
 class RepositorioReservaEnMemoria {
-    -Dictionary<string, Reserva> almacenamiento
-    +Agregar(entidad : Reserva) : Resultado
-    +Actualizar(entidad : Reserva) : Resultado
-    +Eliminar(id : string) : Resultado
-    +ObtenerPorId(id : string) : Reserva
-    +ObtenerTodos() : List<Reserva>
-    +Existe(id : string) : bool
     +ObtenerReservasPorMaterial(idMaterial : string) : List<Reserva>
     +ObtenerReservasPendientes(idUsuario : string) : List<Reserva>
     +ObtenerSiguienteEnCola(idMaterial : string) : Reserva
 }
 
 class RepositorioMultaEnMemoria {
-    -Dictionary<string, Multa> almacenamiento
-    +Agregar(entidad : Multa) : Resultado
-    +Actualizar(entidad : Multa) : Resultado
-    +Eliminar(id : string) : Resultado
-    +ObtenerPorId(id : string) : Multa
-    +ObtenerTodos() : List<Multa>
-    +Existe(id : string) : bool
     +ObtenerMultasPendientes(idUsuario : string) : List<Multa>
     +CalcularTotalAdeudado(idUsuario : string) : decimal
     +ObtenerPorPrestamo(idPrestamo : string) : List<Multa>
@@ -892,9 +1014,9 @@ RepositorioEnMemoria <|-- RepositorioPrestamoEnMemoria
 RepositorioEnMemoria <|-- RepositorioReservaEnMemoria
 RepositorioEnMemoria <|-- RepositorioMultaEnMemoria
 
-
-
+' ========================================
 ' OBJETOS DE VALOR Y RESULTADOS
+' ========================================
 
 class ResultadoValidacion {
     -bool esValido
@@ -921,11 +1043,29 @@ class Resultado {
 class ContextoValidacion {
     -string idUsuario
     -string idMaterial
-    -string idPrestamo
+    -Usuario usuario
+    -Material material
+    -TipoOperacion operacion
     +GetIdUsuario() : string
     +GetIdMaterial() : string
-    +GetIdPrestamo() : string
+    +GetUsuario() : Usuario
+    +GetMaterial() : Material
+    +GetOperacion() : TipoOperacion
+    +TieneUsuario() : bool
+    +TieneMaterial() : bool
 }
+
+note right of ContextoValidacion
+  Usa String para los IDs porque recibe
+  input crudo de la capa de presentación.
+  Transporta también las entidades resueltas
+  (Usuario, Material) para evitar búsquedas
+  repetidas en cada regla de validación.
+end note
+
+' ========================================
+' PRESENTACIÓN Y REPORTES
+' ========================================
 
 class MenuConsola <<presentation>> {
     -BibliotecaFacade facade
@@ -942,11 +1082,11 @@ interface IServicioReportes {
 }
 
 class ServicioReportesImpl <<service>> {
-    -RepositorioMaterialEnMemoria repoMaterial
-    -RepositorioUsuarioEnMemoria repoUsuario
-    -RepositorioPrestamoEnMemoria repoPrestamo
-    -RepositorioReservaEnMemoria repoReserva
-    -RepositorioMultaEnMemoria repoMulta
+    -IRepositorio<Material> repoMaterial
+    -IRepositorio<Usuario> repoUsuario
+    -IRepositorio<Prestamo> repoPrestamo
+    -IRepositorio<Reserva> repoReserva
+    -IRepositorio<Multa> repoMulta
     -IGestorBloqueoService gestorBloqueo
     -IPrestamoService prestamoService
     -ILimitePrestamoService limiteService
@@ -959,11 +1099,6 @@ class ServicioReportesImpl <<service>> {
 }
 
 IServicioReportes <|.. ServicioReportesImpl
-ServicioReportesImpl --> RepositorioMaterialEnMemoria : usa
-ServicioReportesImpl --> RepositorioUsuarioEnMemoria : usa
-ServicioReportesImpl --> RepositorioPrestamoEnMemoria : usa
-ServicioReportesImpl --> RepositorioReservaEnMemoria : usa
-ServicioReportesImpl --> RepositorioMultaEnMemoria : usa
 MenuConsola --> BibliotecaFacade : interactúa con
 MenuConsola --> IServicioReportes : genera reportes
 IReglaValidacion ..> ContextoValidacion : recibe
@@ -995,13 +1130,56 @@ class ContextoMulta {
     -Evaluacion evaluacion
     -TipoMulta tipoMulta
     +GetIdPrestamo() : string
+    +GetIdMaterial() : string
+    +GetIdUsuario() : string
     +GetTipoMulta() : TipoMulta
+    +GetEvaluacion() : Evaluacion
 }
 
+note right of ContextoMulta
+  Usa String para IDs porque actúa como
+  Parameter Object que transporta datos
+  entre DevolucionService y los calculadores.
+  Construido mediante Builder interno.
+end note
+
 GestorMultasService ..> ContextoMulta : recibe
+IGestorMultasService ..> ContextoMulta : recibe
 
+' ========================================
+' CONTEXTO DE CREACIÓN DE PRÉSTAMO
+' ========================================
+
+class ContextoCreacionPrestamo {
+    -Usuario usuario
+    -Material material
+    -DateTime fechaDevolucion
+    -string tipo
+    -string ubicacionBiblioteca
+    -string bibliotecaOrigen
+    -string bibliotecaDestino
+    -double costoTransferencia
+    +GetUsuario() : Usuario
+    +GetMaterial() : Material
+    +GetFechaDevolucion() : DateTime
+    +GetTipo() : string
+    +GetUbicacionBiblioteca() : string
+    +GetBibliotecaOrigen() : string
+    +GetBibliotecaDestino() : string
+    +GetCostoTransferencia() : double
+}
+
+note right of ContextoCreacionPrestamo
+  Parameter Object con Builder interno.
+  Transporta toda la información necesaria
+  para crear un préstamo vía IPrestamoFactory.
+end note
+
+IPrestamoFactory ..> ContextoCreacionPrestamo : recibe
+
+' ========================================
 ' ENUMS
-
+' ========================================
 
 enum TipoMaterial {
     LIBRO_NORMAL
@@ -1067,12 +1245,19 @@ enum TipoDano {
     NO_FUNCIONAL
 }
 
+enum TipoOperacion {
+    PRESTAMO
+    RESERVA
+    RENOVAR
+    DEVOLUCION
+}
+
 Material --> TipoMaterial : tiene
 Usuario --> TipoUsuario : tiene
 Dano --> NivelGravedad : tiene
 Dano --> TipoDano : clasifica
 ContextoMulta --> TipoMulta : especifica
-
+ContextoValidacion --> TipoOperacion : especifica
 
 ' ========================================
 ' PATRONES DE DISEÑO
@@ -1112,6 +1297,8 @@ IPrestamoFactory <|.. PrestamoInterbibliotecarioFactory
 IPrestamoFactory ..> Prestamo : crea
 PrestamoNormalFactory ..> PrestamoNormal : instancia
 PrestamoInterbibliotecarioFactory ..> PrestamoInterbibliotecario : instancia
+PrestamoNormalFactory ..> IBuilderPrestamo : usa
+PrestamoInterbibliotecarioFactory ..> IBuilderPrestamo : usa
 
 ' 3. Facade
 class BibliotecaFacade <<facade>> {
@@ -1148,9 +1335,7 @@ class NotificacionEmailAdapter <<adapter>> {
 INotificacionService <|.. NotificacionEmailAdapter
 NotificacionEmailAdapter --> NotificacionEmailService
 
-
-
-' 7. Template Method
+' 6. Template Method
 abstract class ProcesadorTransaccionTemplate {
     +Procesar(idUsuario: string, idMaterial: string): Resultado
     #ValidarTransaccion(idUsuario: string, idMaterial: string): ResultadoValidacion
@@ -1180,5 +1365,32 @@ ProcesadorReserva ..> Reserva : crea
 
 PrestamoService --> ProcesadorPrestamo : delega a
 ReservaService --> ProcesadorReserva : delega a
+
+' ========================================
+' MAIN (Punto de entrada - conecta IRepositorioFactory)
+' ========================================
+
+class Main <<application>> {
+    +{static} main(args: String[])
+    -{static} cargarDatosEjemplo()
+}
+
+Main --> IRepositorioFactory : crea repositorios
+Main --> IBibliotecaFactory : configura servicios
+Main ..> BibliotecaFacade : configura
+Main ..> MenuConsola : inicia
+Main ..> IPrestamoService : ensambla
+Main ..> IDevolucionService : ensambla
+Main ..> IReservaService : ensambla
+Main ..> IRenovacionService : ensambla
+Main ..> IServicioReportes : ensambla
+
+note bottom of Main
+  Main actúa como Composition Root:
+  usa IRepositorioFactory para crear
+  IRepositorio<T> que inyecta a todos
+  los servicios. Ningún servicio conoce
+  la implementación concreta del repositorio.
+end note
 
 @enduml
