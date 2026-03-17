@@ -3,6 +3,7 @@ package com.biblioteca.servicios.calculadores;
 import com.biblioteca.dominio.entidades.*;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
 import com.biblioteca.dominio.enumeraciones.TipoMulta;
+import com.biblioteca.dominio.enumeraciones.TipoUsuario;
 import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.ICalculadorMulta;
@@ -13,12 +14,17 @@ import java.util.Map;
 
 public class CalculadorMultaPorRetraso implements ICalculadorMulta {
     private IRepositorio<Prestamo> repoPrestamo;
+    private IRepositorio<Usuario> repoUsuario;
     private Map<TipoMaterial, Double> tarifasPorTipo;
+    private Map<TipoUsuario, Double> multiplicadorPorUsuario;
     
-    public CalculadorMultaPorRetraso(IRepositorio<Prestamo> repoPrestamo) {
+    public CalculadorMultaPorRetraso(IRepositorio<Prestamo> repoPrestamo, IRepositorio<Usuario> repoUsuario) {
         this.repoPrestamo = repoPrestamo;
+        this.repoUsuario = repoUsuario;
         this.tarifasPorTipo = new HashMap<>();
+        this.multiplicadorPorUsuario = new HashMap<>();
         inicializarTarifas();
+        inicializarMultiplicadores();
     }
     
     private void inicializarTarifas() {
@@ -28,6 +34,13 @@ public class CalculadorMultaPorRetraso implements ICalculadorMulta {
         tarifasPorTipo.put(TipoMaterial.DVD, 3000.0);
         tarifasPorTipo.put(TipoMaterial.REVISTA, 500.0);
         tarifasPorTipo.put(TipoMaterial.EBOOK, 0.0); // Digital no tiene multa por retraso
+    }
+    
+    private void inicializarMultiplicadores() {
+        multiplicadorPorUsuario.put(TipoUsuario.ESTUDIANTE, 1.0);
+        multiplicadorPorUsuario.put(TipoUsuario.PROFESOR, 0.5); // 50% descuento
+        multiplicadorPorUsuario.put(TipoUsuario.INVESTIGADOR, 0.0); // Sin multa
+        multiplicadorPorUsuario.put(TipoUsuario.PUBLICO_GENERAL, 1.5); // 50% extra
     }
     
     @Override
@@ -44,13 +57,23 @@ public class CalculadorMultaPorRetraso implements ICalculadorMulta {
         
         // Necesitamos el tipo de material - esto debería venir del contexto o buscarlo
         // Por simplicidad, asumimos LIBRO_NORMAL
-        double tarifa = obtenerTarifa(TipoMaterial.LIBRO_NORMAL);
+        double tarifaBase = obtenerTarifa(TipoMaterial.LIBRO_NORMAL);
+        double multiplicador = 1.0;
+        
+        if (repoUsuario != null && contexto.getIdUsuario() != null) {
+            Usuario u = repoUsuario.obtenerPorId(contexto.getIdUsuario());
+            if (u != null) {
+                multiplicador = multiplicadorPorUsuario.getOrDefault(u.getTipo(), 1.0);
+            }
+        }
+        
+        double tarifaFinal = tarifaBase * multiplicador;
         
         MultaPorRetraso multa = new MultaPorRetraso(
             contexto.getIdPrestamo(),
             contexto.getIdUsuario(),
             diasRetraso,
-            tarifa
+            tarifaFinal
         );
         
         return multa;

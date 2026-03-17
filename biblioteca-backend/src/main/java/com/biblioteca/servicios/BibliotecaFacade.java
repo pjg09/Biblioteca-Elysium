@@ -54,4 +54,8 @@ public class BibliotecaFacade {
         Evaluacion evaluacion = new Evaluacion(true, new ArrayList<>());
         return devolucionService.registrarDevolucion(idPrestamo, evaluacion);
     }
+    
+    public Resultado renovarPrestamo(String idPrestamo) {
+        return renovacionService.renovarPrestamo(idPrestamo);
+    }
 }

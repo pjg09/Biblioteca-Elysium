@@ -10,7 +10,9 @@ import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
 
-public class UsuarioBuilder {
+import com.biblioteca.dominio.builders.interfaces.IBuilderUsuario;
+
+public class UsuarioBuilder implements IBuilderUsuario {
     private IdUsuario id;
     private String nombre;
     private String email;
@@ -33,17 +35,17 @@ public class UsuarioBuilder {
     private String direccion;
     private String nombreFiador;
     
-    public UsuarioBuilder conId(IdUsuario id) {
+    public IBuilderUsuario conId(IdUsuario id) {
         this.id = id;
         return this;
     }
 
-    public UsuarioBuilder conNombre(String nombre) {
+    public IBuilderUsuario conNombre(String nombre) {
         this.nombre = nombre;
         return this;
     }
     
-    public UsuarioBuilder conEmail(String email) {
+    public IBuilderUsuario conEmail(String email) {
         this.email = email;
         return this;
     }
@@ -52,7 +54,7 @@ public class UsuarioBuilder {
     // TIPOS
     // =========================================
     
-    public UsuarioBuilder esEstudiante(String carrera, int semestre, String universidad) {
+    public IBuilderUsuario esEstudiante(String carrera, int semestre, String universidad) {
         this.tipo = TipoUsuario.ESTUDIANTE;
         this.carrera = carrera;
         this.semestre = semestre;
@@ -60,7 +62,7 @@ public class UsuarioBuilder {
         return this;
     }
     
-    public UsuarioBuilder esProfesor(String departamento, String universidad, String especialidad) {
+    public IBuilderUsuario esProfesor(String departamento, String universidad, String especialidad) {
         this.tipo = TipoUsuario.PROFESOR;
         this.departamento = departamento;
         this.universidad = universidad;
@@ -68,14 +70,14 @@ public class UsuarioBuilder {
         return this;
     }
     
-    public UsuarioBuilder esInvestigador(String lineaInvestigacion, String institucion) {
+    public IBuilderUsuario esInvestigador(String lineaInvestigacion, String institucion) {
         this.tipo = TipoUsuario.INVESTIGADOR;
         this.lineaInvestigacion = lineaInvestigacion;
         this.institucion = institucion;
         return this;
     }
     
-    public UsuarioBuilder esPublicoGeneral(String direccion, String nombreFiador) {
+    public IBuilderUsuario esPublicoGeneral(String direccion, String nombreFiador) {
         this.tipo = TipoUsuario.PUBLICO_GENERAL;
         this.direccion = direccion;
         this.nombreFiador = nombreFiador;

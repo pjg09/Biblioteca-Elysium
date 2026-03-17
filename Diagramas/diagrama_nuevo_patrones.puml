@@ -1,4 +1,4 @@
-@startuml Sistema_Biblioteca_SOLID_FINAL
+@startuml Sistema_Biblioteca_patrones
 
 'ESTILOS
 
@@ -29,6 +29,29 @@ class IdMaterial <<ValueObject>> {
     -string valor
     +GetValor() : string
 }
+
+class IdTransaccion <<ValueObject>> {
+    -string valor
+    +GetValor() : string
+}
+
+class IdPrestamo <<ValueObject>> {
+    -string valor
+    +GetValor() : string
+}
+
+class IdReserva <<ValueObject>> {
+    -string valor
+    +GetValor() : string
+}
+
+class IdMulta <<ValueObject>> {
+    -string valor
+    +GetValor() : string
+}
+
+IdTransaccion <|-- IdPrestamo
+IdTransaccion <|-- IdReserva
 
 abstract class Material {
     -IdMaterial id
@@ -144,12 +167,12 @@ Usuario <|-- PublicoGeneral
 
 
 abstract class Transaccion {
-    -string id
+    -IdTransaccion id
     -IdUsuario idUsuario
     -IdMaterial idMaterial
     -DateTime fechaCreacion
     -EstadoTransaccion estado
-    +GetId() : string
+    +GetId() : IdTransaccion
     +GetIdUsuario() : IdUsuario
     +GetIdMaterial() : IdMaterial
     +GetEstado() : EstadoTransaccion
@@ -215,14 +238,16 @@ Reserva <|-- ReservaInterbibliotecaria
 ' MULTAS 
 
 abstract class Multa {
-    -string id
+    -IdMulta id
     -string idPrestamo
     -string idUsuario
     -DateTime fechaGeneracion
     -DateTime fechaPago
     -EstadoMulta estado
     -string motivo
-    +GetId() : string
+    +GetId() : IdMulta
+    +GetIdPrestamo() : string
+    +GetIdUsuario() : string
     +GetEstado() : EstadoMulta
     +GetMotivo() : string
     +SetFechaPago(fecha)
@@ -292,7 +317,16 @@ MaterialBuilder ..> Material : construye
 UsuarioBuilder ..> Usuario : construye
 PrestamoBuilder ..> Prestamo : construye
 
-' RELACIONES  
+' RELACIONES DE COMPOSICIÓN CON IDS (Value Objects)
+
+Usuario *-- IdUsuario : identifica
+Material *-- IdMaterial : identifica
+Transaccion *-- IdTransaccion : identifica
+Transaccion --> IdUsuario : referencia
+Transaccion --> IdMaterial : referencia
+Multa *-- IdMulta : identifica
+
+' RELACIONES ENTRE ENTIDADES
 
 Usuario "1" -- "0..*" Transaccion : realiza
 Material "1" -- "0..*" Transaccion : involucrado
@@ -763,6 +797,25 @@ class "RepositorioEnMemoria<T>" as RepositorioEnMemoria {
 
 IRepositorio <|.. RepositorioEnMemoria
 
+interface IRepositorioFactory {
+    +crearRepositorioMaterial() : IRepositorio<Material>
+    +crearRepositorioUsuario() : IRepositorio<Usuario>
+    +crearRepositorioPrestamo() : IRepositorio<Prestamo>
+    +crearRepositorioReserva() : IRepositorio<Reserva>
+    +crearRepositorioMulta() : IRepositorio<Multa>
+}
+
+class RepositorioEnMemoriaFactory {
+    +crearRepositorioMaterial() : IRepositorio<Material>
+    +crearRepositorioUsuario() : IRepositorio<Usuario>
+    +crearRepositorioPrestamo() : IRepositorio<Prestamo>
+    +crearRepositorioReserva() : IRepositorio<Reserva>
+    +crearRepositorioMulta() : IRepositorio<Multa>
+}
+
+IRepositorioFactory <|.. RepositorioEnMemoriaFactory
+RepositorioEnMemoriaFactory ..> RepositorioEnMemoria : crea
+
 ' ========================================
 ' REPOSITORIOS ESPECÍFICOS
 ' ========================================
@@ -864,6 +917,57 @@ class Resultado {
     +{static} Exitoso(mensaje : string, data : object) : Resultado
     +{static} Fallido(mensaje : string) : Resultado
 }
+
+class ContextoValidacion {
+    -string idUsuario
+    -string idMaterial
+    -string idPrestamo
+    +GetIdUsuario() : string
+    +GetIdMaterial() : string
+    +GetIdPrestamo() : string
+}
+
+class MenuConsola <<presentation>> {
+    -BibliotecaFacade facade
+    -IServicioReportes servicioReportes
+    +iniciar()
+}
+
+interface IServicioReportes {
+    +generarEstadisticasGenerales() : string
+    +generarEstadoUsuario(idUsuario : string) : string
+    +generarLimitesUsuario() : string
+    +generarPoliticasTiempo() : string
+    +generarReporteCompleto() : string
+}
+
+class ServicioReportesImpl <<service>> {
+    -RepositorioMaterialEnMemoria repoMaterial
+    -RepositorioUsuarioEnMemoria repoUsuario
+    -RepositorioPrestamoEnMemoria repoPrestamo
+    -RepositorioReservaEnMemoria repoReserva
+    -RepositorioMultaEnMemoria repoMulta
+    -IGestorBloqueoService gestorBloqueo
+    -IPrestamoService prestamoService
+    -ILimitePrestamoService limiteService
+    -IPoliticaTiempoService politicaTiempo
+    +generarEstadisticasGenerales() : string
+    +generarEstadoUsuario(idUsuario : string) : string
+    +generarLimitesUsuario() : string
+    +generarPoliticasTiempo() : string
+    +generarReporteCompleto() : string
+}
+
+IServicioReportes <|.. ServicioReportesImpl
+ServicioReportesImpl --> RepositorioMaterialEnMemoria : usa
+ServicioReportesImpl --> RepositorioUsuarioEnMemoria : usa
+ServicioReportesImpl --> RepositorioPrestamoEnMemoria : usa
+ServicioReportesImpl --> RepositorioReservaEnMemoria : usa
+ServicioReportesImpl --> RepositorioMultaEnMemoria : usa
+MenuConsola --> BibliotecaFacade : interactúa con
+MenuConsola --> IServicioReportes : genera reportes
+IReglaValidacion ..> ContextoValidacion : recibe
+ValidadorReglasService ..> ContextoValidacion : crea
 
 class Evaluacion {
     -bool materialUsable
@@ -976,31 +1080,31 @@ ContextoMulta --> TipoMulta : especifica
 
 ' 1. Abstract Factory
 interface IBibliotecaFactory {
-    +CrearPrestamoFactory() : IPrestamoFactory
-    +CrearNotificacionService() : INotificacionService
+    +crearPoliticaTiempoService() : IPoliticaTiempoService
+    +crearNotificacionService() : INotificacionService
 }
 class BibliotecaPublicaFactory {
-    +CrearPrestamoFactory() : IPrestamoFactory
-    +CrearNotificacionService() : INotificacionService
+    +crearPoliticaTiempoService() : IPoliticaTiempoService
+    +crearNotificacionService() : INotificacionService
 }
 class BibliotecaUniversitariaFactory {
-    +CrearPrestamoFactory() : IPrestamoFactory
-    +CrearNotificacionService() : INotificacionService
+    +crearPoliticaTiempoService() : IPoliticaTiempoService
+    +crearNotificacionService() : INotificacionService
 }
 IBibliotecaFactory <|.. BibliotecaPublicaFactory
 IBibliotecaFactory <|.. BibliotecaUniversitariaFactory
-IBibliotecaFactory ..> IPrestamoFactory : crea
+IBibliotecaFactory ..> IPoliticaTiempoService : crea
 IBibliotecaFactory ..> INotificacionService : crea
 
 ' 2. Factory Method
 interface IPrestamoFactory {
-    +CrearPrestamo(idUsuario: string, idMaterial: string) : Prestamo
+    +CrearPrestamo(contexto: ContextoCreacionPrestamo) : Prestamo
 }
 class PrestamoNormalFactory {
-    +CrearPrestamo(idUsuario: string, idMaterial: string) : PrestamoNormal
+    +CrearPrestamo(contexto: ContextoCreacionPrestamo) : PrestamoNormal
 }
 class PrestamoInterbibliotecarioFactory {
-    +CrearPrestamo(idUsuario: string, idMaterial: string) : PrestamoInterbibliotecario
+    +CrearPrestamo(contexto: ContextoCreacionPrestamo) : PrestamoInterbibliotecario
 }
 IPrestamoFactory <|.. PrestamoNormalFactory
 IPrestamoFactory <|.. PrestamoInterbibliotecarioFactory
@@ -1012,15 +1116,17 @@ PrestamoInterbibliotecarioFactory ..> PrestamoInterbibliotecario : instancia
 ' 3. Facade
 class BibliotecaFacade <<facade>> {
     -IPrestamoService prestamoService
-    -IReservaService reservaService
     -IDevolucionService devolucionService
-    +PrestarMaterial(idUsuario: string, idMaterial: string, tipo: string) : Resultado
-    +ReservarMaterial(idUsuario: string, idMaterial: string, tipo: string) : Resultado
-    +DevolverMaterial(idPrestamo: string, evaluacion: Evaluacion) : Resultado
+    -IReservaService reservaService
+    -IRenovacionService renovacionService
+    +procesarSolicitudMaterial(idUsuario: string, idMaterial: string) : Resultado
+    +devolverMaterialSinInspeccion(idPrestamo: string) : Resultado
+    +renovarPrestamo(idPrestamo: string) : Resultado
 }
 BibliotecaFacade --> IPrestamoService
-BibliotecaFacade --> IReservaService
 BibliotecaFacade --> IDevolucionService
+BibliotecaFacade --> IReservaService
+BibliotecaFacade --> IRenovacionService
 
 ' 4. Decorator
 class NotificacionConLoggingDecorator <<decorator>> {
@@ -1042,40 +1148,7 @@ class NotificacionEmailAdapter <<adapter>> {
 INotificacionService <|.. NotificacionEmailAdapter
 NotificacionEmailAdapter --> NotificacionEmailService
 
-' 6. Proxy / Observer
-class PrestamoServiceConEventos <<proxy>> {
-    -IPrestamoService prestamoBase
-    -List<IObservadorPrestamo> observadores
-    +AgregarObservador(obs: IObservadorPrestamo)
-    +RemoverObservador(obs: IObservadorPrestamo)
-}
-interface IObservadorPrestamo {
-    +OnPrestamoRealizado(evento: EventoPrestamo)
-    +OnPrestamoRechazado(evento: EventoPrestamo)
-}
-class EventoPrestamo {
-    -string idUsuario
-    -string idMaterial
-    -DateTime fecha
-    -bool exitoso
-    -string mensaje
-}
-class ObservadorAuditoria {
-    +OnPrestamoRealizado(evento: EventoPrestamo)
-    +OnPrestamoRechazado(evento: EventoPrestamo)
-}
-class ObservadorEstadisticas {
-    +OnPrestamoRealizado(evento: EventoPrestamo)
-    +OnPrestamoRechazado(evento: EventoPrestamo)
-}
 
-IPrestamoService <|.. PrestamoServiceConEventos
-PrestamoServiceConEventos --> IPrestamoService : envuelve a
-PrestamoServiceConEventos --> IObservadorPrestamo : notifica a
-IObservadorPrestamo <|.. ObservadorAuditoria
-IObservadorPrestamo <|.. ObservadorEstadisticas
-ObservadorAuditoria ..> EventoPrestamo : recibe
-ObservadorEstadisticas ..> EventoPrestamo : recibe
 
 ' 7. Template Method
 abstract class ProcesadorTransaccionTemplate {

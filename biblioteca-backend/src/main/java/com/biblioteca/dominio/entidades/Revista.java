@@ -8,8 +8,8 @@ public class Revista extends Material {
     private int numeroEdicion;
     private boolean esUltimoNumero;
     
-    public Revista(IdMaterial id, String titulo, String autor, String issn, int numeroEdicion, boolean esUltimoNumero) {
-        super(id, titulo, autor, TipoMaterial.REVISTA);
+    public Revista(IdMaterial id, String titulo, String autor, String issn, int numeroEdicion, boolean esUltimoNumero, double precio) {
+        super(id, titulo, autor, TipoMaterial.REVISTA, precio);
         this.issn = issn;
         this.numeroEdicion = numeroEdicion;
         this.esUltimoNumero = esUltimoNumero;

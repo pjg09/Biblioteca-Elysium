@@ -2,7 +2,7 @@ package com.biblioteca.servicios.implementaciones.reglas;
 
 import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
-import com.biblioteca.servicios.implementaciones.ValidadorReglasService.ContextoValidacion;
+import com.biblioteca.dominio.objetosvalor.ContextoValidacion;
 import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 import com.biblioteca.servicios.interfaces.IReglaValidacion;
 

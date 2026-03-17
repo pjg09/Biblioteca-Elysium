@@ -10,8 +10,8 @@ public class Libro extends Material {
     private boolean esReferencia;
     
     public Libro(IdMaterial id, String titulo, String autor, String isbn, 
-                 int numeroPaginas, boolean esBestSeller, boolean esReferencia) {
-        super(id, titulo, autor, determinarTipo(esBestSeller, esReferencia));
+                 int numeroPaginas, boolean esBestSeller, boolean esReferencia, double precio) {
+        super(id, titulo, autor, determinarTipo(esBestSeller, esReferencia), precio);
         this.isbn = isbn;
         this.numeroPaginas = numeroPaginas;
         this.esBestSeller = esBestSeller;

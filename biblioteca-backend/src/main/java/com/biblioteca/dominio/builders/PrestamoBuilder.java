@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import com.biblioteca.dominio.entidades.Prestamo;
 import com.biblioteca.dominio.entidades.PrestamoInterbibliotecario;
 import com.biblioteca.dominio.entidades.PrestamoNormal;
-import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
+import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 
-public class PrestamoBuilder {
+import com.biblioteca.dominio.builders.interfaces.IBuilderPrestamo;
+
+public class PrestamoBuilder implements IBuilderPrestamo {
     // Campos obligatorios
     private IdUsuario idUsuario;
     private IdMaterial idMaterial;
@@ -32,12 +34,12 @@ public class PrestamoBuilder {
     // MÉTODOS OBLIGATORIOS
     // =========================================
     
-    public PrestamoBuilder paraUsuario(IdUsuario idUsuario) {
+    public IBuilderPrestamo paraUsuario(IdUsuario idUsuario) {
         this.idUsuario = idUsuario;
         return this;
     }
     
-    public PrestamoBuilder deMaterial(IdMaterial idMaterial) {
+    public IBuilderPrestamo deMaterial(IdMaterial idMaterial) {
         this.idMaterial = idMaterial;
         return this;
     }
@@ -46,22 +48,22 @@ public class PrestamoBuilder {
     // MÉTODOS OPCIONALES
     // =========================================
     
-    public PrestamoBuilder conId(String id) {
+    public IBuilderPrestamo conId(String id) {
         this.id = id;
         return this;
     }
     
-    public PrestamoBuilder conVencimiento(LocalDateTime fechaDevolucion) {
+    public IBuilderPrestamo conVencimiento(LocalDateTime fechaDevolucion) {
         this.fechaDevolucion = fechaDevolucion;
         return this;
     }
     
-    public PrestamoBuilder porDias(int dias) {
+    public IBuilderPrestamo porDias(int dias) {
         this.fechaDevolucion = LocalDateTime.now().plusDays(dias);
         return this;
     }
     
-    public PrestamoBuilder enUbicacion(String ubicacion) {
+    public IBuilderPrestamo enUbicacion(String ubicacion) {
         this.ubicacionBiblioteca = ubicacion;
         return this;
     }
@@ -70,12 +72,12 @@ public class PrestamoBuilder {
     // CONFIGURACIÓN POR TIPO
     // =========================================
     
-    public PrestamoBuilder tipoNormal() {
+    public IBuilderPrestamo tipoNormal() {
         this.tipoPrestamo = "normal";
         return this;
     }
     
-    public PrestamoBuilder tipoInterbibliotecario(String origen, String destino, double costo) {
+    public IBuilderPrestamo tipoInterbibliotecario(String origen, String destino, double costo) {
         this.tipoPrestamo = "interbibliotecario";
         this.bibliotecaOrigen = origen;
         this.bibliotecaDestino = destino;
@@ -133,7 +135,7 @@ public class PrestamoBuilder {
     
     private PrestamoNormal construirPrestamoNormal() {
         return new PrestamoNormal(
-            id,
+            new IdTransaccion(id),
             idUsuario,
             idMaterial,
             fechaDevolucion,
@@ -143,7 +145,7 @@ public class PrestamoBuilder {
     
     private PrestamoInterbibliotecario construirPrestamoInterbibliotecario() {
         return new PrestamoInterbibliotecario(
-            id,
+            new IdTransaccion(id),
             idUsuario,
             idMaterial,
             fechaDevolucion,

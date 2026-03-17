@@ -4,9 +4,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.biblioteca.dominio.enumeraciones.EstadoMulta;
+import com.biblioteca.dominio.objetosvalor.IdMulta;
 
 public abstract class Multa {
-    protected String id;
+    protected IdMulta id;
     protected String idPrestamo;
     protected String idUsuario;
     protected LocalDateTime fechaGeneracion;
@@ -15,7 +16,7 @@ public abstract class Multa {
     protected String motivo;
     
     public Multa(String idPrestamo, String idUsuario, String motivo) {
-        this.id = UUID.randomUUID().toString();
+        this.id = new IdMulta("MUL-" + UUID.randomUUID().toString().substring(0,8));
         this.idPrestamo = idPrestamo;
         this.idUsuario = idUsuario;
         this.fechaGeneracion = LocalDateTime.now();
@@ -23,7 +24,7 @@ public abstract class Multa {
         this.motivo = motivo;
     }
     
-    public String getId() {
+    public IdMulta getId() {
         return id;
     }
     

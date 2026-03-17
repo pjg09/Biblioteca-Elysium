@@ -2,7 +2,8 @@ package com.biblioteca.servicios.implementaciones.reglas;
 
 import com.biblioteca.dominio.entidades.Material;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
-import com.biblioteca.servicios.implementaciones.ValidadorReglasService.ContextoValidacion;
+import com.biblioteca.dominio.objetosvalor.ContextoValidacion;
+import com.biblioteca.dominio.enumeraciones.TipoOperacion;
 import com.biblioteca.servicios.interfaces.IDisponibilidadService;
 import com.biblioteca.servicios.interfaces.IReglaValidacion;
 
@@ -21,6 +22,11 @@ public class ReglaMaterialDisponible implements IReglaValidacion {
         }
         
         Material material = contexto.getMaterial();
+        
+        // Si es reserva, la regla de estar disponible no aplica
+        if (contexto.getOperacion() == TipoOperacion.RESERVA) {
+            return ResultadoValidacion.Valido();
+        }
         
         // Usar el servicio de disponibilidad
         boolean disponible = disponibilidadService.verificarDisponibilidad(material.getId().getValor());

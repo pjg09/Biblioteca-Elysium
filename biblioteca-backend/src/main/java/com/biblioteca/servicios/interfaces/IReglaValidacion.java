@@ -1,7 +1,7 @@
 package com.biblioteca.servicios.interfaces;
 
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
-import com.biblioteca.servicios.implementaciones.ValidadorReglasService.ContextoValidacion;
+import com.biblioteca.dominio.objetosvalor.ContextoValidacion;
 
 public interface IReglaValidacion {
     ResultadoValidacion validar(ContextoValidacion contexto);

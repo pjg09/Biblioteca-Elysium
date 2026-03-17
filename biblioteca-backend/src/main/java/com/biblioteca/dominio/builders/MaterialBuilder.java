@@ -1,7 +1,6 @@
 package com.biblioteca.dominio.builders;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import com.biblioteca.dominio.entidades.DVD;
 import com.biblioteca.dominio.entidades.EBook;
@@ -11,12 +10,15 @@ import com.biblioteca.dominio.entidades.Revista;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
 
-public class MaterialBuilder {
+import com.biblioteca.dominio.builders.interfaces.IBuilderMaterial;
+
+public class MaterialBuilder implements IBuilderMaterial {
     // Campos comunes
     private IdMaterial id;
     private String titulo;
     private String autor;
     private TipoMaterial tipo;
+    private double precio;
     
     // Campos específicos de Libro
     private String isbn;
@@ -43,18 +45,23 @@ public class MaterialBuilder {
     // MÉTODOS COMUNES
     // =========================================
     
-    public MaterialBuilder conId(IdMaterial id) {
+    public IBuilderMaterial conId(IdMaterial id) {
         this.id = id;
         return this;
     }
     
-    public MaterialBuilder conTitulo(String titulo) {
+    public IBuilderMaterial conTitulo(String titulo) {
         this.titulo = titulo;
         return this;
     }
     
-    public MaterialBuilder deAutor(String autor) {
+    public IBuilderMaterial deAutor(String autor) {
         this.autor = autor;
+        return this;
+    }
+    
+    public IBuilderMaterial conPrecio(double precio) {
+        this.precio = precio;
         return this;
     }
     
@@ -62,28 +69,28 @@ public class MaterialBuilder {
     // CONFIGURACIÓN TIPO LIBRO
     // =========================================
     
-    public MaterialBuilder esLibro() {
+    public IBuilderMaterial esLibro() {
         this.tipo = TipoMaterial.LIBRO_NORMAL;
         return this;
     }
     
-    public MaterialBuilder conISBN(String isbn) {
+    public IBuilderMaterial conISBN(String isbn) {
         this.isbn = isbn;
         return this;
     }
     
-    public MaterialBuilder conPaginas(int numeroPaginas) {
+    public IBuilderMaterial conPaginas(int numeroPaginas) {
         this.numeroPaginas = numeroPaginas;
         return this;
     }
     
-    public MaterialBuilder esBestSeller() {
+    public IBuilderMaterial esBestSeller() {
         this.esBestSeller = true;
         this.tipo = TipoMaterial.LIBRO_BESTSELLER;
         return this;
     }
     
-    public MaterialBuilder esReferencia() {
+    public IBuilderMaterial esReferencia() {
         this.esReferencia = true;
         this.tipo = TipoMaterial.LIBRO_REFERENCIA;
         return this;
@@ -93,22 +100,22 @@ public class MaterialBuilder {
     // CONFIGURACIÓN TIPO DVD
     // =========================================
     
-    public MaterialBuilder esDVD() {
+    public IBuilderMaterial esDVD() {
         this.tipo = TipoMaterial.DVD;
         return this;
     }
     
-    public MaterialBuilder conCodigo(String codigo) {
+    public IBuilderMaterial conCodigo(String codigo) {
         this.codigo = codigo;
         return this;
     }
     
-    public MaterialBuilder conDuracion(int duracionMinutos) {
+    public IBuilderMaterial conDuracion(int duracionMinutos) {
         this.duracionMinutos = duracionMinutos;
         return this;
     }
     
-    public MaterialBuilder dirigidoPor(String director) {
+    public IBuilderMaterial dirigidoPor(String director) {
         this.director = director;
         return this;
     }
@@ -117,22 +124,22 @@ public class MaterialBuilder {
     // CONFIGURACIÓN TIPO REVISTA
     // =========================================
 
-    public MaterialBuilder esRevista() {
+    public IBuilderMaterial esRevista() {
         this.tipo = TipoMaterial.REVISTA;
         return this;
     }
 
-    public MaterialBuilder conIssn(String issn) {
+    public IBuilderMaterial conIssn(String issn) {
         this.issn = issn;
         return this;
     }
 
-    public MaterialBuilder numeroEdicion(int numero) {
+    public IBuilderMaterial numeroEdicion(int numero) {
         this.numeroEdicion = numero;
         return this;
     }
 
-    public MaterialBuilder esUltimoNumero() {
+    public IBuilderMaterial esUltimoNumero() {
         this.esUltimoNumero = true;
         return this;
     }
@@ -141,22 +148,22 @@ public class MaterialBuilder {
     // CONFIGURACIÓN TIPO EBOOK
     // =========================================
 
-    public MaterialBuilder esEBook() {
+    public IBuilderMaterial esEBook() {
         this.tipo = TipoMaterial.EBOOK;
         return this;
     }
 
-    public MaterialBuilder desdeUrl(String url) {
+    public IBuilderMaterial desdeUrl(String url) {
         this.urlDescarga = url;
         return this;
     }
 
-    public MaterialBuilder licencias(int cant) {
+    public IBuilderMaterial licencias(int cant) {
         this.licenciasDisponibles = cant;
         return this;
     }
 
-    public MaterialBuilder expiraEl(LocalDateTime fecha) {
+    public IBuilderMaterial expiraEl(LocalDateTime fecha) {
         this.fechaVencimientoLicencia = fecha;
         return this;
     }
@@ -168,20 +175,23 @@ public class MaterialBuilder {
     public Material construir() {
         validar();
         
+        Material m;
         switch (tipo) {
             case LIBRO_NORMAL:
             case LIBRO_BESTSELLER:
             case LIBRO_REFERENCIA:
-                return construirLibro();
+                m = construirLibro(); break;
             case DVD:
-                return construirDVD();
+                m = construirDVD(); break;
             case REVISTA:
-                return construirRevista();
+                m = construirRevista(); break;
             case EBOOK:
-                return construirEBook();
+                m = construirEBook(); break;
             default:
                 throw new IllegalStateException("Tipo de material no especificado");
         }
+        
+        return m;
     }
     
     private void validar() {
@@ -201,7 +211,8 @@ public class MaterialBuilder {
             isbn,
             numeroPaginas,
             esBestSeller,
-            esReferencia
+            esReferencia,
+            precio
         );
     }
     
@@ -212,7 +223,8 @@ public class MaterialBuilder {
             autor,
             codigo,
             duracionMinutos,
-            director
+            director,
+            precio
         );
     }
     
@@ -223,7 +235,8 @@ public class MaterialBuilder {
             autor,
             issn,
             numeroEdicion,
-            esUltimoNumero
+            esUltimoNumero,
+            precio
         );
     }
 
@@ -234,7 +247,8 @@ public class MaterialBuilder {
             autor,
             urlDescarga,
             licenciasDisponibles,
-            fechaVencimientoLicencia != null ? fechaVencimientoLicencia : LocalDateTime.now().plusYears(1)
+            fechaVencimientoLicencia != null ? fechaVencimientoLicencia : LocalDateTime.now().plusYears(1),
+            precio
         );
     }
 

@@ -11,8 +11,8 @@ public class EBook extends Material {
     private LocalDateTime fechaVencimientoLicencia;
     
     public EBook(IdMaterial id, String titulo, String autor, String urlDescarga, 
-                 int licenciasDisponibles, LocalDateTime fechaVencimientoLicencia) {
-        super(id, titulo, autor, TipoMaterial.EBOOK);
+                 int licenciasDisponibles, LocalDateTime fechaVencimientoLicencia, double precio) {
+        super(id, titulo, autor, TipoMaterial.EBOOK, precio);
         this.urlDescarga = urlDescarga;
         this.licenciasDisponibles = licenciasDisponibles;
         this.fechaVencimientoLicencia = fechaVencimientoLicencia;

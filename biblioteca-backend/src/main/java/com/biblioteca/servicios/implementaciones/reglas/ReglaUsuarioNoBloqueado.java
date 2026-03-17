@@ -1,7 +1,7 @@
 package com.biblioteca.servicios.implementaciones.reglas;
 
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
-import com.biblioteca.servicios.implementaciones.ValidadorReglasService.ContextoValidacion;
+import com.biblioteca.dominio.objetosvalor.ContextoValidacion;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 import com.biblioteca.servicios.interfaces.IReglaValidacion;
 

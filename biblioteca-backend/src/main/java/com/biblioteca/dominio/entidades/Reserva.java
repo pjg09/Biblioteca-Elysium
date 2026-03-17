@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
+import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 
 public abstract class Reserva extends Transaccion {
     protected LocalDateTime fechaReserva;
@@ -11,7 +12,7 @@ public abstract class Reserva extends Transaccion {
     protected LocalDateTime fechaExpiracion;
     protected int posicionCola;
     
-    public Reserva(String id, IdUsuario idUsuario, IdMaterial idMaterial) {
+    public Reserva(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial) {
         super(id, idUsuario, idMaterial);
         this.fechaReserva = LocalDateTime.now();
         this.fechaExpiracion = fechaReserva.plusDays(3); // Expira en 3 días
@@ -27,6 +28,10 @@ public abstract class Reserva extends Transaccion {
     
     public void setFechaNotificacion(LocalDateTime fecha) {
         this.fechaNotificacion = fecha;
+    }
+    
+    public void setFechaExpiracion(LocalDateTime fecha) {
+        this.fechaExpiracion = fecha;
     }
     
     public LocalDateTime getFechaExpiracion() {

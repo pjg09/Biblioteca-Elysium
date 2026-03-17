@@ -7,13 +7,14 @@ import java.util.List;
 import com.biblioteca.dominio.entidades.Material;
 import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
-import com.biblioteca.repositorios.RepositorioMaterialEnMemoria;
-import com.biblioteca.repositorios.RepositorioUsuarioEnMemoria;
+import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IDisponibilidadService;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 import com.biblioteca.servicios.interfaces.IReglaValidacion;
 import com.biblioteca.servicios.interfaces.IValidadorReglasService;
+import com.biblioteca.dominio.objetosvalor.ContextoValidacion;
+import com.biblioteca.dominio.enumeraciones.TipoOperacion;
 
 /**
  * ValidadorReglasService
@@ -36,8 +37,8 @@ public class ValidadorReglasService implements IValidadorReglasService {
     private final IGestorBloqueoService bloqueoService;
     
     // Repositorios para obtener entidades
-    private final RepositorioUsuarioEnMemoria repoUsuario;
-    private final RepositorioMaterialEnMemoria repoMaterial;
+    private final IRepositorio<Usuario> repoUsuario;
+    private final IRepositorio<Material> repoMaterial;
     
     // Lista de reglas personalizadas (Strategy Pattern)
     private final List<IReglaValidacion> reglas;
@@ -49,8 +50,8 @@ public class ValidadorReglasService implements IValidadorReglasService {
             ILimitePrestamoService limiteService,
             IDisponibilidadService disponibilidadService,
             IGestorBloqueoService bloqueoService,
-            RepositorioUsuarioEnMemoria repoUsuario,
-            RepositorioMaterialEnMemoria repoMaterial) {
+            IRepositorio<Usuario> repoUsuario,
+            IRepositorio<Material> repoMaterial) {
         
         this.limiteService = limiteService;
         this.disponibilidadService = disponibilidadService;
@@ -143,7 +144,7 @@ public class ValidadorReglasService implements IValidadorReglasService {
         }
         
         // 6. Aplicar reglas personalizadas (ordenadas por prioridad)
-        resultado = aplicarReglas(idUsuario, idMaterial, resultado);
+        resultado = aplicarReglas(idUsuario, idMaterial, resultado, TipoOperacion.PRESTAMO);
         
         return resultado;
     }
@@ -188,8 +189,18 @@ public class ValidadorReglasService implements IValidadorReglasService {
             );
         }
         
+        // 5. Los usuarios con multas o préstamos vencidos no pueden reservar
+        java.math.BigDecimal multas = bloqueoService.obtenerTotalMultasPendientes(idUsuario);
+        boolean tieneVencidos = bloqueoService.tienePrestamosVencidos(idUsuario);
+        
+        if ((multas != null && multas.compareTo(java.math.BigDecimal.ZERO) > 0) || tieneVencidos) {
+             resultado = resultado.combinar(
+                 ResultadoValidacion.Invalido("No se pueden realizar reservas con multas pendientes o préstamos vencidos")
+             );
+        }
+        
         // 5. Aplicar reglas personalizadas
-        resultado = aplicarReglas(idUsuario, idMaterial, resultado);
+        resultado = aplicarReglas(idUsuario, idMaterial, resultado, TipoOperacion.RESERVA);
         
         return resultado;
     }
@@ -210,7 +221,7 @@ public class ValidadorReglasService implements IValidadorReglasService {
         ResultadoValidacion resultado = ResultadoValidacion.Valido();
         
         // Crear contexto simplificado para renovación (sin usuario/material específicos)
-        ContextoValidacion contexto = new ContextoValidacion(null, null, null, null);
+        ContextoValidacion contexto = new ContextoValidacion(null, null, null, null, TipoOperacion.RENOVAR);
         
         // Aplicar reglas que apliquen a renovación
         List<IReglaValidacion> reglasOrdenadas = new ArrayList<>(reglas);
@@ -264,10 +275,11 @@ public class ValidadorReglasService implements IValidadorReglasService {
      * @param idUsuario ID del usuario
      * @param idMaterial ID del material
      * @param resultadoAcumulado Resultado acumulado hasta el momento
+     * @param operacion Tipo de operación (Préstamo, Reserva, etc.)
      * @return Resultado combinado de todas las reglas
      */
     private ResultadoValidacion aplicarReglas(String idUsuario, String idMaterial, 
-                                               ResultadoValidacion resultadoAcumulado) {
+                                               ResultadoValidacion resultadoAcumulado, TipoOperacion operacion) {
         
         // Si no hay reglas, retornar el resultado acumulado
         if (reglas.isEmpty()) {
@@ -279,7 +291,7 @@ public class ValidadorReglasService implements IValidadorReglasService {
         Material material = repoMaterial.obtenerPorId(idMaterial);
         
         // Crear contexto para las reglas
-        ContextoValidacion contexto = new ContextoValidacion(idUsuario, idMaterial, usuario, material);
+        ContextoValidacion contexto = new ContextoValidacion(idUsuario, idMaterial, usuario, material, operacion);
         
         // Ordenar reglas por prioridad (menor número = mayor prioridad)
         List<IReglaValidacion> reglasOrdenadas = new ArrayList<>(reglas);
@@ -302,32 +314,5 @@ public class ValidadorReglasService implements IValidadorReglasService {
         }
         
         return resultado;
-    }
-    
-    /**
-     * Clase interna para encapsular el contexto de validación
-     * Objeto de valor que pasa información a las reglas
-     */
-    public static class ContextoValidacion {
-        private final String idUsuario;
-        private final String idMaterial;
-        private final Usuario usuario;
-        private final Material material;
-        
-        public ContextoValidacion(String idUsuario, String idMaterial, 
-                                  Usuario usuario, Material material) {
-            this.idUsuario = idUsuario;
-            this.idMaterial = idMaterial;
-            this.usuario = usuario;
-            this.material = material;
-        }
-        
-        public String getIdUsuario() { return idUsuario; }
-        public String getIdMaterial() { return idMaterial; }
-        public Usuario getUsuario() { return usuario; }
-        public Material getMaterial() { return material; }
-        
-        public boolean tieneUsuario() { return usuario != null; }
-        public boolean tieneMaterial() { return material != null; }
     }
 }

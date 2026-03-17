@@ -4,13 +4,14 @@ import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
+import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 
 public class PrestamoInterbibliotecario extends Prestamo {
     private String bibliotecaOrigen;
     private String bibliotecaDestino;
     private double costoTransferencia;
     
-    public PrestamoInterbibliotecario(String id, IdUsuario idUsuario, IdMaterial idMaterial, 
+    public PrestamoInterbibliotecario(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial, 
                                        LocalDateTime fechaDevolucionEsperada, String bibliotecaOrigen,
                                        String bibliotecaDestino, double costoTransferencia) {
         super(id, idUsuario, idMaterial, fechaDevolucionEsperada);

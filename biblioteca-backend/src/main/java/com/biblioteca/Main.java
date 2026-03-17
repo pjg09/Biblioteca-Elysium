@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
+import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 
 import com.biblioteca.consola.MenuConsola;
 import com.biblioteca.dominio.entidades.DVD;
@@ -21,13 +22,10 @@ import com.biblioteca.dominio.entidades.PublicoGeneral;
 import com.biblioteca.dominio.entidades.Reserva;
 import com.biblioteca.dominio.entidades.Revista;
 import com.biblioteca.dominio.entidades.Usuario;
-import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
 import com.biblioteca.repositorios.IRepositorio;
-import com.biblioteca.repositorios.RepositorioMaterialEnMemoria;
-import com.biblioteca.repositorios.RepositorioMultaEnMemoria;
-import com.biblioteca.repositorios.RepositorioPrestamoEnMemoria;
-import com.biblioteca.repositorios.RepositorioReservaEnMemoria;
-import com.biblioteca.repositorios.RepositorioUsuarioEnMemoria;
+import com.biblioteca.repositorios.IRepositorioFactory;
+import com.biblioteca.repositorios.RepositorioEnMemoriaFactory;
+
 import com.biblioteca.servicios.calculadores.CalculadorMultaPorDano;
 import com.biblioteca.servicios.calculadores.CalculadorMultaPorPerdida;
 import com.biblioteca.servicios.calculadores.CalculadorMultaPorRetraso;
@@ -59,6 +57,8 @@ import com.biblioteca.servicios.interfaces.IPoliticaTiempoService;
 import com.biblioteca.servicios.interfaces.IPrestamoService;
 import com.biblioteca.servicios.interfaces.IRenovacionService;
 import com.biblioteca.servicios.interfaces.IReservaService;
+import com.biblioteca.servicios.interfaces.IServicioReportes;
+import com.biblioteca.servicios.implementaciones.ServicioReportes;
 
 public class Main {
 
@@ -68,13 +68,16 @@ public class Main {
                 System.out.println("======================================");
 
                 // =====================================================
-                // 1. INICIALIZAR REPOSITORIOS
-                // =====================================================
-                IRepositorio<Material> repoMaterial = new RepositorioMaterialEnMemoria();
-                IRepositorio<Usuario> repoUsuario = new RepositorioUsuarioEnMemoria();
-                IRepositorio<Prestamo> repoPrestamo = new RepositorioPrestamoEnMemoria();
-                IRepositorio<Reserva> repoReserva = new RepositorioReservaEnMemoria();
-                IRepositorio<Multa> repoMulta = new RepositorioMultaEnMemoria();
+        // FACTORY DE REPOSITORIOS
+        // =====================================================
+        // Usamos una fábrica para abstraer la creación de repositorios
+        IRepositorioFactory repoFactory = new RepositorioEnMemoriaFactory();
+        
+        IRepositorio<Material> repoMaterial = repoFactory.crearRepositorioMaterial();
+        IRepositorio<Usuario> repoUsuario = repoFactory.crearRepositorioUsuario();
+        IRepositorio<Prestamo> repoPrestamo = repoFactory.crearRepositorioPrestamo();
+        IRepositorio<Reserva> repoReserva = repoFactory.crearRepositorioReserva();
+        IRepositorio<Multa> repoMulta = repoFactory.crearRepositorioMulta();
 
                 // =====================================================
                 // 2. CREAR SERVICIOS BASE
@@ -93,9 +96,9 @@ public class Main {
                 // =====================================================
                 // 4. CREAR CALCULADORES DE MULTAS (STRATEGY PATTERN)
                 // =====================================================
-                CalculadorMultaPorRetraso calculadorRetraso = new CalculadorMultaPorRetraso(repoPrestamo);
+                CalculadorMultaPorRetraso calculadorRetraso = new CalculadorMultaPorRetraso(repoPrestamo, repoUsuario);
                 CalculadorMultaPorDano calculadorDano = new CalculadorMultaPorDano(calculadorCostoDano);
-                CalculadorMultaPorPerdida calculadorPerdida = new CalculadorMultaPorPerdida(repoMaterial);
+                CalculadorMultaPorPerdida calculadorPerdida = new CalculadorMultaPorPerdida(repoMaterial, repoUsuario);
 
                 // =====================================================
                 // 5. CREAR GESTOR DE MULTAS Y REGISTRAR CALCULADORES
@@ -118,8 +121,8 @@ public class Main {
                 // 6.1 Validador de reglas
                 ValidadorReglasService validadorReglas = new ValidadorReglasService(
                                 limiteService, disponibilidadService, gestorBloqueo,
-                                (RepositorioUsuarioEnMemoria) repoUsuario,
-                                (RepositorioMaterialEnMemoria) repoMaterial);
+                                repoUsuario,
+                                repoMaterial);
 
                 // Registrar reglas de validación
                 validadorReglas.registrarRegla(new ReglaUsuarioActivo());
@@ -146,6 +149,10 @@ public class Main {
                                 inspeccionService, gestorMultas, repoPrestamo, repoMaterial, repoUsuario,
                                 repoMulta, reservaService, notificacionService, gestorBloqueo);
 
+                IServicioReportes servicioReportes = new ServicioReportes(
+                                repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
+                                gestorBloqueo, prestamoService, limiteService, politicaTiempoService);
+
                 // =====================================================
                 // 7. CARGAR DATOS DE EJEMPLO
                 // =====================================================
@@ -156,9 +163,9 @@ public class Main {
                 // =====================================================
                 MenuConsola menu = new MenuConsola(
                                 repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
-                                disponibilidadService, limiteService, gestorBloqueo, gestorMultas,
+                                disponibilidadService, gestorBloqueo, gestorMultas,
                                 prestamoService, devolucionService, reservaService, renovacionService,
-                                inspeccionService, validadorReglas, politicaTiempoService);
+                                inspeccionService, validadorReglas, politicaTiempoService, servicioReportes);
 
                 menu.iniciar();
         }
@@ -174,24 +181,24 @@ public class Main {
                 // MATERIALES
                 // =====================================================
                 Libro libro1 = new Libro(new IdMaterial("MAT-000001"), "Cien años de soledad", "Gabriel García Márquez",
-                                "978-84-376-0494-7", 471, true, false);
+                                "978-84-376-0494-7", 471, true, false, 80000.0);
                 Libro libro2 = new Libro(new IdMaterial("MAT-000002"), "El principito", "Antoine de Saint-Exupéry",
-                                "978-84-261-1930-6", 96, false, false);
+                                "978-84-261-1930-6", 96, false, false, 50000.0);
                 Libro libro3 = new Libro(new IdMaterial("MAT-000003"), "Don Quijote de la Mancha",
                                 "Miguel de Cervantes",
-                                "978-84-376-0494-8", 863, false, true);
+                                "978-84-376-0494-8", 863, false, true, 120000.0);
                 DVD dvd1 = new DVD(new IdMaterial("MAT-000004"), "Inception", "Christopher Nolan", "DVD-001-2024", 148,
-                                "Christopher Nolan");
+                                "Christopher Nolan", 35000.0);
                 DVD dvd2 = new DVD(new IdMaterial("MAT-000005"), "El Padrino", "Francis Ford Coppola", "DVD-002-2024", 175,
-                                "Francis Ford Coppola");
+                                "Francis Ford Coppola", 40000.0);
                 Revista revista1 = new Revista(new IdMaterial("MAT-000006"), "National Geographic", "Varios", "0027-9358",
-                                2024, true);
+                                2024, true, 20000.0);
                 Revista revista2 = new Revista(new IdMaterial("MAT-000007"), "Muy Interesante", "Varios", "1130-1234",
-                                2023, false);
+                                2023, false, 15000.0);
                 EBook ebook1 = new EBook(new IdMaterial("MAT-000008"), "Clean Code", "Robert Martin",
-                                "http://biblioteca.com/ebooks/clean-code", 5, LocalDateTime.now().plusMonths(6));
+                                "http://biblioteca.com/ebooks/clean-code", 5, LocalDateTime.now().plusMonths(6), 60000.0);
                 EBook ebook2 = new EBook(new IdMaterial("MAT-000009"), "The Pragmatic Programmer", "David Thomas",
-                                "http://biblioteca.com/ebooks/pragmatic", 3, LocalDateTime.now().plusMonths(3));
+                                "http://biblioteca.com/ebooks/pragmatic", 3, LocalDateTime.now().plusMonths(3), 60000.0);
 
                 repoMaterial.agregar(libro1);
                 repoMaterial.agregar(libro2);
@@ -233,17 +240,17 @@ public class Main {
                 LocalDateTime hoy = LocalDateTime.now();
 
                 // Préstamo 1: Activo (normal)
-                Prestamo prestamo1 = new PrestamoNormal("PRE-000001", new IdUsuario("USR-000001"), new IdMaterial("MAT-000001"),
+                Prestamo prestamo1 = new PrestamoNormal(new IdTransaccion("PRE-000001"), new IdUsuario("USR-000001"), new IdMaterial("MAT-000001"),
                                 hoy.plusDays(10),
                                 "Estante A1");
 
                 // Préstamo 2: Activo (normal)
-                Prestamo prestamo2 = new PrestamoNormal("PRE-000002", new IdUsuario("USR-000003"), new IdMaterial("MAT-000004"),
+                Prestamo prestamo2 = new PrestamoNormal(new IdTransaccion("PRE-000002"), new IdUsuario("USR-000003"), new IdMaterial("MAT-000004"),
                                 hoy.plusDays(5),
                                 "Estante D3");
 
                 // Préstamo 3: Activo (interbibliotecario)
-                Prestamo prestamo3 = new PrestamoInterbibliotecario("PRE-000003", new IdUsuario("USR-000005"),
+                Prestamo prestamo3 = new PrestamoInterbibliotecario(new IdTransaccion("PRE-000003"), new IdUsuario("USR-000005"),
                                 new IdMaterial("MAT-000003"),
                                 hoy.plusDays(20),
                                 "Biblioteca Central",
@@ -254,7 +261,7 @@ public class Main {
                 LocalDateTime fechaDevolucionEsperada = hoy.minusDays(15); // Ya pasó
 
                 Prestamo prestamoVencido = new PrestamoNormal(
-                                "PRE-000004",
+                                new IdTransaccion("PRE-000004"),
                                 new IdUsuario("USR-000002"), // María García (estudiante)
                                 new IdMaterial("MAT-000002"), // El principito
                                 hoy.plusDays(1), // Dummy value para pasar validación inicial

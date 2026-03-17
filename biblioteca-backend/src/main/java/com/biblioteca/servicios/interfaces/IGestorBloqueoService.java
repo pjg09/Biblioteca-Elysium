@@ -49,4 +49,14 @@ public interface IGestorBloqueoService {
      * @return Resultado indicando si se bloqueó o no
      */
     Resultado verificarYBloquearSiNecesario(String idUsuario);
+    
+    /**
+     * Obtiene el total de multas pendientes de un usuario.
+     */
+    java.math.BigDecimal obtenerTotalMultasPendientes(String idUsuario);
+
+    /**
+     * Verifica si el usuario tiene préstamos vencidos.
+     */
+    boolean tienePrestamosVencidos(String idUsuario);
 }

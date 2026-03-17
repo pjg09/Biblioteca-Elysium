@@ -259,6 +259,11 @@ public class GestorBloqueoService implements IGestorBloqueoService {
                 .collect(Collectors.toList());
     }
 
+    public boolean tienePrestamosVencidos(String idUsuario) {
+        // Un préstamo vencido es cualquier préstamo cuya fecha de devolución esperada ya pasó
+        return obtenerPrestamosVencidos(idUsuario, 0).size() > 0;
+    }
+
     /**
      * Determina el tipo de bloqueo según el motivo.
      */

@@ -7,29 +7,30 @@ import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
+import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 
 public abstract class Transaccion {
-    protected String id;
+    protected IdTransaccion id;
     protected IdUsuario idUsuario;
     protected IdMaterial idMaterial;
     protected LocalDateTime fechaCreacion;
     protected EstadoTransaccion estado;
     
-    public Transaccion(String id, IdUsuario idUsuario, IdMaterial idMaterial) {
+    public Transaccion(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial) {
         if (idUsuario == null) {
             throw new IllegalArgumentException("ID de usuario no puede ser nulo");
         }
         if (idMaterial == null) {
             throw new IllegalArgumentException("ID de material no puede ser nulo");
         }
-        this.id = id != null ? id : UUID.randomUUID().toString();
+        this.id = id != null ? id : new IdTransaccion(UUID.randomUUID().toString());
         this.idUsuario = idUsuario;
         this.idMaterial = idMaterial;
         this.fechaCreacion = LocalDateTime.now();
         this.estado = EstadoTransaccion.ACTIVA;
     }
     
-    public String getId() {
+    public IdTransaccion getId() {
         return id;
     }
     

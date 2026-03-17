@@ -15,19 +15,19 @@ public class RepositorioReservaEnMemoria extends RepositorioEnMemoria<Reserva> {
     
     @Override
     protected String extraerId(Reserva entidad) {
-        return entidad != null ? entidad.getId() : null;
+        return entidad != null ? entidad.getId().getValor() : null;
     }
     
     // Métodos específicos para Reserva
     public List<Reserva> buscarPorUsuario(String idUsuario) {
         return obtenerTodos().stream()
-            .filter(r -> r.getIdUsuario().equals(idUsuario))
+            .filter(r -> r.getIdUsuario().getValor().equals(idUsuario))
             .collect(Collectors.toList());
     }
     
     public List<Reserva> buscarPorMaterial(String idMaterial) {
         return obtenerTodos().stream()
-            .filter(r -> r.getIdMaterial().equals(idMaterial))
+            .filter(r -> r.getIdMaterial().getValor().equals(idMaterial))
             .collect(Collectors.toList());
     }
     
@@ -68,8 +68,8 @@ public class RepositorioReservaEnMemoria extends RepositorioEnMemoria<Reserva> {
     public boolean existeReservaActiva(String idUsuario, String idMaterial) {
         LocalDateTime ahora = LocalDateTime.now();
         return obtenerTodos().stream()
-            .anyMatch(r -> r.getIdUsuario().equals(idUsuario) &&
-                          r.getIdMaterial().equals(idMaterial) &&
+            .anyMatch(r -> r.getIdUsuario().getValor().equals(idUsuario) &&
+                          r.getIdMaterial().getValor().equals(idMaterial) &&
                           r.getEstado() == EstadoTransaccion.ACTIVA &&
                           r.getFechaExpiracion().isAfter(ahora));
     }

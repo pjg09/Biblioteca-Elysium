@@ -12,6 +12,7 @@ import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
+import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
@@ -55,6 +56,16 @@ public class ReservaService implements IReservaService {
             }
             
             Material material = repoMaterial.obtenerPorId(idMaterial.getValor());
+            if (material == null) {
+                return Resultado.Fallido("Material no encontrado");
+            }
+            if (material.getTipo() == com.biblioteca.dominio.enumeraciones.TipoMaterial.EBOOK) {
+                return Resultado.Fallido("Solo se pueden reservar materiales físicos.");
+            }
+            if (material.getEstado() == EstadoMaterial.DISPONIBLE) {
+                return Resultado.Fallido("El material está disponible, puede solicitar un préstamo en lugar de reservarlo.");
+            }
+            
             Reserva reserva = crearReservaSegunTipo(idUsuario, idMaterial, tipoReserva);
             
             int posicion = calcularPosicionCola(idMaterial.getValor());
@@ -119,11 +130,12 @@ public class ReservaService implements IReservaService {
             }
             
             reserva.setFechaNotificacion(LocalDateTime.now());
+            reserva.setFechaExpiracion(LocalDateTime.now().plusHours(24));
             repoReserva.actualizar(reserva);
             
             Material material = repoMaterial.obtenerPorId(reserva.getIdMaterial().getValor());
             String mensaje = "El material " + (material != null ? material.getTitulo() : "") + 
-                            " ya está disponible. Tiene 3 días para recogerlo.";
+                            " ya está disponible. Tiene 24 horas para recogerlo.";
             
             return notificador.enviarNotificacion(reserva.getIdUsuario().getValor(), mensaje);
             
@@ -180,9 +192,9 @@ public class ReservaService implements IReservaService {
     
     private Reserva crearReservaSegunTipo(IdUsuario idUsuario, IdMaterial idMaterial, String tipoReserva) {
         if ("INTERBIBLIOTECARIA".equalsIgnoreCase(tipoReserva)) {
-            return new ReservaInterbibliotecaria("RES-" + java.util.UUID.randomUUID().toString().substring(0,6), idUsuario, idMaterial, "Biblioteca Central");
+            return new ReservaInterbibliotecaria(new IdTransaccion("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Biblioteca Central");
         } else {
-            return new ReservaNormal("RES-" + java.util.UUID.randomUUID().toString().substring(0,6), idUsuario, idMaterial, "Sala de lectura");
+            return new ReservaNormal(new IdTransaccion("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Sala de lectura");
         }
     }
     

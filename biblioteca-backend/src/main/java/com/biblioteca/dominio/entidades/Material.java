@@ -14,9 +14,10 @@ public abstract class Material {
     protected TipoMaterial tipo;
     protected EstadoMaterial estado;
     protected LocalDateTime fechaAdquisicion;
+    protected double precio;
     
     // Constructor protegido - solo subclases pueden crear
-    protected Material(IdMaterial id, String titulo, String autor, TipoMaterial tipo) {
+    protected Material(IdMaterial id, String titulo, String autor, TipoMaterial tipo, double precio) {
         if (titulo == null || titulo.trim().isEmpty()) {
             throw new IllegalArgumentException("Título no puede ser nulo");
         }
@@ -27,6 +28,7 @@ public abstract class Material {
         this.tipo = tipo;
         this.estado = EstadoMaterial.DISPONIBLE; // ESTADO INICIAL VÁLIDO
         this.fechaAdquisicion = LocalDateTime.now();
+        this.precio = precio;
     }
     
     public IdMaterial getId() {
@@ -51,6 +53,14 @@ public abstract class Material {
     
     public LocalDateTime getFechaAdquisicion() {
         return fechaAdquisicion;
+    }
+    
+    public double getPrecio() {
+        return precio;
+    }
+    
+    public void setPrecio(double precio) {
+        this.precio = precio;
     }
 
     // ✅ COMPORTAMIENTO, NO SOLO DATOS

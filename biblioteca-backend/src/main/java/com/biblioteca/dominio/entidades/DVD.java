@@ -8,8 +8,8 @@ public class DVD extends Material {
     private int duracionMinutos;
     private String director;
     
-    public DVD(IdMaterial id, String titulo, String autor, String codigo, int duracionMinutos, String director) {
-        super(id, titulo, autor, TipoMaterial.DVD);
+    public DVD(IdMaterial id, String titulo, String autor, String codigo, int duracionMinutos, String director, double precio) {
+        super(id, titulo, autor, TipoMaterial.DVD, precio);
         this.codigo = codigo;
         this.duracionMinutos = duracionMinutos;
         this.director = director;

@@ -1,6 +1,5 @@
 package com.biblioteca.consola;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -28,31 +27,25 @@ import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.enumeraciones.EstadoUsuario;
 import com.biblioteca.dominio.enumeraciones.NivelGravedad;
 import com.biblioteca.dominio.enumeraciones.TipoDano;
-import com.biblioteca.dominio.enumeraciones.TipoMaterial;
 import com.biblioteca.dominio.enumeraciones.TipoMulta;
-import com.biblioteca.dominio.enumeraciones.TipoUsuario;
 import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.dominio.objetosvalor.Dano;
 import com.biblioteca.dominio.objetosvalor.Evaluacion;
 import com.biblioteca.dominio.objetosvalor.Resultado;
-import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.implementaciones.DevolucionService;
-import com.biblioteca.servicios.implementaciones.GestorBloqueoService;
 import com.biblioteca.servicios.implementaciones.GestorMultasService;
-import com.biblioteca.servicios.implementaciones.LimitePorTipoUsuarioService;
-import com.biblioteca.servicios.implementaciones.PoliticaTiempoPorTipoService;
 import com.biblioteca.servicios.implementaciones.ReservaService;
 import com.biblioteca.servicios.implementaciones.ValidadorReglasService;
 import com.biblioteca.servicios.interfaces.IDevolucionService;
 import com.biblioteca.servicios.interfaces.IDisponibilidadService;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 import com.biblioteca.servicios.interfaces.IInspeccionMaterialService;
-import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 import com.biblioteca.servicios.interfaces.IPoliticaTiempoService;
 import com.biblioteca.servicios.interfaces.IPrestamoService;
 import com.biblioteca.servicios.interfaces.IRenovacionService;
 import com.biblioteca.servicios.interfaces.IReservaService;
+import com.biblioteca.servicios.interfaces.IServicioReportes;
 
 public class MenuConsola {
     
@@ -69,7 +62,6 @@ public class MenuConsola {
     
     // Servicios
     private final IDisponibilidadService disponibilidadService;
-    private final ILimitePrestamoService limiteService;
     private final IGestorBloqueoService gestorBloqueo;
     private final GestorMultasService gestorMultas;
     private final IPrestamoService prestamoService;
@@ -79,6 +71,7 @@ public class MenuConsola {
     private final IInspeccionMaterialService inspeccionService;
     private final ValidadorReglasService validadorReglas;
     private final IPoliticaTiempoService politicaTiempoService;
+    private final IServicioReportes servicioReportes;
     
     public MenuConsola(
             IRepositorio<Material> repoMaterial,
@@ -87,7 +80,6 @@ public class MenuConsola {
             IRepositorio<Reserva> repoReserva,
             IRepositorio<Multa> repoMulta,
             IDisponibilidadService disponibilidadService,
-            ILimitePrestamoService limiteService,
             IGestorBloqueoService gestorBloqueo,
             GestorMultasService gestorMultas,
             IPrestamoService prestamoService,
@@ -96,7 +88,8 @@ public class MenuConsola {
             IRenovacionService renovacionService,
             IInspeccionMaterialService inspeccionService,
             ValidadorReglasService validadorReglas,
-            IPoliticaTiempoService politicaTiempoService) {  
+            IPoliticaTiempoService politicaTiempoService,
+            IServicioReportes servicioReportes) {  
         
         this.scanner = new Scanner(System.in);
         this.ejecutando = true;
@@ -108,7 +101,6 @@ public class MenuConsola {
         this.repoMulta = repoMulta;
         
         this.disponibilidadService = disponibilidadService;
-        this.limiteService = limiteService;
         this.gestorBloqueo = gestorBloqueo;
         this.gestorMultas = gestorMultas;
         this.prestamoService = prestamoService;
@@ -118,6 +110,7 @@ public class MenuConsola {
         this.inspeccionService = inspeccionService;
         this.validadorReglas = validadorReglas;
         this.politicaTiempoService = politicaTiempoService; 
+        this.servicioReportes = servicioReportes;
     }
     
     public void iniciar() {
@@ -169,36 +162,40 @@ public class MenuConsola {
     
     private void menuMateriales() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            📖 GESTIÓN DE MATERIALES");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Listar todos los materiales");
-            System.out.println("2.  Buscar material por ID");
-            System.out.println("3.  Buscar por título");
-            System.out.println("4.  Buscar por autor");
-            System.out.println("5.  Ver materiales disponibles");
-            System.out.println("6.  Ver materiales prestados");
-            System.out.println("7.  Agregar nuevo material");
-            System.out.println("8.  Actualizar estado");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": listarMateriales(); break;
-                case "2": buscarMaterialPorId(); break;
-                case "3": buscarMaterialPorTitulo(); break;
-                case "4": buscarMaterialPorAutor(); break;
-                case "5": verMaterialesDisponibles(); break;
-                case "6": verMaterialesPrestados(); break;
-                case "7": agregarMaterial(); break;
-                case "8": actualizarEstadoMaterial(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            📖 GESTIÓN DE MATERIALES");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Listar todos los materiales");
+                System.out.println("2.  Buscar material (ID, título, autor)");
+                System.out.println("3.  Ver materiales disponibles");
+                System.out.println("4.  Ver materiales prestados");
+                System.out.println("5.  Agregar nuevo material");
+                System.out.println("6.  Actualizar estado");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": listarMateriales(); break;
+                    case "2": buscarMaterial(); break;
+                    case "3": verMaterialesDisponibles(); break;
+                    case "4": verMaterialesPrestados(); break;
+                    case "5": agregarMaterial(); break;
+                    case "6": actualizarEstadoMaterial(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado. Intente de nuevo.");
+                pausa();
             }
-            pausa();
         }
     }
     
@@ -225,25 +222,17 @@ public class MenuConsola {
         }
     }
     
-    private void buscarMaterialPorId() {
-        System.out.print("\nIngrese ID del material: ");
-        String id = scanner.nextLine();
-        
-        Material m = repoMaterial.obtenerPorId(id);
-        if (m == null) {
-            System.out.println("❌ Material no encontrado");
-            return;
-        }
-        
-        mostrarMaterialDetalle(m);
-    }
-    
-    private void buscarMaterialPorTitulo() {
-        System.out.print("\nIngrese título a buscar: ");
-        String titulo = scanner.nextLine().toLowerCase();
+    private void buscarMaterial() {
+        System.out.print("\nIngrese ID, título o autor a buscar: ");
+        String busqueda = scanner.nextLine().toLowerCase();
         
         List<Material> resultados = repoMaterial.obtenerTodos().stream()
-            .filter(m -> m.getTitulo().toLowerCase().contains(titulo))
+            .filter(m -> 
+                m.getId().getValor().toLowerCase().contains(busqueda) ||
+                m.getTitulo().toLowerCase().contains(busqueda) ||
+                m.getAutor().toLowerCase().contains(busqueda) ||
+                (m instanceof Libro && ((Libro)m).getIsbn().replace("-","").contains(busqueda.replace("-","")))
+            )
             .toList();
         
         if (resultados.isEmpty()) {
@@ -251,22 +240,8 @@ public class MenuConsola {
             return;
         }
         
-        System.out.println("\n📚 RESULTADOS:");
-        for (Material m : resultados) {
-            System.out.printf("%s - %s (%s)%n", m.getId(), m.getTitulo(), m.getTipo());
-        }
-    }
-    
-    private void buscarMaterialPorAutor() {
-        System.out.print("\nIngrese autor a buscar: ");
-        String autor = scanner.nextLine().toLowerCase();
-        
-        List<Material> resultados = repoMaterial.obtenerTodos().stream()
-            .filter(m -> m.getAutor().toLowerCase().contains(autor))
-            .toList();
-        
-        if (resultados.isEmpty()) {
-            System.out.println("❌ No se encontraron materiales");
+        if (resultados.size() == 1) {
+            mostrarMaterialDetalle(resultados.get(0));
             return;
         }
         
@@ -325,6 +300,8 @@ public class MenuConsola {
         String titulo = scanner.nextLine();
         System.out.print("Autor: ");
         String autor = scanner.nextLine();
+        System.out.print("Precio: ");
+        double precio = Double.parseDouble(scanner.nextLine());
         
         Material material = null;
         
@@ -337,9 +314,9 @@ public class MenuConsola {
                 System.out.print("¿Es best seller? (s/n): ");
                 boolean bestSeller = scanner.nextLine().equalsIgnoreCase("s");
                 System.out.print("¿Es referencia? (s/n): ");
-                boolean referencia = scanner.nextLine().equalsIgnoreCase("s");
+        boolean referencia = scanner.nextLine().equalsIgnoreCase("s");
                 
-                material = new Libro(new IdMaterial(id), titulo, autor, isbn, paginas, bestSeller, referencia);
+                material = new Libro(new IdMaterial(id), titulo, autor, isbn, paginas, bestSeller, referencia, precio);
                 break;
                 
             case "2": // DVD
@@ -348,9 +325,9 @@ public class MenuConsola {
                 System.out.print("Duración (minutos): ");
                 int duracion = Integer.parseInt(scanner.nextLine());
                 System.out.print("Director: ");
-                String director = scanner.nextLine();
+        String director = scanner.nextLine();
                 
-                material = new DVD(new IdMaterial(id), titulo, autor, codigo, duracion, director);
+                material = new DVD(new IdMaterial(id), titulo, autor, codigo, duracion, director, precio);
                 break;
                 
             case "3": // Revista
@@ -359,18 +336,18 @@ public class MenuConsola {
                 System.out.print("Número de edición: ");
                 int edicion = Integer.parseInt(scanner.nextLine());
                 System.out.print("¿Es último número? (s/n): ");
-                boolean ultimo = scanner.nextLine().equalsIgnoreCase("s");
+        boolean ultimo = scanner.nextLine().equalsIgnoreCase("s");
                 
-                material = new Revista(new IdMaterial(id), titulo, autor, issn, edicion, ultimo);
+                material = new Revista(new IdMaterial(id), titulo, autor, issn, edicion, ultimo, precio);
                 break;
                 
             case "4": // EBook
                 System.out.print("URL de descarga: ");
                 String url = scanner.nextLine();
                 System.out.print("Licencias disponibles: ");
-                int licencias = Integer.parseInt(scanner.nextLine());
+        int licencias = Integer.parseInt(scanner.nextLine());
                 
-                material = new EBook(new IdMaterial(id), titulo, autor, url, licencias, LocalDateTime.now().plusMonths(6));
+                material = new EBook(new IdMaterial(id), titulo, autor, url, licencias, LocalDateTime.now().plusMonths(6), precio);
                 break;
         }
         
@@ -427,38 +404,42 @@ public class MenuConsola {
     
     private void menuUsuarios() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            👥 GESTIÓN DE USUARIOS");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Listar todos los usuarios");
-            System.out.println("2.  Buscar usuario por ID");
-            System.out.println("3.  Buscar por nombre");
-            System.out.println("4.  Buscar por email");
-            System.out.println("5.  Ver usuarios activos");
-            System.out.println("6.  Ver usuarios bloqueados");
-            System.out.println("7.  Agregar nuevo usuario");
-            System.out.println("8.  Bloquear usuario");
-            System.out.println("9.  Desbloquear usuario");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": listarUsuarios(); break;
-                case "2": buscarUsuarioPorId(); break;
-                case "3": buscarUsuarioPorNombre(); break;
-                case "4": buscarUsuarioPorEmail(); break;
-                case "5": verUsuariosActivos(); break;
-                case "6": verUsuariosBloqueados(); break;
-                case "7": agregarUsuario(); break;
-                case "8": bloquearUsuario(); break;
-                case "9": desbloquearUsuario(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            👥 GESTIÓN DE USUARIOS");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Listar todos los usuarios");
+                System.out.println("2.  Buscar usuario (ID, nombre, email)");
+                System.out.println("3.  Ver usuarios activos");
+                System.out.println("4.  Ver usuarios bloqueados");
+                System.out.println("5.  Agregar nuevo usuario");
+                System.out.println("6.  Bloquear usuario");
+                System.out.println("7.  Desbloquear usuario");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": listarUsuarios(); break;
+                    case "2": buscarUsuario(); break;
+                    case "3": verUsuariosActivos(); break;
+                    case "4": verUsuariosBloqueados(); break;
+                    case "5": agregarUsuario(); break;
+                    case "6": bloquearUsuario(); break;
+                    case "7": desbloquearUsuario(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado al procesar el usuario.");
+                pausa();
             }
-            pausa();
         }
     }
     
@@ -485,25 +466,16 @@ public class MenuConsola {
         }
     }
     
-    private void buscarUsuarioPorId() {
-        System.out.print("\nIngrese ID del usuario: ");
-        String id = scanner.nextLine();
-        
-        Usuario u = repoUsuario.obtenerPorId(id);
-        if (u == null) {
-            System.out.println("❌ Usuario no encontrado");
-            return;
-        }
-        
-        mostrarUsuarioDetalle(u);
-    }
-    
-    private void buscarUsuarioPorNombre() {
-        System.out.print("\nIngrese nombre a buscar: ");
-        String nombre = scanner.nextLine().toLowerCase();
+    private void buscarUsuario() {
+        System.out.print("\nIngrese ID, nombre o email a buscar: ");
+        String busqueda = scanner.nextLine().toLowerCase();
         
         List<Usuario> resultados = repoUsuario.obtenerTodos().stream()
-            .filter(u -> u.getNombre().toLowerCase().contains(nombre))
+            .filter(u -> 
+                u.getId().getValor().toLowerCase().contains(busqueda) ||
+                u.getNombre().toLowerCase().contains(busqueda) ||
+                u.getEmail().toLowerCase().contains(busqueda)
+            )
             .toList();
         
         if (resultados.isEmpty()) {
@@ -511,22 +483,8 @@ public class MenuConsola {
             return;
         }
         
-        System.out.println("\n👥 RESULTADOS:");
-        for (Usuario u : resultados) {
-            System.out.printf("%s - %s (%s)%n", u.getId(), u.getNombre(), u.getTipo());
-        }
-    }
-    
-    private void buscarUsuarioPorEmail() {
-        System.out.print("\nIngrese email a buscar: ");
-        String email = scanner.nextLine().toLowerCase();
-        
-        List<Usuario> resultados = repoUsuario.obtenerTodos().stream()
-            .filter(u -> u.getEmail().toLowerCase().contains(email))
-            .toList();
-        
-        if (resultados.isEmpty()) {
-            System.out.println("❌ No se encontraron usuarios");
+        if (resultados.size() == 1) {
+            mostrarUsuarioDetalle(resultados.get(0));
             return;
         }
         
@@ -682,32 +640,36 @@ public class MenuConsola {
     
     private void menuPrestamos() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            📋 GESTIÓN DE PRÉSTAMOS");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Registrar nuevo préstamo");
-            System.out.println("2.  Listar préstamos activos");
-            System.out.println("3.  Ver préstamos por usuario");
-            System.out.println("4.  Ver préstamos vencidos");
-            System.out.println("5.  Renovar préstamo");
-            System.out.println("6.  Buscar préstamo por ID");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": registrarPrestamo(); break;
-                case "2": listarPrestamosActivos(); break;
-                case "3": verPrestamosPorUsuario(); break;
-                case "4": verPrestamosVencidos(); break;
-                case "5": renovarPrestamo(); break;
-                case "6": buscarPrestamoPorId(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            📋 GESTIÓN DE PRÉSTAMOS");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Registrar nuevo préstamo");
+                System.out.println("2.  Buscar préstamos (Todos, Activos, por Usuario o ID)");
+                System.out.println("3.  Ver préstamos vencidos");
+                System.out.println("4.  Renovar préstamo");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": registrarPrestamo(); break;
+                    case "2": buscarPrestamos(); break;
+                    case "3": verPrestamosVencidos(); break;
+                    case "4": renovarPrestamo(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado al procesar el préstamo.");
+                pausa();
             }
-            pausa();
         }
     }
     
@@ -736,10 +698,40 @@ public class MenuConsola {
         }
     }
     
+    private void buscarPrestamos() {
+        System.out.print("\nIngrese ID del usuario, ID del préstamo, o deje en blanco para ver todos los activos: ");
+        String input = scanner.nextLine().trim();
+        
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yy");
+        
+        if (input.isEmpty()) {
+            listarPrestamosActivos();
+        } else if (input.startsWith("US-") || repoUsuario.obtenerPorId(input) != null) {
+            verPrestamosPorUsuario(new IdUsuario(input));
+        } else {
+            Prestamo p = repoPrestamo.obtenerPorId(input);
+            if (p == null) {
+                System.out.println("❌ Préstamo no encontrado");
+                return;
+            }
+            mostrarDetallePrestamo(p);
+        }
+    }
+    
+    private void mostrarDetallePrestamo(Prestamo p) {
+        System.out.println("\n📋 DETALLE DEL PRÉSTAMO:");
+        System.out.println("ID: " + p.getId());
+        System.out.println("Usuario: " + p.getIdUsuario());
+        System.out.println("Material: " + p.getIdMaterial());
+        System.out.println("Fecha préstamo: " + p.getFechaPrestamo().format(formatter));
+        System.out.println("Fecha devolución esperada: " + p.getFechaDevolucionEsperada().format(formatter));
+        System.out.println("Estado: " + p.getEstado());
+    }
+    
+    // El método listarPrestamosActivos original se reutiliza internamente
     private void listarPrestamosActivos() {
         List<Prestamo> activos = repoPrestamo.obtenerTodos().stream()
             .filter(p -> p.getEstado() == EstadoTransaccion.ACTIVA)
-            .filter(p -> p.getFechaDevolucionReal() == null)
             .toList();
         
         if (activos.isEmpty()) {
@@ -748,49 +740,22 @@ public class MenuConsola {
         }
         
         System.out.println("\n📋 PRÉSTAMOS ACTIVOS:");
-        System.out.println("-".repeat(80));
-        System.out.printf("%-10s %-10s %-10s %-12s %-12s%n", 
-            "ID", "USUARIO", "MATERIAL", "PRÉSTAMO", "VENCE");
-        System.out.println("-".repeat(80));
-        
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yy");
-        
         for (Prestamo p : activos) {
-            System.out.printf("%-10s %-10s %-10s %-12s %-12s%n",
-                p.getId(),
-                p.getIdUsuario(),
-                p.getIdMaterial(),
-                p.getFechaPrestamo().format(fmt),
-                p.getFechaDevolucionEsperada().format(fmt));
+            System.out.printf("  • %s - Usuario: %s - Material: %s%n",
+                p.getId(), p.getIdUsuario(), p.getIdMaterial());
         }
     }
     
-    private void verPrestamosPorUsuario() {
-        System.out.print("\nIngrese ID del usuario: ");
-        String idUsuario = scanner.nextLine();
-        
-        List<Prestamo> prestamos = prestamoService.obtenerPrestamosActivos(new IdUsuario(idUsuario));
-        
+    private void verPrestamosPorUsuario(IdUsuario idUsuario) {
+        List<Prestamo> prestamos = prestamoService.obtenerPrestamosActivos(idUsuario);
         if (prestamos.isEmpty()) {
             System.out.println("📭 El usuario no tiene préstamos activos");
             return;
         }
-        
-        System.out.println("\n📋 PRÉSTAMOS DEL USUARIO " + idUsuario + ":");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        
+        System.out.println("\n📋 PRÉSTAMOS DEL USUARIO " + idUsuario.getValor() + ":");
         for (Prestamo p : prestamos) {
-            Material m = repoMaterial.obtenerPorId(p.getIdMaterial().getValor());
-            String titulo = m != null ? m.getTitulo() : "Desconocido";
-            
-            System.out.printf("  • %s - %s (Vence: %s)%n",
-                p.getId(),
-                titulo,
-                p.getFechaDevolucionEsperada().format(fmt));
+            System.out.printf("  • %s - Material: %s%n", p.getId(), p.getIdMaterial());
         }
-        
-        int cupo = ((LimitePorTipoUsuarioService)limiteService).cupoRestante(idUsuario);
-        System.out.println("\nCupo restante: " + cupo);
     }
     
     private void verPrestamosVencidos() {
@@ -807,12 +772,9 @@ public class MenuConsola {
         }
         
         System.out.println("\n⚠️ PRÉSTAMOS VENCIDOS:");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        
         for (Prestamo p : vencidos) {
             long diasVencido = java.time.temporal.ChronoUnit.DAYS.between(
                 p.getFechaDevolucionEsperada(), ahora);
-            
             System.out.printf("  • %s - Usuario: %s - Vencido: %d días%n",
                 p.getId(), p.getIdUsuario(), diasVencido);
         }
@@ -831,86 +793,42 @@ public class MenuConsola {
         }
     }
     
-    private void buscarPrestamoPorId() {
-        System.out.print("\nIngrese ID del préstamo: ");
-        String id = scanner.nextLine();
-        
-        Prestamo p = repoPrestamo.obtenerPorId(id);
-        if (p == null) {
-            System.out.println("❌ Préstamo no encontrado");
-            return;
-        }
-        
-        System.out.println("\n📋 DETALLE DEL PRÉSTAMO:");
-        System.out.println("ID: " + p.getId());
-        System.out.println("Usuario: " + p.getIdUsuario());
-        System.out.println("Material: " + p.getIdMaterial());
-        System.out.println("Fecha préstamo: " + p.getFechaPrestamo().format(formatter));
-        System.out.println("Fecha devolución esperada: " + p.getFechaDevolucionEsperada().format(formatter));
-        System.out.println("Fecha devolución real: " + 
-            (p.getFechaDevolucionReal() != null ? p.getFechaDevolucionReal().format(formatter) : "Pendiente"));
-        System.out.println("Estado: " + p.getEstado());
-        System.out.println("Renovaciones: " + p.getRenovacionesUsadas());
-    }
-    
     // ========================================================================
     // MENÚ DE DEVOLUCIONES
     // ========================================================================
     
     private void menuDevoluciones() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            ↩️  GESTIÓN DE DEVOLUCIONES");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Registrar devolución simple");
-            System.out.println("2.  Registrar devolución con inspección");
-            System.out.println("3.  Registrar devolución con daños");
-            System.out.println("4.  Ver historial de devoluciones");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": registrarDevolucionSimple(); break;
-                case "2": registrarDevolucionConInspeccion(); break;
-                case "3": registrarDevolucionConDanos(); break;
-                case "4": verHistorialDevoluciones(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            ↩️  GESTIÓN DE DEVOLUCIONES");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Registrar devolución de material");
+                System.out.println("2.  Ver historial de devoluciones");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": registrarDevolucion(); break;
+                    case "2": verHistorialDevoluciones(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado al gestionar devoluciones.");
+                pausa();
             }
-            pausa();
         }
     }
     
-    private void registrarDevolucionSimple() {
-        System.out.print("\nIngrese ID del préstamo: ");
-        String idPrestamo = scanner.nextLine();
-        
-        Resultado resultado = ((DevolucionService)devolucionService).registrarDevolucionSimple(idPrestamo);
-        
-        if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
-        } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
-        }
-    }
-    
-    private void registrarDevolucionConInspeccion() {
-        System.out.print("\nIngrese ID del préstamo: ");
-        String idPrestamo = scanner.nextLine();
-        
-        Resultado resultado = ((DevolucionService)devolucionService).registrarDevolucionConInspeccion(idPrestamo);
-        
-        if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
-        } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
-        }
-    }
-    
-    private void registrarDevolucionConDanos() {
+    private void registrarDevolucion() {
         System.out.print("\nIngrese ID del préstamo: ");
         String idPrestamo = scanner.nextLine();
         
@@ -919,60 +837,74 @@ public class MenuConsola {
             System.out.println("❌ Préstamo no encontrado");
             return;
         }
-        
-        System.out.println("\n🔍 INSPECCIÓN DE DAÑOS");
-        List<Dano> danos = new java.util.ArrayList<>();
-        
-        while (true) {
-            System.out.println("\nAgregar daño (o 'fin' para terminar):");
-            System.out.print("Descripción: ");
-            String descripcion = scanner.nextLine();
-            if (descripcion.equalsIgnoreCase("fin")) break;
+
+        System.out.print("¿Pasó inspección visual sin problemas? (s/n): ");
+        String respuesta = scanner.nextLine();
+
+        if (respuesta.equalsIgnoreCase("n")) {
+            System.out.println("\n🔍 INSPECCIÓN DE DAÑOS");
+            List<Dano> danos = new java.util.ArrayList<>();
             
-            System.out.println("Gravedad:");
-            System.out.println("1. LEVE");
-            System.out.println("2. MODERADO");
-            System.out.println("3. GRAVE");
-            System.out.println("4. IRREPARABLE");
-            System.out.print("Seleccione: ");
-            String g = scanner.nextLine();
-            NivelGravedad gravedad = switch (g) {
-                case "1" -> NivelGravedad.LEVE;
-                case "2" -> NivelGravedad.MODERADO;
-                case "3" -> NivelGravedad.GRAVE;
-                case "4" -> NivelGravedad.IRREPARABLE;
-                default -> NivelGravedad.LEVE;
-            };
+            while (true) {
+                System.out.println("\nAgregar daño (o 'fin' para terminar):");
+                System.out.print("Descripción: ");
+                String descripcion = scanner.nextLine();
+                if (descripcion.equalsIgnoreCase("fin")) break;
+                
+                System.out.println("Gravedad:");
+                System.out.println("1. LEVE");
+                System.out.println("2. MODERADO");
+                System.out.println("3. GRAVE");
+                System.out.println("4. IRREPARABLE");
+                System.out.print("Seleccione: ");
+                String g = scanner.nextLine();
+                NivelGravedad gravedad = switch (g) {
+                    case "1" -> NivelGravedad.LEVE;
+                    case "2" -> NivelGravedad.MODERADO;
+                    case "3" -> NivelGravedad.GRAVE;
+                    case "4" -> NivelGravedad.IRREPARABLE;
+                    default -> NivelGravedad.LEVE;
+                };
+                
+                System.out.println("Tipo de daño:");
+                System.out.println("1. PAGINAS_RASGADAS");
+                System.out.println("2. MANCHAS");
+                System.out.println("3. CUBIERTA_DANADA");
+                System.out.println("4. RAYONES");
+                System.out.println("5. NO_FUNCIONAL");
+                System.out.print("Seleccione: ");
+                String t = scanner.nextLine();
+                TipoDano tipo = switch (t) {
+                    case "1" -> TipoDano.PAGINAS_RASGADAS;
+                    case "2" -> TipoDano.MANCHAS;
+                    case "3" -> TipoDano.CUBIERTA_DANADA;
+                    case "4" -> TipoDano.RAYONES;
+                    case "5" -> TipoDano.NO_FUNCIONAL;
+                    default -> TipoDano.PAGINAS_RASGADAS;
+                };
+                
+                danos.add(new Dano(descripcion, gravedad, tipo));
+            }
             
-            System.out.println("Tipo de daño:");
-            System.out.println("1. PAGINAS_RASGADAS");
-            System.out.println("2. MANCHAS");
-            System.out.println("3. CUBIERTA_DANADA");
-            System.out.println("4. RAYONES");
-            System.out.println("5. NO_FUNCIONAL");
-            System.out.print("Seleccione: ");
-            String t = scanner.nextLine();
-            TipoDano tipo = switch (t) {
-                case "1" -> TipoDano.PAGINAS_RASGADAS;
-                case "2" -> TipoDano.MANCHAS;
-                case "3" -> TipoDano.CUBIERTA_DANADA;
-                case "4" -> TipoDano.RAYONES;
-                case "5" -> TipoDano.NO_FUNCIONAL;
-                default -> TipoDano.PAGINAS_RASGADAS;
-            };
+            boolean usable = danos.stream().noneMatch(d -> d.getGravedad() == NivelGravedad.IRREPARABLE);
+            Evaluacion evaluacion = new Evaluacion(usable, danos);
             
-            danos.add(new Dano(descripcion, gravedad, tipo));
-        }
-        
-        boolean usable = danos.stream().noneMatch(d -> d.getGravedad() == NivelGravedad.IRREPARABLE);
-        Evaluacion evaluacion = new Evaluacion(usable, danos);
-        
-        Resultado resultado = devolucionService.registrarDevolucion(idPrestamo, evaluacion);
-        
-        if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
+            Resultado resultado = devolucionService.registrarDevolucion(idPrestamo, evaluacion);
+            
+            if (resultado.getExito()) {
+                System.out.println("✅ " + resultado.getMensaje());
+            } else {
+                System.out.println("❌ Error: " + resultado.getMensaje());
+            }
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            // Devolución simple asumiendo que está bien
+            Resultado resultado = ((DevolucionService)devolucionService).registrarDevolucionConInspeccion(idPrestamo);
+            
+            if (resultado.getExito()) {
+                System.out.println("✅ " + resultado.getMensaje());
+            } else {
+                System.out.println("❌ Error: " + resultado.getMensaje());
+            }
         }
     }
     
@@ -1003,32 +935,36 @@ public class MenuConsola {
     
     private void menuReservas() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            🔖 GESTIÓN DE RESERVAS");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Crear reserva");
-            System.out.println("2.  Cancelar reserva");
-            System.out.println("3.  Ver reservas activas");
-            System.out.println("4.  Ver reservas por material");
-            System.out.println("5.  Ver reservas por usuario");
-            System.out.println("6.  Limpiar reservas expiradas");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": crearReserva(); break;
-                case "2": cancelarReserva(); break;
-                case "3": verReservasActivas(); break;
-                case "4": verReservasPorMaterial(); break;
-                case "5": verReservasPorUsuario(); break;
-                case "6": limpiarReservasExpiradas(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            🔖 GESTIÓN DE RESERVAS");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Crear reserva");
+                System.out.println("2.  Cancelar reserva");
+                System.out.println("3.  Buscar reservas (Todas, por Usuario o Material)");
+                System.out.println("4.  Limpiar reservas expiradas");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": crearReserva(); break;
+                    case "2": cancelarReserva(); break;
+                    case "3": buscarReservas(); break;
+                    case "4": limpiarReservasExpiradas(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado al gestionar reservas.");
+                pausa();
             }
-            pausa();
         }
     }
     
@@ -1069,6 +1005,19 @@ public class MenuConsola {
         }
     }
     
+    private void buscarReservas() {
+        System.out.print("\nIngrese ID del usuario, ID del material, o deje en blanco para ver todas: ");
+        String input = scanner.nextLine().trim();
+        
+        if (input.isEmpty()) {
+            verReservasActivas();
+        } else if (input.startsWith("US-") || repoUsuario.obtenerPorId(input) != null) {
+            verReservasPorUsuario(new IdUsuario(input));
+        } else {
+            verReservasPorMaterial(new IdMaterial(input));
+        }
+    }
+    
     private void verReservasActivas() {
         LocalDateTime ahora = LocalDateTime.now();
         List<Reserva> activas = repoReserva.obtenerTodos().stream()
@@ -1080,64 +1029,33 @@ public class MenuConsola {
             System.out.println("\n📭 No hay reservas activas");
             return;
         }
-        
         System.out.println("\n🔖 RESERVAS ACTIVAS:");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        
         for (Reserva r : activas) {
-            System.out.printf("  • %s - Usuario: %s - Material: %s - Pos: %d - Exp: %s%n",
-                r.getId(),
-                r.getIdUsuario(),
-                r.getIdMaterial(),
-                r.getPosicionCola(),
-                r.getFechaExpiracion().format(fmt));
+            System.out.printf("  • %s - Usuario: %s - Material: %s%n", r.getId(), r.getIdUsuario(), r.getIdMaterial());
         }
     }
     
-    private void verReservasPorMaterial() {
-        System.out.print("\nIngrese ID del material: ");
-        String idMaterial = scanner.nextLine();
-        
-        List<Reserva> reservas = ((ReservaService)reservaService)
-            .obtenerReservasActivasPorMaterial(new IdMaterial(idMaterial));
-        
+    private void verReservasPorMaterial(IdMaterial idMaterial) {
+        List<Reserva> reservas = ((ReservaService)reservaService).obtenerReservasActivasPorMaterial(idMaterial);
         if (reservas.isEmpty()) {
             System.out.println("📭 No hay reservas para este material");
             return;
         }
-        
-        System.out.println("\n🔖 RESERVAS PARA MATERIAL " + idMaterial + ":");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        
+        System.out.println("\n🔖 RESERVAS PARA MATERIAL " + idMaterial.getValor() + ":");
         for (Reserva r : reservas) {
-            System.out.printf("  Pos %d: %s - Usuario: %s (Exp: %s)%n",
-                r.getPosicionCola(),
-                r.getId(),
-                r.getIdUsuario(),
-                r.getFechaExpiracion().format(fmt));
+            System.out.printf("  Pos %d: %s - Usuario: %s%n", r.getPosicionCola(), r.getId(), r.getIdUsuario());
         }
     }
     
-    private void verReservasPorUsuario() {
-        System.out.print("\nIngrese ID del usuario: ");
-        String idUsuario = scanner.nextLine();
-        
-        List<Reserva> reservas = ((ReservaService)reservaService)
-            .obtenerReservasActivasPorUsuario(new IdUsuario(idUsuario));
-        
+    private void verReservasPorUsuario(IdUsuario idUsuario) {
+        List<Reserva> reservas = ((ReservaService)reservaService).obtenerReservasActivasPorUsuario(idUsuario);
         if (reservas.isEmpty()) {
             System.out.println("📭 El usuario no tiene reservas activas");
             return;
         }
-        
-        System.out.println("\n🔖 RESERVAS DEL USUARIO " + idUsuario + ":");
-        
+        System.out.println("\n🔖 RESERVAS DEL USUARIO " + idUsuario.getValor() + ":");
         for (Reserva r : reservas) {
-            Material m = repoMaterial.obtenerPorId(r.getIdMaterial().getValor());
-            String titulo = m != null ? m.getTitulo() : "Desconocido";
-            
-            System.out.printf("  • %s - %s (Pos: %d)%n",
-                r.getId(), titulo, r.getPosicionCola());
+            System.out.printf("  • %s - Material: %s%n", r.getId(), r.getIdMaterial());
         }
     }
     
@@ -1152,30 +1070,36 @@ public class MenuConsola {
     
     private void menuMultas() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            💰 GESTIÓN DE MULTAS");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Ver multas pendientes");
-            System.out.println("2.  Ver multas por usuario");
-            System.out.println("3.  Pagar multa");
-            System.out.println("4.  Ver cálculo de multa");
-            System.out.println("5.  Configurar tarifas");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": verMultasPendientes(); break;
-                case "2": verMultasPorUsuario(); break;
-                case "3": pagarMulta(); break;
-                case "4": verCalculoMulta(); break;
-                case "5": configurarTarifas(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            💰 GESTIÓN DE MULTAS");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Ver multas pendientes");
+                System.out.println("2.  Ver multas por usuario");
+                System.out.println("3.  Pagar multa");
+                System.out.println("4.  Ver cálculo de multa");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": verMultasPendientes(); break;
+                    case "2": verMultasPorUsuario(); break;
+                    case "3": pagarMulta(); break;
+                    case "4": verCalculoMulta(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado al procesar multas.");
+                pausa();
             }
-            pausa();
         }
     }
     
@@ -1277,6 +1201,15 @@ public class MenuConsola {
     
     private void verCalculoMulta() {
         System.out.println("\n🧮 CALCULAR MULTA");
+        System.out.print("ID Préstamo: ");
+        String idPrestamo = scanner.nextLine();
+        
+        Prestamo p = repoPrestamo.obtenerPorId(idPrestamo);
+        if (p == null) {
+            System.out.println("❌ Préstamo no encontrado");
+            return;
+        }
+
         System.out.println("Tipo de multa:");
         System.out.println("1. Por retraso");
         System.out.println("2. Por daño");
@@ -1286,12 +1219,8 @@ public class MenuConsola {
         
         String tipo = scanner.nextLine();
         
-        System.out.print("ID Préstamo: ");
-        String idPrestamo = scanner.nextLine();
-        System.out.print("ID Usuario: ");
-        String idUsuario = scanner.nextLine();
-        System.out.print("ID Material: ");
-        String idMaterial = scanner.nextLine();
+        String idUsuario = p.getIdUsuario().getValor();
+        String idMaterial = p.getIdMaterial().getValor();
         
         ContextoMulta.Builder builder = new ContextoMulta.Builder()
             .conPrestamo(idPrestamo)
@@ -1330,10 +1259,7 @@ public class MenuConsola {
         }
     }
     
-    private void configurarTarifas() {
-        System.out.println("\n⚙️ CONFIGURAR TARIFAS");
-        System.out.println("(Funcionalidad en desarrollo)");
-    }
+
     
     // ========================================================================
     // MENÚ DE CONSULTAS
@@ -1341,32 +1267,40 @@ public class MenuConsola {
     
     private void menuConsultas() {
         while (true) {
-            System.out.println("\n" + "=".repeat(60));
-            System.out.println("            🔍 CONSULTAS Y REPORTES");
-            System.out.println("=".repeat(60));
-            System.out.println("1.  Ver disponibilidad de material");
-            System.out.println("2.  Ver estado de usuario");
-            System.out.println("3.  Ver estadísticas generales");
-            System.out.println("4.  Ver límites por tipo de usuario");
-            System.out.println("5.  Ver políticas de tiempo");
-            System.out.println("6.  Ver reporte completo");
-            System.out.println("0.  Volver");
-            System.out.println("=".repeat(60));
-            System.out.print("Seleccione: ");
-            
-            String opcion = scanner.nextLine();
-            
-            switch (opcion) {
-                case "1": consultarDisponibilidad(); break;
-                case "2": verEstadoUsuario(); break;
-                case "3": verEstadisticas(); break;
-                case "4": verLimitesUsuario(); break;
-                case "5": verPoliticasTiempo(); break;
-                case "6": verReporteCompleto(); break;
-                case "0": return;
-                default: System.out.println("❌ Opción no válida");
+            try {
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("            🔍 CONSULTAS Y REPORTES");
+                System.out.println("=".repeat(60));
+                System.out.println("1.  Ver disponibilidad de material");
+                System.out.println("2.  Ver estado de usuario");
+                System.out.println("3.  Ver estadísticas generales");
+                System.out.println("4.  Ver límites por tipo de usuario");
+                System.out.println("5.  Ver políticas de tiempo");
+                System.out.println("6.  Ver reporte completo");
+                System.out.println("0.  Volver");
+                System.out.println("=".repeat(60));
+                System.out.print("Seleccione: ");
+                
+                String opcion = scanner.nextLine();
+                
+                switch (opcion) {
+                    case "1": consultarDisponibilidad(); break;
+                    case "2": verEstadoUsuario(); break;
+                    case "3": verEstadisticas(); break;
+                    case "4": verLimitesUsuario(); break;
+                    case "5": verPoliticasTiempo(); break;
+                    case "6": verReporteCompleto(); break;
+                    case "0": return;
+                    default: System.out.println("❌ Opción no válida");
+                }
+                pausa();
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Error de validación: " + e.getMessage());
+                pausa();
+            } catch (Exception e) {
+                System.out.println("❌ Ocurrió un error inesperado al procesar consultas.");
+                pausa();
             }
-            pausa();
         }
     }
     
@@ -1398,123 +1332,22 @@ public class MenuConsola {
 private void verEstadoUsuario() {
     System.out.print("\nIngrese ID del usuario: ");
     String idUsuario = scanner.nextLine();
-    
-    Usuario u = repoUsuario.obtenerPorId(idUsuario);
-    if (u == null) {
-        System.out.println("❌ Usuario no encontrado");
-        return;
-    }
-    
-    ResultadoValidacion validacion = gestorBloqueo.verificarSiDebeBloquear(idUsuario);
-    int prestamosActivos = prestamoService.obtenerPrestamosActivos(new IdUsuario(idUsuario)).size();
-    int limite = limiteService.obtenerLimiteMaximo(u.getTipo());
-    
-    // ✅ CORREGIDO: Usar el método correcto
-    BigDecimal multasPendientes = ((GestorBloqueoService)gestorBloqueo)
-        .obtenerTotalMultasPendientes(idUsuario);
-    
-    System.out.println("\n👤 ESTADO DEL USUARIO:");
-    System.out.println("ID: " + u.getId());
-    System.out.println("Nombre: " + u.getNombre());
-    System.out.println("Tipo: " + u.getTipo());
-    System.out.println("Estado: " + u.getEstado());
-    System.out.println("Préstamos activos: " + prestamosActivos + "/" + limite);
-    System.out.printf("Multas pendientes: $%.2f%n", multasPendientes);
-    System.out.println("Puede realizar préstamos: " + (validacion.esValido() ? "✅ SÍ" : "❌ NO"));
-    
-    if (!validacion.esValido()) {
-        System.out.println("Motivo: " + validacion.getErrores().get(0));
-    }
+    System.out.println(servicioReportes.generarEstadoUsuario(idUsuario));
 }
     private void verEstadisticas() {
-        long totalMateriales = repoMaterial.contar();
-        long totalUsuarios = repoUsuario.contar();
-        long prestamosActivos = repoPrestamo.obtenerTodos().stream()
-            .filter(p -> p.getEstado() == EstadoTransaccion.ACTIVA)
-            .filter(p -> p.getFechaDevolucionReal() == null)
-            .count();
-        long reservasActivas = repoReserva.obtenerTodos().stream()
-            .filter(r -> r.getEstado() == EstadoTransaccion.ACTIVA)
-            .filter(r -> r.getFechaExpiracion().isAfter(LocalDateTime.now()))
-            .count();
-        long multasPendientes = repoMulta.obtenerTodos().stream()
-            .filter(m -> m.getEstado() == EstadoMulta.PENDIENTE)
-            .count();
-        
-        System.out.println("\n📊 ESTADÍSTICAS GENERALES:");
-        System.out.println("Total materiales: " + totalMateriales);
-        System.out.println("Total usuarios: " + totalUsuarios);
-        System.out.println("Préstamos activos: " + prestamosActivos);
-        System.out.println("Reservas activas: " + reservasActivas);
-        System.out.println("Multas pendientes: " + multasPendientes);
+        System.out.println(servicioReportes.generarEstadisticasGenerales());
     }
     
     private void verLimitesUsuario() {
-        System.out.println("\n📋 LÍMITES DE PRÉSTAMO POR TIPO DE USUARIO:");
-        System.out.println("ESTUDIANTE: " + limiteService.obtenerLimiteMaximo(TipoUsuario.ESTUDIANTE));
-        System.out.println("PROFESOR: " + limiteService.obtenerLimiteMaximo(TipoUsuario.PROFESOR));
-        System.out.println("INVESTIGADOR: " + limiteService.obtenerLimiteMaximo(TipoUsuario.INVESTIGADOR));
-        System.out.println("PÚBLICO GENERAL: " + limiteService.obtenerLimiteMaximo(TipoUsuario.PUBLICO_GENERAL));
+        System.out.println(servicioReportes.generarLimitesUsuario());
     }
     
     private void verPoliticasTiempo() {
-        System.out.println("\n⏱️  DÍAS DE PRÉSTAMO POR TIPO:");
-        System.out.println("-".repeat(50));
-        System.out.printf("%-15s %-12s %-12s %-12s%n", "MATERIAL", "ESTUDIANTE", "PROFESOR", "INVESTIGADOR");
-        System.out.println("-".repeat(50));
-        
-        PoliticaTiempoPorTipoService politica = (PoliticaTiempoPorTipoService) politicaTiempoService;
-        
-        for (TipoMaterial tm : TipoMaterial.values()) {
-            System.out.printf("%-15s %-12d %-12d %-12d%n",
-                tm,
-                politica.calcularDiasPrestamo(tm, TipoUsuario.ESTUDIANTE),
-                politica.calcularDiasPrestamo(tm, TipoUsuario.PROFESOR),
-                politica.calcularDiasPrestamo(tm, TipoUsuario.INVESTIGADOR));
-        }
+        System.out.println(servicioReportes.generarPoliticasTiempo());
     }
     
     private void verReporteCompleto() {
-        System.out.println("\n📑 REPORTE COMPLETO DEL SISTEMA");
-        System.out.println("=".repeat(60));
-        
-        verEstadisticas();
-        
-        System.out.println("\n📚 MATERIALES POR ESTADO:");
-        for (EstadoMaterial em : EstadoMaterial.values()) {
-            long count = repoMaterial.obtenerTodos().stream()
-                .filter(m -> m.getEstado() == em)
-                .count();
-            if (count > 0) {
-                System.out.printf("  %s: %d%n", em, count);
-            }
-        }
-        
-        System.out.println("\n👥 USUARIOS POR ESTADO:");
-        for (EstadoUsuario eu : EstadoUsuario.values()) {
-            long count = repoUsuario.obtenerTodos().stream()
-                .filter(u -> u.getEstado() == eu)
-                .count();
-            if (count > 0) {
-                System.out.printf("  %s: %d%n", eu, count);
-            }
-        }
-        
-        System.out.println("\n💰 MULTAS POR ESTADO:");
-        double totalMultas = 0;
-        for (EstadoMulta em : EstadoMulta.values()) {
-            double suma = repoMulta.obtenerTodos().stream()
-                .filter(m -> m.getEstado() == em)
-                .mapToDouble(Multa::calcularMontoTotal)
-                .sum();
-            if (suma > 0) {
-                System.out.printf("  %s: $%.2f%n", em, suma);
-                if (em == EstadoMulta.PENDIENTE) {
-                    totalMultas += suma;
-                }
-            }
-        }
-        System.out.printf("  TOTAL PENDIENTE: $%.2f%n", totalMultas);
+        System.out.println(servicioReportes.generarReporteCompleto());
     }
     
     // ========================================================================

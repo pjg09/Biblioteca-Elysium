@@ -6,6 +6,7 @@ import com.biblioteca.dominio.entidades.Material;
 import com.biblioteca.dominio.entidades.Multa;
 import com.biblioteca.dominio.entidades.MultaPorPerdida;
 import com.biblioteca.dominio.entidades.Revista;
+import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.enumeraciones.TipoMulta;
 import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.repositorios.IRepositorio;
@@ -13,10 +14,11 @@ import com.biblioteca.servicios.interfaces.ICalculadorMulta;
 
 public class CalculadorMultaPorPerdida implements ICalculadorMulta {
     private IRepositorio<Material> repoMaterial;
-    private static final double PORCENTAJE_RECARGO = 0.20; // 20% de recargo
+    private IRepositorio<Usuario> repoUsuario;
     
-    public CalculadorMultaPorPerdida(IRepositorio<Material> repoMaterial) {
+    public CalculadorMultaPorPerdida(IRepositorio<Material> repoMaterial, IRepositorio<Usuario> repoUsuario) {
         this.repoMaterial = repoMaterial;
+        this.repoUsuario = repoUsuario;
     }
     
     @Override
@@ -26,14 +28,27 @@ public class CalculadorMultaPorPerdida implements ICalculadorMulta {
             throw new IllegalArgumentException("Material no encontrado");
         }
         
-        // Valor estimado del material
-        double valorMaterial = calcularValorMaterial(material);
+        // Valor estimado del material (usando precio si existe, o estimado legacy)
+        double valorMaterial = material.getPrecio() > 0 ? material.getPrecio() : calcularValorMaterial(material);
+        
+        double recargo = 0.20; // Base: 20%
+        if (repoUsuario != null && contexto.getIdUsuario() != null) {
+            Usuario u = repoUsuario.obtenerPorId(contexto.getIdUsuario());
+            if (u != null) {
+                switch (u.getTipo()) {
+                    case ESTUDIANTE: recargo = 0.20; break;
+                    case PROFESOR: recargo = 0.10; break;
+                    case INVESTIGADOR: recargo = 0.0; break;
+                    case PUBLICO_GENERAL: recargo = 0.30; break;
+                }
+            }
+        }
         
         MultaPorPerdida multa = new MultaPorPerdida(
             contexto.getIdPrestamo(),
             contexto.getIdUsuario(),
             valorMaterial,
-            PORCENTAJE_RECARGO
+            recargo
         );
         
         return multa;
