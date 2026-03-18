@@ -27,7 +27,7 @@ import com.biblioteca.dominio.enumeraciones.TipoOperacion;
  * Dependencias (DIP):
  * - Depende de interfaces, no de implementaciones concretas
  * - Usa ILimitePrestamoService, IDisponibilidadService, IGestorBloqueoService
- * - Usa lista de IReglaValidacion (Strategy Pattern)
+ * - Usa lista de IReglaValidacion (Strategy + Composite Pattern)
  */
 public class ValidadorReglasService implements IValidadorReglasService {
     
@@ -40,7 +40,7 @@ public class ValidadorReglasService implements IValidadorReglasService {
     private final IRepositorio<Usuario> repoUsuario;
     private final IRepositorio<Material> repoMaterial;
     
-    // Lista de reglas personalizadas (Strategy Pattern)
+    // Lista de reglas personalizadas (Strategy + Composite Pattern)
     private final List<IReglaValidacion> reglas;
     
     /**
@@ -270,7 +270,9 @@ public class ValidadorReglasService implements IValidadorReglasService {
     
     /**
      * Aplica todas las reglas personalizadas registradas
-     * Las ejecuta en orden de prioridad (Chain of Responsibility)
+     * Las ejecuta en orden de prioridad (Strategy + Composite Pattern)
+     * Cada regla es una estrategia de validación independiente;
+     * el orquestador las compone combinando sus resultados.
      * 
      * @param idUsuario ID del usuario
      * @param idMaterial ID del material
