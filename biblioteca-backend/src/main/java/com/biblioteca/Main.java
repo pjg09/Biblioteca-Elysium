@@ -140,7 +140,7 @@ public class Main {
                 com.biblioteca.servicios.interfaces.IAdministracionFacade adminFacade = new com.biblioteca.servicios.AdministracionFacade(
                                 repoMaterial, repoUsuario, gestorBloqueo, gestorMultas);
                 // 8. CARGAR DATOS DE EJEMPLO
-                cargarDatosEjemplo(repoMaterial, repoUsuario, repoPrestamo);
+                cargarDatosEjemplo(repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta);
                 // 9. INICIAR MENÚ DE CONSOLA (solo 3 fachadas)
                 MenuConsola menu = new MenuConsola(bibliotecaFacade, consultaFacade, adminFacade);
 
@@ -150,7 +150,9 @@ public class Main {
         private static void cargarDatosEjemplo(
                         IRepositorio<Material> repoMaterial,
                         IRepositorio<Usuario> repoUsuario,
-                        IRepositorio<Prestamo> repoPrestamo) {
+                        IRepositorio<Prestamo> repoPrestamo,
+                        IRepositorio<Reserva> repoReserva,
+                        IRepositorio<Multa> repoMulta) {
 
                 System.out.println("\nCargando datos de ejemplo...");
                 // MATERIALES
@@ -263,10 +265,23 @@ public class Main {
                 repoMaterial.actualizar(libro3);
                 repoMaterial.actualizar(libro2); // ← NUEVO
 
+                // RESERVAS DE EJEMPLO
+                com.biblioteca.dominio.entidades.ReservaNormal reserva1 = new com.biblioteca.dominio.entidades.ReservaNormal("RES-000001", "USR-000004", "MAT-000001", "Sede Central");
+                com.biblioteca.dominio.entidades.ReservaNormal reserva2 = new com.biblioteca.dominio.entidades.ReservaNormal("RES-000002", "USR-000006", "MAT-000004", "Sede Norte");
+                
+                repoReserva.agregar(reserva1);
+                repoReserva.agregar(reserva2);
+                
+                // MULTAS DE EJEMPLO (Usuario USR-000002, por el préstamo vencido)
+                com.biblioteca.dominio.entidades.MultaPorRetraso multa1 = new com.biblioteca.dominio.entidades.MultaPorRetraso("PRE-000004", "USR-000002", 15, 2000.0);
+                repoMulta.agregar(multa1);
+
                 System.out.println("Datos cargados:");
                 System.out.println("   - Materiales: 9");
                 System.out.println("   - Usuarios: 6");
-                System.out.println("   - Préstamos activos: 4"); // ← Actualizado
+                System.out.println("   - Préstamos activos: 4");
+                System.out.println("   - Reservas activas: 2");
+                System.out.println("   - Multas pendientes: 1");
                 System.out.println(
                                 "   - PRÉSTAMO VENCIDO: MAT-000002 (El principito) - Usuario: USR-000002 (María García)");
                 System.out.println("     Fecha préstamo: hace 30 días");
