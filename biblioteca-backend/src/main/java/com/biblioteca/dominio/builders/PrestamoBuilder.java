@@ -8,16 +8,12 @@ import java.util.ArrayList;
 import com.biblioteca.dominio.entidades.Prestamo;
 import com.biblioteca.dominio.entidades.PrestamoInterbibliotecario;
 import com.biblioteca.dominio.entidades.PrestamoNormal;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
-
 import com.biblioteca.dominio.builders.interfaces.IBuilderPrestamo;
 
 public class PrestamoBuilder implements IBuilderPrestamo {
     // Campos obligatorios
-    private IdUsuario idUsuario;
-    private IdMaterial idMaterial;
+    private String idUsuario;
+    private String idMaterial;
     
     // Campos opcionales con valores por defecto
     private String id = generarIdAutomatico();
@@ -31,12 +27,12 @@ public class PrestamoBuilder implements IBuilderPrestamo {
     private double costoTransferencia = 0.0;
     // MÉTODOS OBLIGATORIOS
     
-    public IBuilderPrestamo paraUsuario(IdUsuario idUsuario) {
+    public IBuilderPrestamo paraUsuario(String idUsuario) {
         this.idUsuario = idUsuario;
         return this;
     }
     
-    public IBuilderPrestamo deMaterial(IdMaterial idMaterial) {
+    public IBuilderPrestamo deMaterial(String idMaterial) {
         this.idMaterial = idMaterial;
         return this;
     }
@@ -123,7 +119,7 @@ public class PrestamoBuilder implements IBuilderPrestamo {
     
     private PrestamoNormal construirPrestamoNormal() {
         return new PrestamoNormal(
-            new IdTransaccion(id),
+            (id),
             idUsuario,
             idMaterial,
             fechaDevolucion,
@@ -133,7 +129,7 @@ public class PrestamoBuilder implements IBuilderPrestamo {
     
     private PrestamoInterbibliotecario construirPrestamoInterbibliotecario() {
         return new PrestamoInterbibliotecario(
-            new IdTransaccion(id),
+            (id),
             idUsuario,
             idMaterial,
             fechaDevolucion,

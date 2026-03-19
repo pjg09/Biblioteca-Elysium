@@ -5,40 +5,36 @@ import java.util.UUID;
 
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
-
 public abstract class Transaccion {
-    protected IdTransaccion id;
-    protected IdUsuario idUsuario;
-    protected IdMaterial idMaterial;
+    protected String id;
+    protected String idUsuario;
+    protected String idMaterial;
     protected LocalDateTime fechaCreacion;
     protected EstadoTransaccion estado;
     
-    public Transaccion(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial) {
+    public Transaccion(String id, String idUsuario, String idMaterial) {
         if (idUsuario == null) {
             throw new IllegalArgumentException("ID de usuario no puede ser nulo");
         }
         if (idMaterial == null) {
             throw new IllegalArgumentException("ID de material no puede ser nulo");
         }
-        this.id = id != null ? id : new IdTransaccion(UUID.randomUUID().toString());
+        this.id = id != null ? id : (UUID.randomUUID().toString());
         this.idUsuario = idUsuario;
         this.idMaterial = idMaterial;
         this.fechaCreacion = LocalDateTime.now();
         this.estado = EstadoTransaccion.ACTIVA;
     }
     
-    public IdTransaccion getId() {
+    public String getId() {
         return id;
     }
     
-    public IdUsuario getIdUsuario() {
+    public String getIdUsuario() {
         return idUsuario;
     }
     
-    public IdMaterial getIdMaterial() {
+    public String getIdMaterial() {
         return idMaterial;
     }
     

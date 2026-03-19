@@ -4,18 +4,17 @@ import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.enumeraciones.EstadoUsuario;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import java.util.UUID;
 
 public abstract class Usuario {
-    protected IdUsuario id;
+    protected String id;
     protected String nombre;
     protected String email;
     protected TipoUsuario tipo;
     protected EstadoUsuario estado;
     protected LocalDateTime fechaRegistro;
     
-    protected Usuario(IdUsuario id, String nombre, String email, TipoUsuario tipo) {
+    protected Usuario(String id, String nombre, String email, TipoUsuario tipo) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre no puede ser nulo o vacío");
         }
@@ -23,7 +22,7 @@ public abstract class Usuario {
             throw new IllegalArgumentException("Formato de email inválido");
         }
         
-        this.id = id != null ? id : new IdUsuario("USR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+        this.id = id != null ? id : ("USR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
         this.nombre = nombre;
         this.email = email;
         this.tipo = tipo;
@@ -31,7 +30,7 @@ public abstract class Usuario {
         this.fechaRegistro = LocalDateTime.now();
     }
     
-    public IdUsuario getId() {
+    public String getId() {
         return id;
     }
     
@@ -79,7 +78,7 @@ public abstract class Usuario {
     @Override
     public String toString() {
         return "Usuario{" +
-                "id='" + id.getValor() + '\'' +
+                "id='" + id + '\'' +
                 ", nombre='" + nombre + '\'' +
                 ", tipo=" + tipo +
                 ", estado=" + estado +

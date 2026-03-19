@@ -15,20 +15,20 @@ public class RepositorioPrestamoEnMemoria extends RepositorioEnMemoria<Prestamo>
     
     @Override
     protected String extraerId(Prestamo entidad) {
-        return entidad != null ? entidad.getId().getValor() : null;
+        return entidad != null ? entidad.getId() : null;
     }
     
     public List<Prestamo> buscarPorUsuario(String idUsuario) {
         if (idUsuario == null) return List.of();
         return obtenerTodos().stream()
-            .filter(p -> idUsuario.equals(p.getIdUsuario().getValor()))
+            .filter(p -> idUsuario.equals(p.getIdUsuario()))
             .collect(Collectors.toList());
     }
     
     public List<Prestamo> buscarPorMaterial(String idMaterial) {
         if (idMaterial == null) return List.of();
         return obtenerTodos().stream()
-            .filter(p -> idMaterial.equals(p.getIdMaterial().getValor()))
+            .filter(p -> idMaterial.equals(p.getIdMaterial()))
             .collect(Collectors.toList());
     }
     

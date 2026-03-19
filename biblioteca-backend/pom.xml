@@ -19,12 +19,10 @@
     </properties>
 
     <dependencies>
-        <!-- Aquí agregarás dependencias cuando las necesites -->
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Plugin para ejecutar el Main -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -33,6 +31,7 @@
                     <mainClass>com.biblioteca.Main</mainClass>
                 </configuration>
             </plugin>
+            
         </plugins>
     </build>
 </project>

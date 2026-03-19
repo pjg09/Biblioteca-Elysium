@@ -3,12 +3,9 @@ package com.biblioteca.dominio.builders.interfaces;
 import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.entidades.Prestamo;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-
 public interface IBuilderPrestamo {
-    IBuilderPrestamo paraUsuario(IdUsuario idUsuario);
-    IBuilderPrestamo deMaterial(IdMaterial idMaterial);
+    IBuilderPrestamo paraUsuario(String idUsuario);
+    IBuilderPrestamo deMaterial(String idMaterial);
     
     IBuilderPrestamo conId(String id);
     IBuilderPrestamo conVencimiento(LocalDateTime fechaDevolucion);

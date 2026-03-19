@@ -19,8 +19,6 @@ import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.factories.ContextoCreacionPrestamo;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
@@ -71,10 +69,10 @@ public class PrestamoService implements IPrestamoService {
     }
 
     @Override
-    public Resultado registrarPrestamo(IdUsuario idUsuario, IdMaterial idMaterial, String tipoPrestamo) {
+    public Resultado registrarPrestamo(String idUsuario, String idMaterial, String tipoPrestamo) {
         try {
             // PASO 1: Validar todas las reglas de negocio
-            ResultadoValidacion validacion = validadorReglas.validarPrestamo(idUsuario.getValor(), idMaterial.getValor());
+            ResultadoValidacion validacion = validadorReglas.validarPrestamo(idUsuario, idMaterial);
             
             if (!validacion.esValido()) {
                 return Resultado.Fallido(
@@ -84,8 +82,8 @@ public class PrestamoService implements IPrestamoService {
             }
 
             // PASO 2: Obtener entidades necesarias
-            Usuario usuario = repositorioUsuario.obtenerPorId(idUsuario.getValor());
-            Material material = repositorioMaterial.obtenerPorId(idMaterial.getValor());
+            Usuario usuario = repositorioUsuario.obtenerPorId(idUsuario);
+            Material material = repositorioMaterial.obtenerPorId(idMaterial);
 
             if (usuario == null) {
                 return Resultado.Fallido("Usuario no encontrado");
@@ -95,7 +93,7 @@ public class PrestamoService implements IPrestamoService {
             }
 
             // PASO 3: Verificar que el material sea prestable según su tipo
-            if (!disponibilidadService.materialEsPrestable(idMaterial.getValor(), material.getTipo())) {
+            if (!disponibilidadService.materialEsPrestable(idMaterial, material.getTipo())) {
                 return Resultado.Fallido(
                     "El material de tipo " + material.getTipo() + " no es prestable"
                 );
@@ -131,7 +129,7 @@ public class PrestamoService implements IPrestamoService {
 
             // PASO 8: Notificar al usuario
             notificacionService.enviarNotificacion(
-                idUsuario.getValor(),
+                idUsuario,
                 "Préstamo registrado exitosamente. Fecha de devolución: " + 
                 fechaDevolucionEsperada.toLocalDate()
             );
@@ -146,7 +144,7 @@ public class PrestamoService implements IPrestamoService {
     }
 
     @Override
-    public List<Prestamo> obtenerPrestamosActivos(IdUsuario idUsuario) {
+    public List<Prestamo> obtenerPrestamosActivos(String idUsuario) {
         return repositorioPrestamo.obtenerTodos().stream()
                 .filter(p -> p.getIdUsuario().equals(idUsuario))
                 .filter(p -> p.getEstado() == EstadoTransaccion.ACTIVA)

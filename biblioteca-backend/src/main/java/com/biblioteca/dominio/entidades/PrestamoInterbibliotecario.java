@@ -2,16 +2,12 @@ package com.biblioteca.dominio.entidades;
 
 import java.time.LocalDateTime;
 
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
-
 public class PrestamoInterbibliotecario extends Prestamo {
     private String bibliotecaOrigen;
     private String bibliotecaDestino;
     private double costoTransferencia;
     
-    public PrestamoInterbibliotecario(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial, 
+    public PrestamoInterbibliotecario(String id, String idUsuario, String idMaterial, 
                                        LocalDateTime fechaDevolucionEsperada, String bibliotecaOrigen,
                                        String bibliotecaDestino, double costoTransferencia) {
         super(id, idUsuario, idMaterial, fechaDevolucionEsperada);

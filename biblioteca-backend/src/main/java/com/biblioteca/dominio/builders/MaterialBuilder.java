@@ -8,13 +8,11 @@ import com.biblioteca.dominio.entidades.Libro;
 import com.biblioteca.dominio.entidades.Material;
 import com.biblioteca.dominio.entidades.Revista;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-
 import com.biblioteca.dominio.builders.interfaces.IBuilderMaterial;
 
 public class MaterialBuilder implements IBuilderMaterial {
     // Campos comunes
-    private IdMaterial id;
+    private String id;
     private String titulo;
     private String autor;
     private TipoMaterial tipo;
@@ -42,7 +40,7 @@ public class MaterialBuilder implements IBuilderMaterial {
     private LocalDateTime fechaVencimientoLicencia;
     // MÉTODOS COMUNES
     
-    public IBuilderMaterial conId(IdMaterial id) {
+    public IBuilderMaterial conId(String id) {
         this.id = id;
         return this;
     }
@@ -234,11 +232,11 @@ public class MaterialBuilder implements IBuilderMaterial {
         );
     }
 
-    private IdMaterial generarId(String prefijo) {
+    private String generarId(String prefijo) {
         // En una implementación real se puede validar formato, aquí generamos con UUID format. 
         // Genera algo como: MAT-123456
         String num = String.format("%06d", (int)(Math.random() * 1000000));
-        return new IdMaterial("MAT-" + num);
+        return ("MAT-" + num);
     }
 }
 

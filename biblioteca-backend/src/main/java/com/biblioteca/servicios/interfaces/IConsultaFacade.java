@@ -8,9 +8,6 @@ import com.biblioteca.dominio.entidades.Prestamo;
 import com.biblioteca.dominio.entidades.Reserva;
 import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-
 public interface IConsultaFacade {
     List<Material> listarMateriales();
     List<Material> buscarMateriales(String criterio);
@@ -27,11 +24,11 @@ public interface IConsultaFacade {
     List<Usuario> obtenerUsuariosBloqueados();
     List<Prestamo> listarPrestamosActivos();
     List<Prestamo> obtenerPrestamosVencidos();
-    List<Prestamo> obtenerPrestamosPorUsuario(IdUsuario idUsuario);
+    List<Prestamo> obtenerPrestamosPorUsuario(String idUsuario);
     Prestamo obtenerPrestamoPorId(String id);
     List<Reserva> listarReservasActivas();
-    List<Reserva> obtenerReservasPorUsuario(IdUsuario idUsuario);
-    List<Reserva> obtenerReservasPorMaterial(IdMaterial idMaterial);
+    List<Reserva> obtenerReservasPorUsuario(String idUsuario);
+    List<Reserva> obtenerReservasPorMaterial(String idMaterial);
     List<Multa> listarMultasPendientes();
     List<Multa> obtenerMultasPorUsuario(String idUsuario);
     List<Prestamo> verHistorialDevoluciones();

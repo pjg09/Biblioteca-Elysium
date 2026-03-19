@@ -8,12 +8,10 @@ import com.biblioteca.dominio.entidades.Profesor;
 import com.biblioteca.dominio.entidades.PublicoGeneral;
 import com.biblioteca.dominio.entidades.Usuario;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-
 import com.biblioteca.dominio.builders.interfaces.IBuilderUsuario;
 
 public class UsuarioBuilder implements IBuilderUsuario {
-    private IdUsuario id;
+    private String id;
     private String nombre;
     private String email;
     private TipoUsuario tipo;
@@ -35,7 +33,7 @@ public class UsuarioBuilder implements IBuilderUsuario {
     private String direccion;
     private String nombreFiador;
     
-    public IBuilderUsuario conId(IdUsuario id) {
+    public IBuilderUsuario conId(String id) {
         this.id = id;
         return this;
     }
@@ -84,7 +82,7 @@ public class UsuarioBuilder implements IBuilderUsuario {
     public Usuario construir() {
         validar();
         
-        IdUsuario targetId = id != null ? id : generarId();
+        String targetId = id != null ? id : generarId();
         
         switch (tipo) {
             case ESTUDIANTE:
@@ -138,9 +136,9 @@ public class UsuarioBuilder implements IBuilderUsuario {
         }
     }
     
-    private IdUsuario generarId() {
+    private String generarId() {
         String num = String.format("%06d", (int)(Math.random() * 1000000));
-        return new IdUsuario("USR-" + num);
+        return ("USR-" + num);
     }
 }
 

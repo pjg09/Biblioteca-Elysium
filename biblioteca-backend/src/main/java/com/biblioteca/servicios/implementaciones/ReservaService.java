@@ -10,9 +10,6 @@ import com.biblioteca.dominio.entidades.ReservaInterbibliotecaria;
 import com.biblioteca.dominio.entidades.ReservaNormal;
 import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
@@ -44,9 +41,9 @@ public class ReservaService implements IReservaService {
     }
     
     @Override
-    public Resultado crearReserva(IdUsuario idUsuario, IdMaterial idMaterial, String tipoReserva) {
+    public Resultado crearReserva(String idUsuario, String idMaterial, String tipoReserva) {
         try {
-            ResultadoValidacion validacion = validador.validarReserva(idUsuario.getValor(), idMaterial.getValor());
+            ResultadoValidacion validacion = validador.validarReserva(idUsuario, idMaterial);
             if (!validacion.esValido()) {
                 return Resultado.Fallido(validacion.getErrores().get(0));
             }
@@ -55,7 +52,7 @@ public class ReservaService implements IReservaService {
                 return Resultado.Fallido("El usuario ya tiene una reserva activa para este material");
             }
             
-            Material material = repoMaterial.obtenerPorId(idMaterial.getValor());
+            Material material = repoMaterial.obtenerPorId(idMaterial);
             if (material == null) {
                 return Resultado.Fallido("Material no encontrado");
             }
@@ -68,7 +65,7 @@ public class ReservaService implements IReservaService {
             
             Reserva reserva = crearReservaSegunTipo(idUsuario, idMaterial, tipoReserva);
             
-            int posicion = calcularPosicionCola(idMaterial.getValor());
+            int posicion = calcularPosicionCola(idMaterial);
             reserva.setPosicionCola(posicion);
             
             Resultado resultado = repoReserva.agregar(reserva);
@@ -80,7 +77,7 @@ public class ReservaService implements IReservaService {
                 }
                 
                 String mensaje = "Reserva creada exitosamente. Posición en cola: " + posicion;
-                notificador.enviarNotificacion(idUsuario.getValor(), mensaje);
+                notificador.enviarNotificacion(idUsuario, mensaje);
             }
             
             return resultado;
@@ -107,11 +104,11 @@ public class ReservaService implements IReservaService {
             
             if (resultado.getExito()) {
                 notificador.enviarNotificacion(
-                    reserva.getIdUsuario().getValor(),
+                    reserva.getIdUsuario(),
                     "Su reserva ha sido cancelada exitosamente."
                 );
-                actualizarPosicionesCola(reserva.getIdMaterial().getValor());
-                actualizarEstadoMaterial(reserva.getIdMaterial().getValor());
+                actualizarPosicionesCola(reserva.getIdMaterial());
+                actualizarEstadoMaterial(reserva.getIdMaterial());
             }
             
             return resultado;
@@ -133,18 +130,18 @@ public class ReservaService implements IReservaService {
             reserva.setFechaExpiracion(LocalDateTime.now().plusHours(24));
             repoReserva.actualizar(reserva);
             
-            Material material = repoMaterial.obtenerPorId(reserva.getIdMaterial().getValor());
+            Material material = repoMaterial.obtenerPorId(reserva.getIdMaterial());
             String mensaje = "El material " + (material != null ? material.getTitulo() : "") + 
                             " ya está disponible. Tiene 24 horas para recogerlo.";
             
-            return notificador.enviarNotificacion(reserva.getIdUsuario().getValor(), mensaje);
+            return notificador.enviarNotificacion(reserva.getIdUsuario(), mensaje);
             
         } catch (Exception e) {
             return Resultado.Fallido("Error al notificar disponibilidad: " + e.getMessage());
         }
     }
     
-    public List<Reserva> obtenerReservasActivasPorUsuario(IdUsuario idUsuario) {
+    public List<Reserva> obtenerReservasActivasPorUsuario(String idUsuario) {
         LocalDateTime ahora = LocalDateTime.now();
         return repoReserva.obtenerTodos().stream()
             .filter(r -> r.getIdUsuario().equals(idUsuario))
@@ -153,7 +150,7 @@ public class ReservaService implements IReservaService {
             .collect(Collectors.toList());
     }
     
-    public List<Reserva> obtenerReservasActivasPorMaterial(IdMaterial idMaterial) {
+    public List<Reserva> obtenerReservasActivasPorMaterial(String idMaterial) {
         LocalDateTime ahora = LocalDateTime.now();
         return repoReserva.obtenerTodos().stream()
             .filter(r -> r.getIdMaterial().equals(idMaterial))
@@ -163,7 +160,7 @@ public class ReservaService implements IReservaService {
             .collect(Collectors.toList());
     }
     
-    public Reserva obtenerSiguienteEnCola(IdMaterial idMaterial) {
+    public Reserva obtenerSiguienteEnCola(String idMaterial) {
         List<Reserva> activas = obtenerReservasActivasPorMaterial(idMaterial);
         return activas.isEmpty() ? null : activas.get(0);
     }
@@ -179,7 +176,7 @@ public class ReservaService implements IReservaService {
             reserva.setEstado(EstadoTransaccion.CANCELADA);
             repoReserva.actualizar(reserva);
             notificador.enviarNotificacion(
-                reserva.getIdUsuario().getValor(),
+                reserva.getIdUsuario(),
                 "Su reserva ha expirado por falta de recogida."
             );
         }
@@ -187,14 +184,14 @@ public class ReservaService implements IReservaService {
         expiradas.stream()
             .map(Reserva::getIdMaterial)
             .distinct()
-            .forEach(id -> this.actualizarEstadoMaterial(id.getValor()));
+            .forEach(id -> this.actualizarEstadoMaterial(id));
     }
     
-    private Reserva crearReservaSegunTipo(IdUsuario idUsuario, IdMaterial idMaterial, String tipoReserva) {
+    private Reserva crearReservaSegunTipo(String idUsuario, String idMaterial, String tipoReserva) {
         if ("INTERBIBLIOTECARIA".equalsIgnoreCase(tipoReserva)) {
-            return new ReservaInterbibliotecaria(new IdTransaccion("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Biblioteca Central");
+            return new ReservaInterbibliotecaria(("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Biblioteca Central");
         } else {
-            return new ReservaNormal(new IdTransaccion("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Sala de lectura");
+            return new ReservaNormal(("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Sala de lectura");
         }
     }
     
@@ -208,7 +205,7 @@ public class ReservaService implements IReservaService {
     }
     
     private void actualizarPosicionesCola(String idMaterial) {
-        List<Reserva> activas = obtenerReservasActivasPorMaterial(new IdMaterial(idMaterial));
+        List<Reserva> activas = obtenerReservasActivasPorMaterial((idMaterial));
         for (int i = 0; i < activas.size(); i++) {
             activas.get(i).setPosicionCola(i + 1);
             repoReserva.actualizar(activas.get(i));
@@ -216,7 +213,7 @@ public class ReservaService implements IReservaService {
     }
     
     private void actualizarEstadoMaterial(String idMaterial) {
-        List<Reserva> activas = obtenerReservasActivasPorMaterial(new IdMaterial(idMaterial));
+        List<Reserva> activas = obtenerReservasActivasPorMaterial((idMaterial));
         Material material = repoMaterial.obtenerPorId(idMaterial);
         
         if (material != null) {
@@ -230,7 +227,7 @@ public class ReservaService implements IReservaService {
         }
     }
     
-    private boolean tieneReservaActiva(IdUsuario idUsuario, IdMaterial idMaterial) {
+    private boolean tieneReservaActiva(String idUsuario, String idMaterial) {
         LocalDateTime ahora = LocalDateTime.now();
         return repoReserva.obtenerTodos().stream()
             .anyMatch(r -> r.getIdUsuario().equals(idUsuario) &&

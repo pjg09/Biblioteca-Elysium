@@ -2,10 +2,6 @@ package com.biblioteca;
 
 import java.time.LocalDateTime;
 
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
-
 import com.biblioteca.consola.MenuConsola;
 import com.biblioteca.dominio.entidades.DVD;
 import com.biblioteca.dominio.entidades.EBook;
@@ -34,7 +30,7 @@ import com.biblioteca.servicios.implementaciones.DevolucionService;
 import com.biblioteca.servicios.implementaciones.DisponibilidadStandardService;
 import com.biblioteca.servicios.implementaciones.GestorBloqueoService;
 import com.biblioteca.servicios.implementaciones.GestorMultasService;
-import com.biblioteca.servicios.implementaciones.InspeccionMaterialService;
+
 import com.biblioteca.servicios.implementaciones.LimitePorTipoUsuarioService;
 import com.biblioteca.servicios.implementaciones.NotificacionEmailService;
 import com.biblioteca.servicios.implementaciones.PoliticaTiempoPorTipoService;
@@ -50,7 +46,7 @@ import com.biblioteca.servicios.interfaces.ICalculadorCostoDanoService;
 import com.biblioteca.servicios.interfaces.IDevolucionService;
 import com.biblioteca.servicios.interfaces.IDisponibilidadService;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
-import com.biblioteca.servicios.interfaces.IInspeccionMaterialService;
+
 import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 import com.biblioteca.servicios.interfaces.INotificacionService;
 import com.biblioteca.servicios.interfaces.IPoliticaTiempoService;
@@ -93,7 +89,6 @@ public class Main {
                                 repoMulta,
                                 repoPrestamo // ← Este parámetro faltaba
                 );
-                IInspeccionMaterialService inspeccionService = new InspeccionMaterialService(repoMaterial);
                 // 6. CREAR GESTOR DE MULTAS Y REGISTRAR CALCULADORES
                 com.biblioteca.servicios.interfaces.IGestorMultasService gestorMultas = new GestorMultasService(repoMulta, repoUsuario, gestorBloqueo);
                 gestorMultas.registrarCalculador(calculadorRetraso);
@@ -128,7 +123,7 @@ public class Main {
                                 repoPrestamo, repoMaterial, repoUsuario, notificacionService);
 
                 IDevolucionService devolucionService = new DevolucionService(
-                                inspeccionService, gestorMultas, repoPrestamo, repoMaterial, repoUsuario,
+                                gestorMultas, repoPrestamo, repoMaterial, repoUsuario,
                                 repoMulta, reservaService, notificacionService, gestorBloqueo);
 
                 IServicioReportes servicioReportes = new ServicioReportes(
@@ -159,24 +154,24 @@ public class Main {
 
                 System.out.println("\nCargando datos de ejemplo...");
                 // MATERIALES
-                Libro libro1 = new Libro(new IdMaterial("MAT-000001"), "Cien años de soledad", "Gabriel García Márquez",
+                Libro libro1 = new Libro(("MAT-000001"), "Cien años de soledad", "Gabriel García Márquez",
                                 "978-84-376-0494-7", 471, true, false, 80000.0);
-                Libro libro2 = new Libro(new IdMaterial("MAT-000002"), "El principito", "Antoine de Saint-Exupéry",
+                Libro libro2 = new Libro(("MAT-000002"), "El principito", "Antoine de Saint-Exupéry",
                                 "978-84-261-1930-6", 96, false, false, 50000.0);
-                Libro libro3 = new Libro(new IdMaterial("MAT-000003"), "Don Quijote de la Mancha",
+                Libro libro3 = new Libro(("MAT-000003"), "Don Quijote de la Mancha",
                                 "Miguel de Cervantes",
                                 "978-84-376-0494-8", 863, false, true, 120000.0);
-                DVD dvd1 = new DVD(new IdMaterial("MAT-000004"), "Inception", "Christopher Nolan", "DVD-001-2024", 148,
+                DVD dvd1 = new DVD(("MAT-000004"), "Inception", "Christopher Nolan", "DVD-001-2024", 148,
                                 "Christopher Nolan", 35000.0);
-                DVD dvd2 = new DVD(new IdMaterial("MAT-000005"), "El Padrino", "Francis Ford Coppola", "DVD-002-2024", 175,
+                DVD dvd2 = new DVD(("MAT-000005"), "El Padrino", "Francis Ford Coppola", "DVD-002-2024", 175,
                                 "Francis Ford Coppola", 40000.0);
-                Revista revista1 = new Revista(new IdMaterial("MAT-000006"), "National Geographic", "Varios", "0027-9358",
+                Revista revista1 = new Revista(("MAT-000006"), "National Geographic", "Varios", "0027-9358",
                                 2024, true, 20000.0);
-                Revista revista2 = new Revista(new IdMaterial("MAT-000007"), "Muy Interesante", "Varios", "1130-1234",
+                Revista revista2 = new Revista(("MAT-000007"), "Muy Interesante", "Varios", "1130-1234",
                                 2023, false, 15000.0);
-                EBook ebook1 = new EBook(new IdMaterial("MAT-000008"), "Clean Code", "Robert Martin",
+                EBook ebook1 = new EBook(("MAT-000008"), "Clean Code", "Robert Martin",
                                 "http://biblioteca.com/ebooks/clean-code", 5, LocalDateTime.now().plusMonths(6), 60000.0);
-                EBook ebook2 = new EBook(new IdMaterial("MAT-000009"), "The Pragmatic Programmer", "David Thomas",
+                EBook ebook2 = new EBook(("MAT-000009"), "The Pragmatic Programmer", "David Thomas",
                                 "http://biblioteca.com/ebooks/pragmatic", 3, LocalDateTime.now().plusMonths(3), 60000.0);
 
                 repoMaterial.agregar(libro1);
@@ -189,18 +184,18 @@ public class Main {
                 repoMaterial.agregar(ebook1);
                 repoMaterial.agregar(ebook2);
                 // USUARIOS
-                Estudiante estudiante1 = new Estudiante(new IdUsuario("USR-000001"), "Juan Pérez", "juan@email.com",
+                Estudiante estudiante1 = new Estudiante(("USR-000001"), "Juan Pérez", "juan@email.com",
                                 "Ingeniería", 5, "Universidad Nacional");
-                Estudiante estudiante2 = new Estudiante(new IdUsuario("USR-000002"), "María García", "maria@email.com",
+                Estudiante estudiante2 = new Estudiante(("USR-000002"), "María García", "maria@email.com",
                                 "Medicina", 3, "Universidad de Antioquia");
-                Profesor profesor1 = new Profesor(new IdUsuario("USR-000003"), "Carlos Rodríguez", "carlos@email.com",
+                Profesor profesor1 = new Profesor(("USR-000003"), "Carlos Rodríguez", "carlos@email.com",
                                 "Ciencias", "Universidad Nacional", "Física");
-                Profesor profesor2 = new Profesor(new IdUsuario("USR-000004"), "Ana Martínez", "ana@email.com",
+                Profesor profesor2 = new Profesor(("USR-000004"), "Ana Martínez", "ana@email.com",
                                 "Literatura", "Universidad de Antioquia", "Poesía");
-                Investigador investigador1 = new Investigador(new IdUsuario("USR-000005"), "Luis Fernández",
+                Investigador investigador1 = new Investigador(("USR-000005"), "Luis Fernández",
                                 "luis@email.com",
                                 "Inteligencia Artificial", "Centro de Investigación");
-                PublicoGeneral publico1 = new PublicoGeneral(new IdUsuario("USR-000006"), "Sofía López", "sofia@email.com",
+                PublicoGeneral publico1 = new PublicoGeneral(("USR-000006"), "Sofía López", "sofia@email.com",
                                 "Calle 123 #45-67", "Pedro López");
 
                 repoUsuario.agregar(estudiante1);
@@ -213,18 +208,18 @@ public class Main {
                 LocalDateTime hoy = LocalDateTime.now();
 
                 // Préstamo 1: Activo (normal)
-                Prestamo prestamo1 = new PrestamoNormal(new IdTransaccion("PRE-000001"), new IdUsuario("USR-000001"), new IdMaterial("MAT-000001"),
+                Prestamo prestamo1 = new PrestamoNormal(("PRE-000001"), ("USR-000001"), ("MAT-000001"),
                                 hoy.plusDays(10),
                                 "Estante A1");
 
                 // Préstamo 2: Activo (normal)
-                Prestamo prestamo2 = new PrestamoNormal(new IdTransaccion("PRE-000002"), new IdUsuario("USR-000003"), new IdMaterial("MAT-000004"),
+                Prestamo prestamo2 = new PrestamoNormal(("PRE-000002"), ("USR-000003"), ("MAT-000004"),
                                 hoy.plusDays(5),
                                 "Estante D3");
 
                 // Préstamo 3: Activo (interbibliotecario)
-                Prestamo prestamo3 = new PrestamoInterbibliotecario(new IdTransaccion("PRE-000003"), new IdUsuario("USR-000005"),
-                                new IdMaterial("MAT-000003"),
+                Prestamo prestamo3 = new PrestamoInterbibliotecario(("PRE-000003"), ("USR-000005"),
+                                ("MAT-000003"),
                                 hoy.plusDays(20),
                                 "Biblioteca Central",
                                 "Biblioteca Sucursal",
@@ -234,9 +229,9 @@ public class Main {
                 LocalDateTime fechaDevolucionEsperada = hoy.minusDays(15); // Ya pasó
 
                 Prestamo prestamoVencido = new PrestamoNormal(
-                                new IdTransaccion("PRE-000004"),
-                                new IdUsuario("USR-000002"), // María García (estudiante)
-                                new IdMaterial("MAT-000002"), // El principito
+                                ("PRE-000004"),
+                                ("USR-000002"), // María García (estudiante)
+                                ("MAT-000002"), // El principito
                                 hoy.plusDays(1), // Dummy value para pasar validación inicial
                                 "Estante B2");
 

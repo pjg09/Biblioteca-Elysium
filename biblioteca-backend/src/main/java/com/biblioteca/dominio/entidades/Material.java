@@ -4,11 +4,10 @@ import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
 import java.util.UUID;
 
 public abstract class Material {
-    protected IdMaterial id;
+    protected String id;
     protected String titulo;
     protected String autor;
     protected TipoMaterial tipo;
@@ -17,12 +16,12 @@ public abstract class Material {
     protected double precio;
     
     // Constructor protegido - solo subclases pueden crear
-    protected Material(IdMaterial id, String titulo, String autor, TipoMaterial tipo, double precio) {
+    protected Material(String id, String titulo, String autor, TipoMaterial tipo, double precio) {
         if (titulo == null || titulo.trim().isEmpty()) {
             throw new IllegalArgumentException("Título no puede ser nulo");
         }
         
-        this.id = id != null ? id : new IdMaterial("MAT-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+        this.id = id != null ? id : ("MAT-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
         this.titulo = titulo;
         this.autor = autor;
         this.tipo = tipo;
@@ -31,7 +30,7 @@ public abstract class Material {
         this.precio = precio;
     }
     
-    public IdMaterial getId() {
+    public String getId() {
         return id;
     }
     
@@ -112,7 +111,7 @@ public abstract class Material {
     @Override
     public String toString() {
         return "Material{" +
-                "id='" + id.getValor() + '\'' +
+                "id='" + id + '\'' +
                 ", titulo='" + titulo + '\'' +
                 ", tipo=" + tipo +
                 ", estado=" + estado +

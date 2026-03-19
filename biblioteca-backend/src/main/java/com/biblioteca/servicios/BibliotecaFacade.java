@@ -1,8 +1,6 @@
 package com.biblioteca.servicios;
 
 import com.biblioteca.dominio.objetosvalor.Evaluacion;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.servicios.interfaces.IDevolucionService;
 import com.biblioteca.servicios.interfaces.IPrestamoService;
@@ -33,8 +31,8 @@ public class BibliotecaFacade implements IBibliotecaFacade {
     @Override
     public Resultado procesarSolicitudMaterial(String idUsuarioStr, String idMaterialStr) {
         try {
-            IdUsuario idUsuario = new IdUsuario(idUsuarioStr);
-            IdMaterial idMaterial = new IdMaterial(idMaterialStr);
+            String idUsuario = (idUsuarioStr);
+            String idMaterial = (idMaterialStr);
 
             Resultado resultadoPrestamo = prestamoService.registrarPrestamo(idUsuario, idMaterial, "normal");
 
@@ -58,7 +56,7 @@ public class BibliotecaFacade implements IBibliotecaFacade {
     public Resultado registrarPrestamo(String idUsuario, String idMaterial, String tipoPrestamo) {
         try {
             return prestamoService.registrarPrestamo(
-                    new IdUsuario(idUsuario), new IdMaterial(idMaterial), tipoPrestamo);
+                    (idUsuario), (idMaterial), tipoPrestamo);
         } catch (IllegalArgumentException e) {
             return Resultado.Fallido("Error de formato: " + e.getMessage());
         }
@@ -84,7 +82,7 @@ public class BibliotecaFacade implements IBibliotecaFacade {
     public Resultado crearReserva(String idUsuario, String idMaterial, String tipoReserva) {
         try {
             return reservaService.crearReserva(
-                    new IdUsuario(idUsuario), new IdMaterial(idMaterial), tipoReserva);
+                    (idUsuario), (idMaterial), tipoReserva);
         } catch (IllegalArgumentException e) {
             return Resultado.Fallido("Error de formato: " + e.getMessage());
         }

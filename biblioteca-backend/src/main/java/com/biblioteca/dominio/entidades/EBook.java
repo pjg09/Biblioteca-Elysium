@@ -3,14 +3,12 @@ package com.biblioteca.dominio.entidades;
 import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-
 public class EBook extends Material {
     private String urlDescarga;
     private int licenciasDisponibles;
     private LocalDateTime fechaVencimientoLicencia;
     
-    public EBook(IdMaterial id, String titulo, String autor, String urlDescarga, 
+    public EBook(String id, String titulo, String autor, String urlDescarga, 
                  int licenciasDisponibles, LocalDateTime fechaVencimientoLicencia, double precio) {
         super(id, titulo, autor, TipoMaterial.EBOOK, precio);
         this.urlDescarga = urlDescarga;

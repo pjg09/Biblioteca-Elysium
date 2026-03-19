@@ -25,8 +25,6 @@ import com.biblioteca.dominio.enumeraciones.NivelGravedad;
 import com.biblioteca.dominio.enumeraciones.TipoDano;
 import com.biblioteca.dominio.objetosvalor.Dano;
 import com.biblioteca.dominio.objetosvalor.Evaluacion;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.servicios.interfaces.IBibliotecaFacade;
 import com.biblioteca.servicios.interfaces.IAdministracionFacade;
@@ -74,7 +72,7 @@ public class MenuConsola {
         System.out.println("1.  Gestión de Materiales");
         System.out.println("2.  Gestión de Usuarios");
         System.out.println("3.  Gestión de Préstamos");
-        System.out.println("4.  ↩️  Gestión de Devoluciones");
+        System.out.println("4.  Gestión de Devoluciones");
         System.out.println("5.  Gestión de Reservas");
         System.out.println("6.  Gestión de Multas");
         System.out.println("7.  Consultas y Reportes");
@@ -85,14 +83,30 @@ public class MenuConsola {
 
     private void procesarOpcionPrincipal(String opcion) {
         switch (opcion) {
-            case "1": menuMateriales(); break;
-            case "2": menuUsuarios(); break;
-            case "3": menuPrestamos(); break;
-            case "4": menuDevoluciones(); break;
-            case "5": menuReservas(); break;
-            case "6": menuMultas(); break;
-            case "7": menuConsultas(); break;
-            case "0": ejecutando = false; break;
+            case "1":
+                menuMateriales();
+                break;
+            case "2":
+                menuUsuarios();
+                break;
+            case "3":
+                menuPrestamos();
+                break;
+            case "4":
+                menuDevoluciones();
+                break;
+            case "5":
+                menuReservas();
+                break;
+            case "6":
+                menuMultas();
+                break;
+            case "7":
+                menuConsultas();
+                break;
+            case "0":
+                ejecutando = false;
+                break;
             default:
                 System.out.println("Opción no válida");
                 pausa();
@@ -103,9 +117,7 @@ public class MenuConsola {
     private void menuMateriales() {
         while (true) {
             try {
-                System.out.println("\n" + "=".repeat(60));
                 System.out.println("            GESTIÓN DE MATERIALES");
-                System.out.println("=".repeat(60));
                 System.out.println("1.  Listar todos los materiales");
                 System.out.println("2.  Buscar material (ID, título, autor)");
                 System.out.println("3.  Ver materiales disponibles");
@@ -119,14 +131,28 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": listarMateriales(); break;
-                    case "2": buscarMaterial(); break;
-                    case "3": verMaterialesDisponibles(); break;
-                    case "4": verMaterialesPrestados(); break;
-                    case "5": agregarMaterial(); break;
-                    case "6": actualizarEstadoMaterial(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        listarMateriales();
+                        break;
+                    case "2":
+                        buscarMaterial();
+                        break;
+                    case "3":
+                        verMaterialesDisponibles();
+                        break;
+                    case "4":
+                        verMaterialesPrestados();
+                        break;
+                    case "5":
+                        agregarMaterial();
+                        break;
+                    case "6":
+                        actualizarEstadoMaterial();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -244,7 +270,7 @@ public class MenuConsola {
                 boolean bestSeller = scanner.nextLine().equalsIgnoreCase("s");
                 System.out.print("¿Es referencia? (s/n): ");
                 boolean referencia = scanner.nextLine().equalsIgnoreCase("s");
-                material = new Libro(new IdMaterial(id), titulo, autor, isbn, paginas, bestSeller, referencia, precio);
+                material = new Libro(id, titulo, autor, isbn, paginas, bestSeller, referencia, precio);
                 break;
             case "2":
                 System.out.print("Código: ");
@@ -253,7 +279,7 @@ public class MenuConsola {
                 int duracion = Integer.parseInt(scanner.nextLine());
                 System.out.print("Director: ");
                 String director = scanner.nextLine();
-                material = new DVD(new IdMaterial(id), titulo, autor, codigo, duracion, director, precio);
+                material = new DVD(id, titulo, autor, codigo, duracion, director, precio);
                 break;
             case "3":
                 System.out.print("ISSN: ");
@@ -262,14 +288,15 @@ public class MenuConsola {
                 int edicion = Integer.parseInt(scanner.nextLine());
                 System.out.print("¿Es último número? (s/n): ");
                 boolean ultimo = scanner.nextLine().equalsIgnoreCase("s");
-                material = new Revista(new IdMaterial(id), titulo, autor, issn, edicion, ultimo, precio);
+                material = new Revista(id, titulo, autor, issn, edicion, ultimo, precio);
                 break;
             case "4":
                 System.out.print("URL de descarga: ");
                 String url = scanner.nextLine();
                 System.out.print("Licencias disponibles: ");
                 int licencias = Integer.parseInt(scanner.nextLine());
-                material = new EBook(new IdMaterial(id), titulo, autor, url, licencias, LocalDateTime.now().plusMonths(6), precio);
+                material = new EBook(id, titulo, autor, url, licencias,
+                        LocalDateTime.now().plusMonths(6), precio);
                 break;
         }
 
@@ -306,11 +333,21 @@ public class MenuConsola {
         String opcion = scanner.nextLine();
 
         switch (opcion) {
-            case "1": m.marcarComoDisponible(); break;
-            case "2": m.marcarComoPrestado(); break;
-            case "3": m.marcarComoReservado(); break;
-            case "4": m.marcarComoEnReparacion("Mantenimiento a través de consola"); break;
-            case "5": m.marcarComoPerdido("Reportado a través de consola"); break;
+            case "1":
+                m.marcarComoDisponible();
+                break;
+            case "2":
+                m.marcarComoPrestado();
+                break;
+            case "3":
+                m.marcarComoReservado();
+                break;
+            case "4":
+                m.marcarComoEnReparacion("Mantenimiento a través de consola");
+                break;
+            case "5":
+                m.marcarComoPerdido("Reportado a través de consola");
+                break;
             default:
                 System.out.println("Opción no válida");
                 return;
@@ -341,15 +378,31 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": listarUsuarios(); break;
-                    case "2": buscarUsuario(); break;
-                    case "3": verUsuariosActivos(); break;
-                    case "4": verUsuariosBloqueados(); break;
-                    case "5": agregarUsuario(); break;
-                    case "6": bloquearUsuario(); break;
-                    case "7": desbloquearUsuario(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        listarUsuarios();
+                        break;
+                    case "2":
+                        buscarUsuario();
+                        break;
+                    case "3":
+                        verUsuariosActivos();
+                        break;
+                    case "4":
+                        verUsuariosBloqueados();
+                        break;
+                    case "5":
+                        agregarUsuario();
+                        break;
+                    case "6":
+                        bloquearUsuario();
+                        break;
+                    case "7":
+                        desbloquearUsuario();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -463,7 +516,7 @@ public class MenuConsola {
                 int semestre = Integer.parseInt(scanner.nextLine());
                 System.out.print("Universidad: ");
                 String universidad = scanner.nextLine();
-                usuario = new Estudiante(new IdUsuario(id), nombre, email, carrera, semestre, universidad);
+                usuario = new Estudiante(id, nombre, email, carrera, semestre, universidad);
                 break;
             case "2":
                 System.out.print("Departamento: ");
@@ -472,21 +525,21 @@ public class MenuConsola {
                 String uniProf = scanner.nextLine();
                 System.out.print("Especialidad: ");
                 String especialidad = scanner.nextLine();
-                usuario = new Profesor(new IdUsuario(id), nombre, email, departamento, uniProf, especialidad);
+                usuario = new Profesor(id, nombre, email, departamento, uniProf, especialidad);
                 break;
             case "3":
                 System.out.print("Línea de investigación: ");
                 String linea = scanner.nextLine();
                 System.out.print("Institución: ");
                 String institucion = scanner.nextLine();
-                usuario = new Investigador(new IdUsuario(id), nombre, email, linea, institucion);
+                usuario = new Investigador(id, nombre, email, linea, institucion);
                 break;
             case "4":
                 System.out.print("Dirección: ");
                 String direccion = scanner.nextLine();
                 System.out.print("Nombre del fiador: ");
                 String fiador = scanner.nextLine();
-                usuario = new PublicoGeneral(new IdUsuario(id), nombre, email, direccion, fiador);
+                usuario = new PublicoGeneral(id, nombre, email, direccion, fiador);
                 break;
         }
 
@@ -553,12 +606,22 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": registrarPrestamo(); break;
-                    case "2": buscarPrestamos(); break;
-                    case "3": verPrestamosVencidos(); break;
-                    case "4": renovarPrestamo(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        registrarPrestamo();
+                        break;
+                    case "2":
+                        buscarPrestamos();
+                        break;
+                    case "3":
+                        verPrestamosVencidos();
+                        break;
+                    case "4":
+                        renovarPrestamo();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -603,7 +666,7 @@ public class MenuConsola {
         if (input.isEmpty()) {
             listarPrestamosActivos();
         } else if (input.startsWith("US-") || consultaFacade.obtenerUsuarioPorId(input) != null) {
-            verPrestamosPorUsuario(new IdUsuario(input));
+            verPrestamosPorUsuario(input);
         } else {
             Prestamo p = consultaFacade.obtenerPrestamoPorId(input);
             if (p == null) {
@@ -639,13 +702,13 @@ public class MenuConsola {
         }
     }
 
-    private void verPrestamosPorUsuario(IdUsuario idUsuario) {
+    private void verPrestamosPorUsuario(String idUsuario) {
         List<Prestamo> prestamos = consultaFacade.obtenerPrestamosPorUsuario(idUsuario);
         if (prestamos.isEmpty()) {
             System.out.println("El usuario no tiene préstamos activos");
             return;
         }
-        System.out.println("\nPRÉSTAMOS DEL USUARIO " + idUsuario.getValor() + ":");
+        System.out.println("\nPRÉSTAMOS DEL USUARIO " + idUsuario + ":");
         for (Prestamo p : prestamos) {
             System.out.printf("  • %s - Material: %s%n", p.getId(), p.getIdMaterial());
         }
@@ -697,10 +760,16 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": registrarDevolucion(); break;
-                    case "2": verHistorialDevoluciones(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        registrarDevolucion();
+                        break;
+                    case "2":
+                        verHistorialDevoluciones();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -734,7 +803,8 @@ public class MenuConsola {
                 System.out.println("\nAgregar daño (o 'fin' para terminar):");
                 System.out.print("Descripción: ");
                 String descripcion = scanner.nextLine();
-                if (descripcion.equalsIgnoreCase("fin")) break;
+                if (descripcion.equalsIgnoreCase("fin"))
+                    break;
 
                 System.out.println("Gravedad:");
                 System.out.println("1. LEVE");
@@ -829,12 +899,22 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": crearReserva(); break;
-                    case "2": cancelarReserva(); break;
-                    case "3": buscarReservas(); break;
-                    case "4": limpiarReservasExpiradas(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        crearReserva();
+                        break;
+                    case "2":
+                        cancelarReserva();
+                        break;
+                    case "3":
+                        buscarReservas();
+                        break;
+                    case "4":
+                        limpiarReservasExpiradas();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -891,9 +971,9 @@ public class MenuConsola {
         if (input.isEmpty()) {
             verReservasActivas();
         } else if (input.startsWith("US-") || consultaFacade.obtenerUsuarioPorId(input) != null) {
-            verReservasPorUsuario(new IdUsuario(input));
+            verReservasPorUsuario(input);
         } else {
-            verReservasPorMaterial(new IdMaterial(input));
+            verReservasPorMaterial(input);
         }
     }
 
@@ -910,25 +990,25 @@ public class MenuConsola {
         }
     }
 
-    private void verReservasPorMaterial(IdMaterial idMaterial) {
+    private void verReservasPorMaterial(String idMaterial) {
         List<Reserva> reservas = consultaFacade.obtenerReservasPorMaterial(idMaterial);
         if (reservas.isEmpty()) {
             System.out.println("No hay reservas para este material");
             return;
         }
-        System.out.println("\nRESERVAS PARA MATERIAL " + idMaterial.getValor() + ":");
+        System.out.println("\nRESERVAS PARA MATERIAL " + idMaterial + ":");
         for (Reserva r : reservas) {
             System.out.printf("  Pos %d: %s - Usuario: %s%n", r.getPosicionCola(), r.getId(), r.getIdUsuario());
         }
     }
 
-    private void verReservasPorUsuario(IdUsuario idUsuario) {
+    private void verReservasPorUsuario(String idUsuario) {
         List<Reserva> reservas = consultaFacade.obtenerReservasPorUsuario(idUsuario);
         if (reservas.isEmpty()) {
             System.out.println("El usuario no tiene reservas activas");
             return;
         }
-        System.out.println("\nRESERVAS DEL USUARIO " + idUsuario.getValor() + ":");
+        System.out.println("\nRESERVAS DEL USUARIO " + idUsuario + ":");
         for (Reserva r : reservas) {
             System.out.printf("  • %s - Material: %s%n", r.getId(), r.getIdMaterial());
         }
@@ -956,11 +1036,19 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": verMultasPendientes(); break;
-                    case "2": verMultasPorUsuario(); break;
-                    case "3": pagarMulta(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        verMultasPendientes();
+                        break;
+                    case "2":
+                        verMultasPorUsuario();
+                        break;
+                    case "3":
+                        pagarMulta();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -1031,7 +1119,7 @@ public class MenuConsola {
         // Primero consultamos para mostrar info al usuario
         List<Multa> pendientes = consultaFacade.listarMultasPendientes();
         Multa multa = pendientes.stream()
-                .filter(m -> m.getId().getValor().equals(idMulta))
+                .filter(m -> m.getId().equals(idMulta))
                 .findFirst()
                 .orElse(null);
 
@@ -1075,14 +1163,28 @@ public class MenuConsola {
                 String opcion = scanner.nextLine();
 
                 switch (opcion) {
-                    case "1": consultarDisponibilidad(); break;
-                    case "2": verEstadoUsuario(); break;
-                    case "3": verEstadisticas(); break;
-                    case "4": verLimitesUsuario(); break;
-                    case "5": verPoliticasTiempo(); break;
-                    case "6": verReporteCompleto(); break;
-                    case "0": return;
-                    default: System.out.println("Opción no válida");
+                    case "1":
+                        consultarDisponibilidad();
+                        break;
+                    case "2":
+                        verEstadoUsuario();
+                        break;
+                    case "3":
+                        verEstadisticas();
+                        break;
+                    case "4":
+                        verLimitesUsuario();
+                        break;
+                    case "5":
+                        verPoliticasTiempo();
+                        break;
+                    case "6":
+                        verReporteCompleto();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
@@ -1205,8 +1307,10 @@ public class MenuConsola {
     }
 
     private String truncar(String s, int max) {
-        if (s == null) return "";
-        if (s.length() <= max) return s;
+        if (s == null)
+            return "";
+        if (s.length() <= max)
+            return s;
         return s.substring(0, max - 3) + "...";
     }
 

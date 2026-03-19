@@ -70,7 +70,7 @@ public class GestorMultasService implements IGestorMultasService {
                     .sum();
 
             if (totalPendiente == 0) {
-                gestorBloqueo.desbloquearUsuario(usuario.getId().getValor());
+                gestorBloqueo.desbloquearUsuario(usuario.getId());
                 return Resultado.Exitoso("Pago registrado. Usuario desbloqueado automáticamente", multa);
             }
         }

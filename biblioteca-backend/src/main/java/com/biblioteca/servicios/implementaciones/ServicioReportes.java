@@ -56,7 +56,7 @@ public class ServicioReportes implements IServicioReportes {
         }
 
         int prestamosActivos = (int) repoPrestamo.obtenerTodos().stream()
-                .filter(p -> p.getIdUsuario().getValor().equals(idUsuario) && p.getEstado() == EstadoTransaccion.ACTIVA)
+                .filter(p -> p.getIdUsuario().equals(idUsuario) && p.getEstado() == EstadoTransaccion.ACTIVA)
                 .count();
         int limite = limiteService.obtenerLimiteMaximo(u.getTipo());
 

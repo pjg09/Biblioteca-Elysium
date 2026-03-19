@@ -17,13 +17,13 @@ import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IDevolucionService;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 import com.biblioteca.servicios.interfaces.IGestorMultasService;
-import com.biblioteca.servicios.interfaces.IInspeccionMaterialService;
+
 import com.biblioteca.servicios.interfaces.INotificacionService;
 import com.biblioteca.servicios.interfaces.IReservaService;
 
 public class DevolucionService implements IDevolucionService {
     
-    private final IInspeccionMaterialService inspeccion;
+
     private final IGestorMultasService gestorMultas;
     private final IRepositorio<Prestamo> repoPrestamo;
     private final IRepositorio<Material> repoMaterial;
@@ -34,7 +34,7 @@ public class DevolucionService implements IDevolucionService {
     private final IGestorBloqueoService gestorBloqueo;
     
     public DevolucionService(
-            IInspeccionMaterialService inspeccion,
+
             IGestorMultasService gestorMultas,
             IRepositorio<Prestamo> repoPrestamo,
             IRepositorio<Material> repoMaterial,
@@ -44,7 +44,7 @@ public class DevolucionService implements IDevolucionService {
             INotificacionService notificador,
             IGestorBloqueoService gestorBloqueo) {
         
-        this.inspeccion = inspeccion;
+
         this.gestorMultas = gestorMultas;
         this.repoPrestamo = repoPrestamo;
         this.repoMaterial = repoMaterial;
@@ -69,8 +69,8 @@ public class DevolucionService implements IDevolucionService {
             }
             
             // 2. Obtener material y usuario
-            Material material = repoMaterial.obtenerPorId(prestamo.getIdMaterial().getValor());
-            Usuario usuario = repoUsuario.obtenerPorId(prestamo.getIdUsuario().getValor());
+            Material material = repoMaterial.obtenerPorId(prestamo.getIdMaterial());
+            Usuario usuario = repoUsuario.obtenerPorId(prestamo.getIdUsuario());
             
             if (material == null) {
                 return Resultado.Fallido("Material no encontrado");
@@ -90,8 +90,8 @@ public class DevolucionService implements IDevolucionService {
             if (fechaDevolucion.isAfter(prestamo.getFechaDevolucionEsperada())) {
                 ContextoMulta contextoRetraso = new ContextoMulta.Builder()
                     .conPrestamo(idPrestamo)
-                    .conUsuario(usuario.getId().getValor())
-                    .conMaterial(material.getId().getValor())
+                    .conUsuario(usuario.getId())
+                    .conMaterial(material.getId())
                     .conFechaActual(fechaDevolucion)
                     .deTipo(TipoMulta.POR_RETRASO)
                     .build();
@@ -111,8 +111,8 @@ public class DevolucionService implements IDevolucionService {
                 if (!evaluacion.esUsable() && evaluacion.tieneDanos()) {
                     ContextoMulta contextoDano = new ContextoMulta.Builder()
                         .conPrestamo(idPrestamo)
-                        .conUsuario(usuario.getId().getValor())
-                        .conMaterial(material.getId().getValor())
+                        .conUsuario(usuario.getId())
+                        .conMaterial(material.getId())
                         .conEvaluacion(evaluacion)
                         .deTipo(TipoMulta.POR_DANO)
                         .build();
@@ -141,9 +141,9 @@ public class DevolucionService implements IDevolucionService {
             
             // 6. Verificar si debe bloquearse por multas
             if (totalMultasCalculado > 0) {
-                double totalMultasUsuario = calcularTotalMultasPendientes(usuario.getId().getValor());
+                double totalMultasUsuario = calcularTotalMultasPendientes(usuario.getId());
                 if (totalMultasUsuario >= 50000) {
-                    gestorBloqueo.bloquearUsuario(usuario.getId().getValor(), 
+                    gestorBloqueo.bloquearUsuario(usuario.getId(), 
                         "Bloqueado por multas pendientes: $" + totalMultasUsuario);
                 }
             }
@@ -155,7 +155,7 @@ public class DevolucionService implements IDevolucionService {
                 mensajeMultas.toString(), 
                 totalMultasCalculado // Usar la variable con otro nombre
             );
-            notificador.enviarNotificacion(usuario.getId().getValor(), mensajeUsuario);
+            notificador.enviarNotificacion(usuario.getId(), mensajeUsuario);
             
             // 8. Preparar resultado - usando nombres diferentes para evitar self-reference
             final double totalMultasFinal = totalMultasCalculado; // Variable final para el objeto anónimo
@@ -179,20 +179,7 @@ public class DevolucionService implements IDevolucionService {
             return Resultado.Fallido("Error al registrar devolución: " + e.getMessage());
         }
     }
-    
-    public Resultado registrarDevolucionSimple(String idPrestamo) {
-        return registrarDevolucion(idPrestamo, null);
-    }
-    
-    public Resultado registrarDevolucionConInspeccion(String idPrestamo) {
-        Prestamo prestamo = repoPrestamo.obtenerPorId(idPrestamo);
-        if (prestamo == null) {
-            return Resultado.Fallido("Préstamo no encontrado");
-        }
-        
-        Evaluacion evaluacion = inspeccion.inspeccionarMaterial(prestamo.getIdMaterial().getValor());
-        return registrarDevolucion(idPrestamo, evaluacion);
-    }
+
     
     private double calcularTotalMultasPendientes(String idUsuario) {
         return repoMulta.obtenerTodos().stream()

@@ -14,8 +14,6 @@ import com.biblioteca.dominio.enumeraciones.EstadoMulta;
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.enumeraciones.EstadoUsuario;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IConsultaFacade;
 import com.biblioteca.servicios.interfaces.IDisponibilidadService;
@@ -58,7 +56,7 @@ public class ConsultaFacade implements IConsultaFacade {
         String busqueda = criterio.toLowerCase();
         return repoMaterial.obtenerTodos().stream()
                 .filter(m ->
-                        m.getId().getValor().toLowerCase().contains(busqueda) ||
+                        m.getId().toLowerCase().contains(busqueda) ||
                         m.getTitulo().toLowerCase().contains(busqueda) ||
                         m.getAutor().toLowerCase().contains(busqueda))
                 .collect(Collectors.toList());
@@ -108,7 +106,7 @@ public class ConsultaFacade implements IConsultaFacade {
         String busqueda = criterio.toLowerCase();
         return repoUsuario.obtenerTodos().stream()
                 .filter(u ->
-                        u.getId().getValor().toLowerCase().contains(busqueda) ||
+                        u.getId().toLowerCase().contains(busqueda) ||
                         u.getNombre().toLowerCase().contains(busqueda) ||
                         u.getEmail().toLowerCase().contains(busqueda))
                 .collect(Collectors.toList());
@@ -152,7 +150,7 @@ public class ConsultaFacade implements IConsultaFacade {
     }
 
     @Override
-    public List<Prestamo> obtenerPrestamosPorUsuario(IdUsuario idUsuario) {
+    public List<Prestamo> obtenerPrestamosPorUsuario(String idUsuario) {
         return repoPrestamo.obtenerTodos().stream()
                 .filter(p -> p.getIdUsuario().equals(idUsuario))
                 .filter(p -> p.getEstado() == EstadoTransaccion.ACTIVA)
@@ -174,7 +172,7 @@ public class ConsultaFacade implements IConsultaFacade {
     }
 
     @Override
-    public List<Reserva> obtenerReservasPorUsuario(IdUsuario idUsuario) {
+    public List<Reserva> obtenerReservasPorUsuario(String idUsuario) {
         return repoReserva.obtenerTodos().stream()
                 .filter(r -> r.getEstado() == EstadoTransaccion.ACTIVA)
                 .filter(r -> r.getIdUsuario().equals(idUsuario))
@@ -182,7 +180,7 @@ public class ConsultaFacade implements IConsultaFacade {
     }
 
     @Override
-    public List<Reserva> obtenerReservasPorMaterial(IdMaterial idMaterial) {
+    public List<Reserva> obtenerReservasPorMaterial(String idMaterial) {
         return repoReserva.obtenerTodos().stream()
                 .filter(r -> r.getEstado() == EstadoTransaccion.ACTIVA)
                 .filter(r -> r.getIdMaterial().equals(idMaterial))

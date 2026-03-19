@@ -14,7 +14,7 @@ public class RepositorioMultaEnMemoria extends RepositorioEnMemoria<Multa> {
     
     @Override
     protected String extraerId(Multa entidad) {
-        return entidad != null ? entidad.getId().getValor() : null;
+        return entidad != null ? entidad.getId() : null;
     }
     
     public List<Multa> buscarPorUsuario(String idUsuario) {

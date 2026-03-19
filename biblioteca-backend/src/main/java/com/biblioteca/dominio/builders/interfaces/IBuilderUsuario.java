@@ -1,10 +1,8 @@
 package com.biblioteca.dominio.builders.interfaces;
 
 import com.biblioteca.dominio.entidades.Usuario;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-
 public interface IBuilderUsuario {
-    IBuilderUsuario conId(IdUsuario id);
+    IBuilderUsuario conId(String id);
     IBuilderUsuario conNombre(String nombre);
     IBuilderUsuario conEmail(String email);
     

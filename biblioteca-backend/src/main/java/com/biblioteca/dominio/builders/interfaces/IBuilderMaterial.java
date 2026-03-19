@@ -3,10 +3,8 @@ package com.biblioteca.dominio.builders.interfaces;
 import java.time.LocalDateTime;
 
 import com.biblioteca.dominio.entidades.Material;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-
 public interface IBuilderMaterial {
-    IBuilderMaterial conId(IdMaterial id);
+    IBuilderMaterial conId(String id);
     IBuilderMaterial conTitulo(String titulo);
     IBuilderMaterial deAutor(String autor);
     IBuilderMaterial conPrecio(double precio);

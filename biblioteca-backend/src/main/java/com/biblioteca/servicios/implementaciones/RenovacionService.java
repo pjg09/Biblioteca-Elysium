@@ -80,7 +80,7 @@ public class RenovacionService implements IRenovacionService {
         }
 
         // VALIDACIÓN 3: Obtener el usuario
-        Usuario usuario = repositorioUsuario.obtenerPorId(prestamo.getIdUsuario().getValor());
+        Usuario usuario = repositorioUsuario.obtenerPorId(prestamo.getIdUsuario());
         
         if (usuario == null) {
             errores.add("Usuario asociado al préstamo no encontrado");
@@ -101,7 +101,7 @@ public class RenovacionService implements IRenovacionService {
 
         // VALIDACIÓN 5: No hay reservas pendientes sobre el material
         boolean hayReservas = repositorioReserva.obtenerTodos().stream()
-                .anyMatch(r -> r.getIdMaterial().getValor().equals(prestamo.getIdMaterial().getValor()) && 
+                .anyMatch(r -> r.getIdMaterial().equals(prestamo.getIdMaterial()) && 
                               r.getEstado() == EstadoTransaccion.ACTIVA);
 
         if (hayReservas) {
@@ -143,8 +143,8 @@ public class RenovacionService implements IRenovacionService {
             }
 
             // PASO 3: Obtener datos necesarios para calcular nueva fecha
-            Material material = repositorioMaterial.obtenerPorId(prestamo.getIdMaterial().getValor());
-            Usuario usuario = repositorioUsuario.obtenerPorId(prestamo.getIdUsuario().getValor());
+            Material material = repositorioMaterial.obtenerPorId(prestamo.getIdMaterial());
+            Usuario usuario = repositorioUsuario.obtenerPorId(prestamo.getIdUsuario());
 
             if (material == null || usuario == null) {
                 return Resultado.Fallido("No se encontraron los datos del material o usuario");

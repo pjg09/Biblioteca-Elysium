@@ -7,10 +7,6 @@ import com.biblioteca.dominio.estados.PrestamoActivoState;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
-
 public abstract class Prestamo extends Transaccion {
     protected LocalDateTime fechaPrestamo;
     protected LocalDateTime fechaDevolucionEsperada;
@@ -19,7 +15,7 @@ public abstract class Prestamo extends Transaccion {
     private IEstadoPrestamo estadoActual;
     
     // El Builder usará este constructor protegido (o público según necesidad)
-    public Prestamo(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial, LocalDateTime fechaDevolucionEsperada) {
+    public Prestamo(String id, String idUsuario, String idMaterial, LocalDateTime fechaDevolucionEsperada) {
         super(id, idUsuario, idMaterial);
         
         if (fechaDevolucionEsperada == null) {

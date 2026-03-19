@@ -2,14 +2,10 @@ package com.biblioteca.dominio.entidades;
 
 import java.time.LocalDateTime;
 
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
-import com.biblioteca.dominio.objetosvalor.IdMaterial;
-import com.biblioteca.dominio.objetosvalor.IdTransaccion;
-
 public class PrestamoNormal extends Prestamo {
     private String ubicacionBiblioteca;
     
-    public PrestamoNormal(IdTransaccion id, IdUsuario idUsuario, IdMaterial idMaterial, 
+    public PrestamoNormal(String id, String idUsuario, String idMaterial, 
                           LocalDateTime fechaDevolucionEsperada, String ubicacionBiblioteca) {
         super(id, idUsuario, idMaterial, fechaDevolucionEsperada);
         
