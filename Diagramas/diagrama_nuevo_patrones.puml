@@ -1299,8 +1299,6 @@ interface IBibliotecaFacade <<facade>> {
     +crearReserva(idUsuario: string, idMaterial: string, tipo: string) : Resultado
     +cancelarReserva(idReserva: string) : Resultado
     +limpiarReservasExpiradas()
-    +pagarMulta(idMulta: string) : Resultado
-    +calcularMulta(contexto: ContextoMulta) : Multa
 }
 
 class BibliotecaFacade <<facade>> {
@@ -1308,14 +1306,12 @@ class BibliotecaFacade <<facade>> {
     -IDevolucionService devolucionService
     -IReservaService reservaService
     -IRenovacionService renovacionService
-    -IGestorMultasService gestorMultas
 }
 IBibliotecaFacade <|.. BibliotecaFacade
 BibliotecaFacade --> IPrestamoService
 BibliotecaFacade --> IDevolucionService
 BibliotecaFacade --> IReservaService
 BibliotecaFacade --> IRenovacionService
-BibliotecaFacade --> IGestorMultasService
 
 interface IConsultaFacade <<facade>> {
     +listarMateriales() : List<Material>

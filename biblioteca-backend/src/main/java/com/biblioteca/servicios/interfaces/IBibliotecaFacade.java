@@ -1,7 +1,5 @@
 package com.biblioteca.servicios.interfaces;
 
-import com.biblioteca.dominio.entidades.Multa;
-import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.dominio.objetosvalor.Evaluacion;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 
@@ -14,5 +12,4 @@ public interface IBibliotecaFacade {
     Resultado crearReserva(String idUsuario, String idMaterial, String tipoReserva);
     Resultado cancelarReserva(String idReserva);
     void limpiarReservasExpiradas();
-    Multa calcularMulta(ContextoMulta contexto);
 }

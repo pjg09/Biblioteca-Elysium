@@ -1,13 +1,10 @@
 package com.biblioteca.servicios;
 
-import com.biblioteca.dominio.entidades.Multa;
-import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.dominio.objetosvalor.Evaluacion;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
 import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.servicios.interfaces.IDevolucionService;
-import com.biblioteca.servicios.interfaces.IGestorMultasService;
 import com.biblioteca.servicios.interfaces.IPrestamoService;
 import com.biblioteca.servicios.interfaces.IRenovacionService;
 import com.biblioteca.servicios.interfaces.IReservaService;
@@ -21,22 +18,17 @@ public class BibliotecaFacade implements IBibliotecaFacade {
     private final IDevolucionService devolucionService;
     private final IReservaService reservaService;
     private final IRenovacionService renovacionService;
-    private final IGestorMultasService gestorMultas;
 
     public BibliotecaFacade(
             IPrestamoService prestamoService,
             IDevolucionService devolucionService,
             IReservaService reservaService,
-            IRenovacionService renovacionService,
-            IGestorMultasService gestorMultas) {
+            IRenovacionService renovacionService) {
         this.prestamoService = prestamoService;
         this.devolucionService = devolucionService;
         this.reservaService = reservaService;
         this.renovacionService = renovacionService;
-        this.gestorMultas = gestorMultas;
     }
-
-    // === Préstamos ===
 
     @Override
     public Resultado procesarSolicitudMaterial(String idUsuarioStr, String idMaterialStr) {
@@ -72,8 +64,6 @@ public class BibliotecaFacade implements IBibliotecaFacade {
         }
     }
 
-    // === Devoluciones ===
-
     @Override
     public Resultado devolverMaterial(String idPrestamo, Evaluacion evaluacion) {
         return devolucionService.registrarDevolucion(idPrestamo, evaluacion);
@@ -85,14 +75,10 @@ public class BibliotecaFacade implements IBibliotecaFacade {
         return devolucionService.registrarDevolucion(idPrestamo, evaluacion);
     }
 
-    // === Renovaciones ===
-
     @Override
     public Resultado renovarPrestamo(String idPrestamo) {
         return renovacionService.renovarPrestamo(idPrestamo);
     }
-
-    // === Reservas ===
 
     @Override
     public Resultado crearReserva(String idUsuario, String idMaterial, String tipoReserva) {
@@ -115,11 +101,5 @@ public class BibliotecaFacade implements IBibliotecaFacade {
             ((ReservaService) reservaService).limpiarReservasExpiradas();
         }
     }
-
-    // === Multas ===
-
-    @Override
-    public Multa calcularMulta(ContextoMulta contexto) {
-        return gestorMultas.calcularMulta(contexto);
-    }
 }
+

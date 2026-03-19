@@ -84,7 +84,7 @@ public class DevolucionService implements IDevolucionService {
             
             // 4. Procesar multas
             StringBuilder mensajeMultas = new StringBuilder();
-            double totalMultasCalculado = 0; // ✅ Cambio de nombre
+            double totalMultasCalculado = 0; // Cambio de nombre
             
             // Multa por retraso
             if (fechaDevolucion.isAfter(prestamo.getFechaDevolucionEsperada())) {
@@ -153,18 +153,18 @@ public class DevolucionService implements IDevolucionService {
                 material.getTitulo(), 
                 fechaDevolucion, 
                 mensajeMultas.toString(), 
-                totalMultasCalculado // ✅ Usar la variable con otro nombre
+                totalMultasCalculado // Usar la variable con otro nombre
             );
             notificador.enviarNotificacion(usuario.getId().getValor(), mensajeUsuario);
             
             // 8. Preparar resultado - usando nombres diferentes para evitar self-reference
-            final double totalMultasFinal = totalMultasCalculado; // ✅ Variable final para el objeto anónimo
+            final double totalMultasFinal = totalMultasCalculado; // Variable final para el objeto anónimo
             final String detalleMultasFinal = mensajeMultas.toString();
             final boolean materialUsableFinal = evaluacion != null ? evaluacion.esUsable() : true;
             
             Object data = new Object() {
                 public final Prestamo prestamoDevuelto = prestamo;
-                public final double totalMultas = totalMultasFinal; // ✅ Ya no hay conflicto
+                public final double totalMultas = totalMultasFinal; // Ya no hay conflicto
                 public final String detalleMultas = detalleMultasFinal;
                 public final boolean materialUsable = materialUsableFinal;
             };
@@ -209,17 +209,17 @@ public class DevolucionService implements IDevolucionService {
             double totalMultas) {
         
         StringBuilder mensaje = new StringBuilder();
-        mensaje.append("📚 Devolución registrada\n");
+        mensaje.append("Devolución registrada\n");
         mensaje.append("Material: ").append(tituloMaterial).append("\n");
         mensaje.append("Fecha: ").append(fecha.toLocalDate()).append("\n");
         
         if (totalMultas > 0) {
-            mensaje.append("\n💰 MULTAS GENERADAS:\n");
+            mensaje.append("\nMULTAS GENERADAS:\n");
             mensaje.append(detalleMultas);
             mensaje.append("TOTAL: $").append(totalMultas).append("\n");
-            mensaje.append("⚠️ Debe pagar las multas para evitar bloqueos.");
+            mensaje.append("Debe pagar las multas para evitar bloqueos.");
         } else {
-            mensaje.append("\n✅ Material devuelto en buen estado. ¡Gracias!");
+            mensaje.append("\nMaterial devuelto en buen estado. ¡Gracias!");
         }
         
         return mensaje.toString();

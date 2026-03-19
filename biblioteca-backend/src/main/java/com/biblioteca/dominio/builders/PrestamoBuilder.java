@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.builders;
+﻿package com.biblioteca.dominio.builders;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -29,10 +29,7 @@ public class PrestamoBuilder implements IBuilderPrestamo {
     private String bibliotecaOrigen;
     private String bibliotecaDestino;
     private double costoTransferencia = 0.0;
-    
-    // =========================================
     // MÉTODOS OBLIGATORIOS
-    // =========================================
     
     public IBuilderPrestamo paraUsuario(IdUsuario idUsuario) {
         this.idUsuario = idUsuario;
@@ -43,10 +40,7 @@ public class PrestamoBuilder implements IBuilderPrestamo {
         this.idMaterial = idMaterial;
         return this;
     }
-    
-    // =========================================
     // MÉTODOS OPCIONALES
-    // =========================================
     
     public IBuilderPrestamo conId(String id) {
         this.id = id;
@@ -67,10 +61,7 @@ public class PrestamoBuilder implements IBuilderPrestamo {
         this.ubicacionBiblioteca = ubicacion;
         return this;
     }
-    
-    // =========================================
     // CONFIGURACIÓN POR TIPO
-    // =========================================
     
     public IBuilderPrestamo tipoNormal() {
         this.tipoPrestamo = "normal";
@@ -84,10 +75,7 @@ public class PrestamoBuilder implements IBuilderPrestamo {
         this.costoTransferencia = costo;
         return this;
     }
-    
-    // =========================================
     // BUILD
-    // =========================================
     
     public Prestamo construir() {
         // Validación
@@ -159,3 +147,4 @@ public class PrestamoBuilder implements IBuilderPrestamo {
         return "PRES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }
+

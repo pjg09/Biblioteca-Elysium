@@ -66,10 +66,7 @@ public class Main {
                 System.out.println("======================================");
                 System.out.println("  SISTEMA DE BIBLIOTECA - VERSIÓN FINAL");
                 System.out.println("======================================");
-
-                // =====================================================
         // FACTORY DE REPOSITORIOS
-        // =====================================================
         // Usamos una fábrica para abstraer la creación de repositorios
         IRepositorioFactory repoFactory = new RepositorioEnMemoriaFactory();
         
@@ -78,41 +75,26 @@ public class Main {
         IRepositorio<Prestamo> repoPrestamo = repoFactory.crearRepositorioPrestamo();
         IRepositorio<Reserva> repoReserva = repoFactory.crearRepositorioReserva();
         IRepositorio<Multa> repoMulta = repoFactory.crearRepositorioMulta();
-
-                // =====================================================
                 // 2. CREAR SERVICIOS BASE
-                // =====================================================
                 IDisponibilidadService disponibilidadService = new DisponibilidadStandardService(repoMaterial,
                                 repoPrestamo);
                 ILimitePrestamoService limiteService = new LimitePorTipoUsuarioService(repoUsuario, repoPrestamo);
                 IPoliticaTiempoService politicaTiempoService = new PoliticaTiempoPorTipoService();
                 INotificacionService notificacionService = new NotificacionEmailService();
-
-                // =====================================================
                 // 3. CREAR CALCULADOR DE COSTOS DE DAÑOS
-                // =====================================================
                 ICalculadorCostoDanoService calculadorCostoDano = new CalculadorCostoDanoService();
-
-                // =====================================================
                 // 4. CREAR CALCULADORES DE MULTAS (STRATEGY PATTERN)
-                // =====================================================
                 CalculadorMultaPorRetraso calculadorRetraso = new CalculadorMultaPorRetraso(repoPrestamo, repoUsuario);
                 CalculadorMultaPorDano calculadorDano = new CalculadorMultaPorDano(calculadorCostoDano);
                 CalculadorMultaPorPerdida calculadorPerdida = new CalculadorMultaPorPerdida(repoMaterial, repoUsuario);
-
-                // =====================================================
                 // 5. CREAR SERVICIOS DE BLOQUEO E INSPECCIÓN
-                // =====================================================
                 IGestorBloqueoService gestorBloqueo = new GestorBloqueoService(
                                 repoUsuario,
                                 repoMulta,
                                 repoPrestamo // ← Este parámetro faltaba
                 );
                 IInspeccionMaterialService inspeccionService = new InspeccionMaterialService(repoMaterial);
-
-                // =====================================================
                 // 6. CREAR GESTOR DE MULTAS Y REGISTRAR CALCULADORES
-                // =====================================================
                 com.biblioteca.servicios.interfaces.IGestorMultasService gestorMultas = new GestorMultasService(repoMulta, repoUsuario, gestorBloqueo);
                 gestorMultas.registrarCalculador(calculadorRetraso);
                 gestorMultas.registrarCalculador(calculadorDano);
@@ -151,14 +133,10 @@ public class Main {
 
                 IServicioReportes servicioReportes = new ServicioReportes(
                                 repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
-                                gestorBloqueo, limiteService, politicaTiempoService);
-
-                // =====================================================
+                                limiteService, politicaTiempoService);
                 // 7. CREAR FACHADAS ESPECIALIZADAS
-                // =====================================================
                 com.biblioteca.servicios.interfaces.IBibliotecaFacade bibliotecaFacade = new com.biblioteca.servicios.BibliotecaFacade(
-                                prestamoService, devolucionService, reservaService, renovacionService,
-                                gestorMultas);
+                                prestamoService, devolucionService, reservaService, renovacionService);
 
                 com.biblioteca.servicios.interfaces.IConsultaFacade consultaFacade = new com.biblioteca.servicios.ConsultaFacade(
                                 repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
@@ -166,15 +144,9 @@ public class Main {
 
                 com.biblioteca.servicios.interfaces.IAdministracionFacade adminFacade = new com.biblioteca.servicios.AdministracionFacade(
                                 repoMaterial, repoUsuario, gestorBloqueo, gestorMultas);
-
-                // =====================================================
                 // 8. CARGAR DATOS DE EJEMPLO
-                // =====================================================
                 cargarDatosEjemplo(repoMaterial, repoUsuario, repoPrestamo);
-
-                // =====================================================
                 // 9. INICIAR MENÚ DE CONSOLA (solo 3 fachadas)
-                // =====================================================
                 MenuConsola menu = new MenuConsola(bibliotecaFacade, consultaFacade, adminFacade);
 
                 menu.iniciar();
@@ -185,11 +157,8 @@ public class Main {
                         IRepositorio<Usuario> repoUsuario,
                         IRepositorio<Prestamo> repoPrestamo) {
 
-                System.out.println("\n📦 Cargando datos de ejemplo...");
-
-                // =====================================================
+                System.out.println("\nCargando datos de ejemplo...");
                 // MATERIALES
-                // =====================================================
                 Libro libro1 = new Libro(new IdMaterial("MAT-000001"), "Cien años de soledad", "Gabriel García Márquez",
                                 "978-84-376-0494-7", 471, true, false, 80000.0);
                 Libro libro2 = new Libro(new IdMaterial("MAT-000002"), "El principito", "Antoine de Saint-Exupéry",
@@ -219,10 +188,7 @@ public class Main {
                 repoMaterial.agregar(revista2);
                 repoMaterial.agregar(ebook1);
                 repoMaterial.agregar(ebook2);
-
-                // =====================================================
                 // USUARIOS
-                // =====================================================
                 Estudiante estudiante1 = new Estudiante(new IdUsuario("USR-000001"), "Juan Pérez", "juan@email.com",
                                 "Ingeniería", 5, "Universidad Nacional");
                 Estudiante estudiante2 = new Estudiante(new IdUsuario("USR-000002"), "María García", "maria@email.com",
@@ -243,10 +209,7 @@ public class Main {
                 repoUsuario.agregar(profesor2);
                 repoUsuario.agregar(investigador1);
                 repoUsuario.agregar(publico1);
-
-                // =====================================================
                 // PRÉSTAMOS DE EJEMPLO
-                // =====================================================
                 LocalDateTime hoy = LocalDateTime.now();
 
                 // Préstamo 1: Activo (normal)
@@ -288,10 +251,7 @@ public class Main {
                 } catch (Exception e) {
                     System.out.println("Error simulando fechas vencidas: " + e.getMessage());
                 }
-
-                // =====================================================
                 // AGREGAR TODOS LOS PRÉSTAMOS
-                // =====================================================
                 repoPrestamo.agregar(prestamo1);
                 repoPrestamo.agregar(prestamo2);
                 repoPrestamo.agregar(prestamo3);
@@ -308,14 +268,15 @@ public class Main {
                 repoMaterial.actualizar(libro3);
                 repoMaterial.actualizar(libro2); // ← NUEVO
 
-                System.out.println("✅ Datos cargados:");
+                System.out.println("Datos cargados:");
                 System.out.println("   - Materiales: 9");
                 System.out.println("   - Usuarios: 6");
                 System.out.println("   - Préstamos activos: 4"); // ← Actualizado
                 System.out.println(
-                                "   - ✅ PRÉSTAMO VENCIDO: MAT-000002 (El principito) - Usuario: USR-000002 (María García)");
+                                "   - PRÉSTAMO VENCIDO: MAT-000002 (El principito) - Usuario: USR-000002 (María García)");
                 System.out.println("     Fecha préstamo: hace 30 días");
                 System.out.println("     Fecha devolución esperada: hace 15 días");
                 System.out.println("     Días de retraso: 15\n");
         }
 }
+

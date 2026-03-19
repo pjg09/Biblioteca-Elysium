@@ -1,4 +1,4 @@
-package com.biblioteca.servicios;
+﻿package com.biblioteca.servicios;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,8 +47,6 @@ public class ConsultaFacade implements IConsultaFacade {
         this.disponibilidadService = disponibilidadService;
         this.servicioReportes = servicioReportes;
     }
-
-    // === Materiales ===
 
     @Override
     public List<Material> listarMateriales() {
@@ -100,8 +98,6 @@ public class ConsultaFacade implements IConsultaFacade {
         return disponibilidadService.materialEsPrestable(idMaterial, tipo);
     }
 
-    // === Usuarios ===
-
     @Override
     public List<Usuario> listarUsuarios() {
         return repoUsuario.obtenerTodos();
@@ -138,8 +134,6 @@ public class ConsultaFacade implements IConsultaFacade {
                 .collect(Collectors.toList());
     }
 
-    // === Préstamos ===
-
     @Override
     public List<Prestamo> listarPrestamosActivos() {
         return repoPrestamo.obtenerTodos().stream()
@@ -170,8 +164,6 @@ public class ConsultaFacade implements IConsultaFacade {
         return repoPrestamo.obtenerPorId(id);
     }
 
-    // === Reservas ===
-
     @Override
     public List<Reserva> listarReservasActivas() {
         LocalDateTime ahora = LocalDateTime.now();
@@ -197,8 +189,6 @@ public class ConsultaFacade implements IConsultaFacade {
                 .collect(Collectors.toList());
     }
 
-    // === Multas ===
-
     @Override
     public List<Multa> listarMultasPendientes() {
         return repoMulta.obtenerTodos().stream()
@@ -213,16 +203,12 @@ public class ConsultaFacade implements IConsultaFacade {
                 .collect(Collectors.toList());
     }
 
-    // === Historial ===
-
     @Override
     public List<Prestamo> verHistorialDevoluciones() {
         return repoPrestamo.obtenerTodos().stream()
                 .filter(p -> p.getFechaDevolucionReal() != null)
                 .collect(Collectors.toList());
     }
-
-    // === Reportes (delega a IServicioReportes) ===
 
     @Override
     public String generarEstadisticasGenerales() {
@@ -249,3 +235,4 @@ public class ConsultaFacade implements IConsultaFacade {
         return servicioReportes.generarReporteCompleto();
     }
 }
+

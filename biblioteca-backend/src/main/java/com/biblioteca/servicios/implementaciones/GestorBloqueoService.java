@@ -1,4 +1,4 @@
-package com.biblioteca.servicios.implementaciones;
+﻿package com.biblioteca.servicios.implementaciones;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -208,8 +208,6 @@ public class GestorBloqueoService implements IGestorBloqueoService {
 
         return Resultado.Exitoso("El usuario no requiere bloqueo", null);
     }
-
-    // ==================== MÉTODOS AUXILIARES ====================
 
     /**
      * Calcula el monto total de multas pendientes de un usuario.

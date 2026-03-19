@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.builders;
+﻿package com.biblioteca.dominio.builders;
 
 import java.util.UUID;
 
@@ -49,10 +49,7 @@ public class UsuarioBuilder implements IBuilderUsuario {
         this.email = email;
         return this;
     }
-    
-    // =========================================
     // TIPOS
-    // =========================================
     
     public IBuilderUsuario esEstudiante(String carrera, int semestre, String universidad) {
         this.tipo = TipoUsuario.ESTUDIANTE;
@@ -146,3 +143,4 @@ public class UsuarioBuilder implements IBuilderUsuario {
         return new IdUsuario("USR-" + num);
     }
 }
+

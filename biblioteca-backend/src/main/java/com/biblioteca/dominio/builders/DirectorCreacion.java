@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.builders;
+﻿package com.biblioteca.dominio.builders;
 
 import com.biblioteca.dominio.builders.interfaces.IBuilderMaterial;
 import com.biblioteca.dominio.builders.interfaces.IBuilderUsuario;
@@ -8,10 +8,7 @@ import com.biblioteca.dominio.builders.interfaces.IBuilderUsuario;
  * Encapsula las configuraciones más comunes de creación de objetos para no repetir código.
  */
 public class DirectorCreacion {
-
-    // =========================================
     // USUARIOS
-    // =========================================
 
     public void construirEstudianteBasico(IBuilderUsuario builder, String nombre, String email, String carrera) {
         builder.conNombre(nombre)
@@ -31,10 +28,7 @@ public class DirectorCreacion {
                .conEmail(email)
                .esPublicoGeneral("Sin Registro", "Sin Fiador");
     }
-
-    // =========================================
     // MATERIALES
-    // =========================================
 
     public void construirLibroReferencia(IBuilderMaterial builder, String titulo, String autor, String isbn) {
         builder.conTitulo(titulo)
@@ -52,3 +46,4 @@ public class DirectorCreacion {
                .numeroEdicion(edicion);
     }
 }
+

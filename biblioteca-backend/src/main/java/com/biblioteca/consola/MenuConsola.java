@@ -23,8 +23,6 @@ import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
 import com.biblioteca.dominio.enumeraciones.EstadoMulta;
 import com.biblioteca.dominio.enumeraciones.NivelGravedad;
 import com.biblioteca.dominio.enumeraciones.TipoDano;
-import com.biblioteca.dominio.enumeraciones.TipoMulta;
-import com.biblioteca.dominio.objetosvalor.ContextoMulta;
 import com.biblioteca.dominio.objetosvalor.Dano;
 import com.biblioteca.dominio.objetosvalor.Evaluacion;
 import com.biblioteca.dominio.objetosvalor.IdMaterial;
@@ -65,22 +63,22 @@ public class MenuConsola {
             procesarOpcionPrincipal(opcion);
         }
 
-        System.out.println("\n👋 ¡Gracias por usar el sistema! Hasta pronto.");
+        System.out.println("\n¡Gracias por usar el sistema! Hasta pronto.");
         scanner.close();
     }
 
     private void mostrarMenuPrincipal() {
         System.out.println("\n" + "=".repeat(60));
-        System.out.println("            📚 SISTEMA DE BIBLIOTECA");
+        System.out.println("            SISTEMA DE BIBLIOTECA");
         System.out.println("=".repeat(60));
-        System.out.println("1.  📖 Gestión de Materiales");
-        System.out.println("2.  👥 Gestión de Usuarios");
-        System.out.println("3.  📋 Gestión de Préstamos");
+        System.out.println("1.  Gestión de Materiales");
+        System.out.println("2.  Gestión de Usuarios");
+        System.out.println("3.  Gestión de Préstamos");
         System.out.println("4.  ↩️  Gestión de Devoluciones");
-        System.out.println("5.  🔖 Gestión de Reservas");
-        System.out.println("6.  💰 Gestión de Multas");
-        System.out.println("7.  🔍 Consultas y Reportes");
-        System.out.println("0.  🚪 Salir");
+        System.out.println("5.  Gestión de Reservas");
+        System.out.println("6.  Gestión de Multas");
+        System.out.println("7.  Consultas y Reportes");
+        System.out.println("0.  Salir");
         System.out.println("=".repeat(60));
         System.out.print("Seleccione una opción: ");
     }
@@ -96,20 +94,17 @@ public class MenuConsola {
             case "7": menuConsultas(); break;
             case "0": ejecutando = false; break;
             default:
-                System.out.println("❌ Opción no válida");
+                System.out.println("Opción no válida");
                 pausa();
         }
     }
-
-    // ========================================================================
     // MENÚ DE MATERIALES
-    // ========================================================================
 
     private void menuMateriales() {
         while (true) {
             try {
                 System.out.println("\n" + "=".repeat(60));
-                System.out.println("            📖 GESTIÓN DE MATERIALES");
+                System.out.println("            GESTIÓN DE MATERIALES");
                 System.out.println("=".repeat(60));
                 System.out.println("1.  Listar todos los materiales");
                 System.out.println("2.  Buscar material (ID, título, autor)");
@@ -131,14 +126,14 @@ public class MenuConsola {
                     case "5": agregarMaterial(); break;
                     case "6": actualizarEstadoMaterial(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado. Intente de nuevo.");
+                System.out.println("Ocurrió un error inesperado. Intente de nuevo.");
                 pausa();
             }
         }
@@ -147,11 +142,11 @@ public class MenuConsola {
     private void listarMateriales() {
         List<Material> materiales = consultaFacade.listarMateriales();
         if (materiales.isEmpty()) {
-            System.out.println("\n📭 No hay materiales registrados");
+            System.out.println("\nNo hay materiales registrados");
             return;
         }
 
-        System.out.println("\n📚 LISTADO DE MATERIALES:");
+        System.out.println("\nLISTADO DE MATERIALES:");
         System.out.println("-".repeat(80));
         System.out.printf("%-10s %-30s %-20s %-15s %-10s%n",
                 "ID", "TÍTULO", "AUTOR", "TIPO", "ESTADO");
@@ -174,7 +169,7 @@ public class MenuConsola {
         List<Material> resultados = consultaFacade.buscarMateriales(busqueda);
 
         if (resultados.isEmpty()) {
-            System.out.println("❌ No se encontraron materiales");
+            System.out.println("No se encontraron materiales");
             return;
         }
 
@@ -183,7 +178,7 @@ public class MenuConsola {
             return;
         }
 
-        System.out.println("\n📚 RESULTADOS:");
+        System.out.println("\nRESULTADOS:");
         for (Material m : resultados) {
             System.out.printf("%s - %s (%s)%n", m.getId(), m.getTitulo(), m.getAutor());
         }
@@ -193,11 +188,11 @@ public class MenuConsola {
         List<Material> disponibles = consultaFacade.obtenerMaterialesDisponibles();
 
         if (disponibles.isEmpty()) {
-            System.out.println("\n📭 No hay materiales disponibles");
+            System.out.println("\nNo hay materiales disponibles");
             return;
         }
 
-        System.out.println("\n✅ MATERIALES DISPONIBLES:");
+        System.out.println("\nMATERIALES DISPONIBLES:");
         for (Material m : disponibles) {
             System.out.printf("  • %s - %s%n", m.getId(), m.getTitulo());
         }
@@ -207,18 +202,18 @@ public class MenuConsola {
         List<Material> prestados = consultaFacade.obtenerMaterialesPrestados();
 
         if (prestados.isEmpty()) {
-            System.out.println("\n📭 No hay materiales prestados");
+            System.out.println("\nNo hay materiales prestados");
             return;
         }
 
-        System.out.println("\n📤 MATERIALES PRESTADOS:");
+        System.out.println("\nMATERIALES PRESTADOS:");
         for (Material m : prestados) {
             System.out.printf("  • %s - %s%n", m.getId(), m.getTitulo());
         }
     }
 
     private void agregarMaterial() {
-        System.out.println("\n➕ AGREGAR NUEVO MATERIAL");
+        System.out.println("\nAGREGAR NUEVO MATERIAL");
         System.out.println("Tipos disponibles:");
         System.out.println("1. Libro");
         System.out.println("2. DVD");
@@ -281,9 +276,9 @@ public class MenuConsola {
         if (material != null) {
             Resultado resultado = adminFacade.agregarMaterial(material);
             if (resultado.getExito()) {
-                System.out.println("✅ Material agregado exitosamente");
+                System.out.println("Material agregado exitosamente");
             } else {
-                System.out.println("❌ Error: " + resultado.getMensaje());
+                System.out.println("Error: " + resultado.getMensaje());
             }
         }
     }
@@ -294,7 +289,7 @@ public class MenuConsola {
 
         Material m = consultaFacade.obtenerMaterialPorId(id);
         if (m == null) {
-            System.out.println("❌ Material no encontrado");
+            System.out.println("Material no encontrado");
             return;
         }
 
@@ -317,23 +312,20 @@ public class MenuConsola {
             case "4": m.marcarComoEnReparacion("Mantenimiento a través de consola"); break;
             case "5": m.marcarComoPerdido("Reportado a través de consola"); break;
             default:
-                System.out.println("❌ Opción no válida");
+                System.out.println("Opción no válida");
                 return;
         }
 
         adminFacade.actualizarMaterial(m);
-        System.out.println("✅ Estado actualizado");
+        System.out.println("Estado actualizado");
     }
-
-    // ========================================================================
     // MENÚ DE USUARIOS
-    // ========================================================================
 
     private void menuUsuarios() {
         while (true) {
             try {
                 System.out.println("\n" + "=".repeat(60));
-                System.out.println("            👥 GESTIÓN DE USUARIOS");
+                System.out.println("            GESTIÓN DE USUARIOS");
                 System.out.println("=".repeat(60));
                 System.out.println("1.  Listar todos los usuarios");
                 System.out.println("2.  Buscar usuario (ID, nombre, email)");
@@ -357,14 +349,14 @@ public class MenuConsola {
                     case "6": bloquearUsuario(); break;
                     case "7": desbloquearUsuario(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado al procesar el usuario.");
+                System.out.println("Ocurrió un error inesperado al procesar el usuario.");
                 pausa();
             }
         }
@@ -373,11 +365,11 @@ public class MenuConsola {
     private void listarUsuarios() {
         List<Usuario> usuarios = consultaFacade.listarUsuarios();
         if (usuarios.isEmpty()) {
-            System.out.println("\n📭 No hay usuarios registrados");
+            System.out.println("\nNo hay usuarios registrados");
             return;
         }
 
-        System.out.println("\n👥 LISTADO DE USUARIOS:");
+        System.out.println("\nLISTADO DE USUARIOS:");
         System.out.println("-".repeat(70));
         System.out.printf("%-10s %-20s %-25s %-15s %-10s%n",
                 "ID", "NOMBRE", "EMAIL", "TIPO", "ESTADO");
@@ -400,7 +392,7 @@ public class MenuConsola {
         List<Usuario> resultados = consultaFacade.buscarUsuarios(busqueda);
 
         if (resultados.isEmpty()) {
-            System.out.println("❌ No se encontraron usuarios");
+            System.out.println("No se encontraron usuarios");
             return;
         }
 
@@ -409,7 +401,7 @@ public class MenuConsola {
             return;
         }
 
-        System.out.println("\n👥 RESULTADOS:");
+        System.out.println("\nRESULTADOS:");
         for (Usuario u : resultados) {
             System.out.printf("%s - %s (%s)%n", u.getId(), u.getNombre(), u.getEmail());
         }
@@ -419,11 +411,11 @@ public class MenuConsola {
         List<Usuario> activos = consultaFacade.obtenerUsuariosActivos();
 
         if (activos.isEmpty()) {
-            System.out.println("\n📭 No hay usuarios activos");
+            System.out.println("\nNo hay usuarios activos");
             return;
         }
 
-        System.out.println("\n✅ USUARIOS ACTIVOS:");
+        System.out.println("\nUSUARIOS ACTIVOS:");
         for (Usuario u : activos) {
             System.out.printf("  • %s - %s%n", u.getId(), u.getNombre());
         }
@@ -433,18 +425,18 @@ public class MenuConsola {
         List<Usuario> bloqueados = consultaFacade.obtenerUsuariosBloqueados();
 
         if (bloqueados.isEmpty()) {
-            System.out.println("\n📭 No hay usuarios bloqueados");
+            System.out.println("\nNo hay usuarios bloqueados");
             return;
         }
 
-        System.out.println("\n🔒 USUARIOS BLOQUEADOS:");
+        System.out.println("\nUSUARIOS BLOQUEADOS:");
         for (Usuario u : bloqueados) {
             System.out.printf("  • %s - %s (%s)%n", u.getId(), u.getNombre(), u.getEstado());
         }
     }
 
     private void agregarUsuario() {
-        System.out.println("\n➕ AGREGAR NUEVO USUARIO");
+        System.out.println("\nAGREGAR NUEVO USUARIO");
         System.out.println("Tipos disponibles:");
         System.out.println("1. Estudiante");
         System.out.println("2. Profesor");
@@ -501,9 +493,9 @@ public class MenuConsola {
         if (usuario != null) {
             Resultado resultado = adminFacade.agregarUsuario(usuario);
             if (resultado.getExito()) {
-                System.out.println("✅ Usuario agregado exitosamente");
+                System.out.println("Usuario agregado exitosamente");
             } else {
-                System.out.println("❌ Error: " + resultado.getMensaje());
+                System.out.println("Error: " + resultado.getMensaje());
             }
         }
     }
@@ -514,7 +506,7 @@ public class MenuConsola {
 
         Usuario u = consultaFacade.obtenerUsuarioPorId(id);
         if (u == null) {
-            System.out.println("❌ Usuario no encontrado");
+            System.out.println("Usuario no encontrado");
             return;
         }
 
@@ -525,9 +517,9 @@ public class MenuConsola {
 
         Resultado resultado = adminFacade.bloquearUsuario(id, motivo);
         if (resultado.getExito()) {
-            System.out.println("✅ Usuario bloqueado");
+            System.out.println("Usuario bloqueado");
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            System.out.println("Error: " + resultado.getMensaje());
         }
     }
 
@@ -537,21 +529,18 @@ public class MenuConsola {
 
         Resultado resultado = adminFacade.desbloquearUsuario(id);
         if (resultado.getExito()) {
-            System.out.println("✅ Usuario desbloqueado");
+            System.out.println("Usuario desbloqueado");
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            System.out.println("Error: " + resultado.getMensaje());
         }
     }
-
-    // ========================================================================
     // MENÚ DE PRÉSTAMOS
-    // ========================================================================
 
     private void menuPrestamos() {
         while (true) {
             try {
                 System.out.println("\n" + "=".repeat(60));
-                System.out.println("            📋 GESTIÓN DE PRÉSTAMOS");
+                System.out.println("            GESTIÓN DE PRÉSTAMOS");
                 System.out.println("=".repeat(60));
                 System.out.println("1.  Registrar nuevo préstamo");
                 System.out.println("2.  Buscar préstamos (Todos, Activos, por Usuario o ID)");
@@ -569,21 +558,21 @@ public class MenuConsola {
                     case "3": verPrestamosVencidos(); break;
                     case "4": renovarPrestamo(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado al procesar el préstamo.");
+                System.out.println("Ocurrió un error inesperado al procesar el préstamo.");
                 pausa();
             }
         }
     }
 
     private void registrarPrestamo() {
-        System.out.println("\n📋 REGISTRAR NUEVO PRÉSTAMO");
+        System.out.println("\nREGISTRAR NUEVO PRÉSTAMO");
 
         System.out.print("ID Usuario: ");
         String idUsuario = scanner.nextLine();
@@ -601,9 +590,9 @@ public class MenuConsola {
         Resultado resultado = bibliotecaFacade.registrarPrestamo(idUsuario, idMaterial, tipoPrestamo);
 
         if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
+            System.out.println("" + resultado.getMensaje());
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            System.out.println("Error: " + resultado.getMensaje());
         }
     }
 
@@ -618,7 +607,7 @@ public class MenuConsola {
         } else {
             Prestamo p = consultaFacade.obtenerPrestamoPorId(input);
             if (p == null) {
-                System.out.println("❌ Préstamo no encontrado");
+                System.out.println("Préstamo no encontrado");
                 return;
             }
             mostrarDetallePrestamo(p);
@@ -626,7 +615,7 @@ public class MenuConsola {
     }
 
     private void mostrarDetallePrestamo(Prestamo p) {
-        System.out.println("\n📋 DETALLE DEL PRÉSTAMO:");
+        System.out.println("\nDETALLE DEL PRÉSTAMO:");
         System.out.println("ID: " + p.getId());
         System.out.println("Usuario: " + p.getIdUsuario());
         System.out.println("Material: " + p.getIdMaterial());
@@ -639,11 +628,11 @@ public class MenuConsola {
         List<Prestamo> activos = consultaFacade.listarPrestamosActivos();
 
         if (activos.isEmpty()) {
-            System.out.println("\n📭 No hay préstamos activos");
+            System.out.println("\nNo hay préstamos activos");
             return;
         }
 
-        System.out.println("\n📋 PRÉSTAMOS ACTIVOS:");
+        System.out.println("\nPRÉSTAMOS ACTIVOS:");
         for (Prestamo p : activos) {
             System.out.printf("  • %s - Usuario: %s - Material: %s%n",
                     p.getId(), p.getIdUsuario(), p.getIdMaterial());
@@ -653,10 +642,10 @@ public class MenuConsola {
     private void verPrestamosPorUsuario(IdUsuario idUsuario) {
         List<Prestamo> prestamos = consultaFacade.obtenerPrestamosPorUsuario(idUsuario);
         if (prestamos.isEmpty()) {
-            System.out.println("📭 El usuario no tiene préstamos activos");
+            System.out.println("El usuario no tiene préstamos activos");
             return;
         }
-        System.out.println("\n📋 PRÉSTAMOS DEL USUARIO " + idUsuario.getValor() + ":");
+        System.out.println("\nPRÉSTAMOS DEL USUARIO " + idUsuario.getValor() + ":");
         for (Prestamo p : prestamos) {
             System.out.printf("  • %s - Material: %s%n", p.getId(), p.getIdMaterial());
         }
@@ -666,12 +655,12 @@ public class MenuConsola {
         List<Prestamo> vencidos = consultaFacade.obtenerPrestamosVencidos();
 
         if (vencidos.isEmpty()) {
-            System.out.println("\n✅ No hay préstamos vencidos");
+            System.out.println("\nNo hay préstamos vencidos");
             return;
         }
 
         LocalDateTime ahora = LocalDateTime.now();
-        System.out.println("\n⚠️ PRÉSTAMOS VENCIDOS:");
+        System.out.println("\nPRÉSTAMOS VENCIDOS:");
         for (Prestamo p : vencidos) {
             long diasVencido = ChronoUnit.DAYS.between(p.getFechaDevolucionEsperada(), ahora);
             System.out.printf("  • %s - Usuario: %s - Vencido: %d días%n",
@@ -686,15 +675,12 @@ public class MenuConsola {
         Resultado resultado = bibliotecaFacade.renovarPrestamo(idPrestamo);
 
         if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
+            System.out.println("" + resultado.getMensaje());
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            System.out.println("Error: " + resultado.getMensaje());
         }
     }
-
-    // ========================================================================
     // MENÚ DE DEVOLUCIONES
-    // ========================================================================
 
     private void menuDevoluciones() {
         while (true) {
@@ -714,14 +700,14 @@ public class MenuConsola {
                     case "1": registrarDevolucion(); break;
                     case "2": verHistorialDevoluciones(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado al gestionar devoluciones.");
+                System.out.println("Ocurrió un error inesperado al gestionar devoluciones.");
                 pausa();
             }
         }
@@ -733,7 +719,7 @@ public class MenuConsola {
 
         Prestamo p = consultaFacade.obtenerPrestamoPorId(idPrestamo);
         if (p == null) {
-            System.out.println("❌ Préstamo no encontrado");
+            System.out.println("Préstamo no encontrado");
             return;
         }
 
@@ -741,7 +727,7 @@ public class MenuConsola {
         String respuesta = scanner.nextLine();
 
         if (respuesta.equalsIgnoreCase("n")) {
-            System.out.println("\n🔍 INSPECCIÓN DE DAÑOS");
+            System.out.println("\nINSPECCIÓN DE DAÑOS");
             List<Dano> danos = new java.util.ArrayList<>();
 
             while (true) {
@@ -791,17 +777,17 @@ public class MenuConsola {
             Resultado resultado = bibliotecaFacade.devolverMaterial(idPrestamo, evaluacion);
 
             if (resultado.getExito()) {
-                System.out.println("✅ " + resultado.getMensaje());
+                System.out.println("" + resultado.getMensaje());
             } else {
-                System.out.println("❌ Error: " + resultado.getMensaje());
+                System.out.println("Error: " + resultado.getMensaje());
             }
         } else {
             Resultado resultado = bibliotecaFacade.devolverMaterialSinInspeccion(idPrestamo);
 
             if (resultado.getExito()) {
-                System.out.println("✅ " + resultado.getMensaje());
+                System.out.println("" + resultado.getMensaje());
             } else {
-                System.out.println("❌ Error: " + resultado.getMensaje());
+                System.out.println("Error: " + resultado.getMensaje());
             }
         }
     }
@@ -810,11 +796,11 @@ public class MenuConsola {
         List<Prestamo> devueltos = consultaFacade.verHistorialDevoluciones();
 
         if (devueltos.isEmpty()) {
-            System.out.println("\n📭 No hay devoluciones registradas");
+            System.out.println("\nNo hay devoluciones registradas");
             return;
         }
 
-        System.out.println("\n📚 HISTORIAL DE DEVOLUCIONES:");
+        System.out.println("\nHISTORIAL DE DEVOLUCIONES:");
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         for (Prestamo p : devueltos) {
@@ -824,16 +810,13 @@ public class MenuConsola {
                     p.getFechaDevolucionReal().format(fmt));
         }
     }
-
-    // ========================================================================
     // MENÚ DE RESERVAS
-    // ========================================================================
 
     private void menuReservas() {
         while (true) {
             try {
                 System.out.println("\n" + "=".repeat(60));
-                System.out.println("            🔖 GESTIÓN DE RESERVAS");
+                System.out.println("            GESTIÓN DE RESERVAS");
                 System.out.println("=".repeat(60));
                 System.out.println("1.  Crear reserva");
                 System.out.println("2.  Cancelar reserva");
@@ -851,21 +834,21 @@ public class MenuConsola {
                     case "3": buscarReservas(); break;
                     case "4": limpiarReservasExpiradas(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado al gestionar reservas.");
+                System.out.println("Ocurrió un error inesperado al gestionar reservas.");
                 pausa();
             }
         }
     }
 
     private void crearReserva() {
-        System.out.println("\n🔖 CREAR RESERVA");
+        System.out.println("\nCREAR RESERVA");
         System.out.print("ID Usuario: ");
         String idUsuario = scanner.nextLine();
         System.out.print("ID Material: ");
@@ -882,9 +865,9 @@ public class MenuConsola {
         Resultado resultado = bibliotecaFacade.crearReserva(idUsuario, idMaterial, tipoReserva);
 
         if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
+            System.out.println("" + resultado.getMensaje());
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            System.out.println("Error: " + resultado.getMensaje());
         }
     }
 
@@ -895,9 +878,9 @@ public class MenuConsola {
         Resultado resultado = bibliotecaFacade.cancelarReserva(idReserva);
 
         if (resultado.getExito()) {
-            System.out.println("✅ " + resultado.getMensaje());
+            System.out.println("" + resultado.getMensaje());
         } else {
-            System.out.println("❌ Error: " + resultado.getMensaje());
+            System.out.println("Error: " + resultado.getMensaje());
         }
     }
 
@@ -918,10 +901,10 @@ public class MenuConsola {
         List<Reserva> activas = consultaFacade.listarReservasActivas();
 
         if (activas.isEmpty()) {
-            System.out.println("\n📭 No hay reservas activas");
+            System.out.println("\nNo hay reservas activas");
             return;
         }
-        System.out.println("\n🔖 RESERVAS ACTIVAS:");
+        System.out.println("\nRESERVAS ACTIVAS:");
         for (Reserva r : activas) {
             System.out.printf("  • %s - Usuario: %s - Material: %s%n", r.getId(), r.getIdUsuario(), r.getIdMaterial());
         }
@@ -930,10 +913,10 @@ public class MenuConsola {
     private void verReservasPorMaterial(IdMaterial idMaterial) {
         List<Reserva> reservas = consultaFacade.obtenerReservasPorMaterial(idMaterial);
         if (reservas.isEmpty()) {
-            System.out.println("📭 No hay reservas para este material");
+            System.out.println("No hay reservas para este material");
             return;
         }
-        System.out.println("\n🔖 RESERVAS PARA MATERIAL " + idMaterial.getValor() + ":");
+        System.out.println("\nRESERVAS PARA MATERIAL " + idMaterial.getValor() + ":");
         for (Reserva r : reservas) {
             System.out.printf("  Pos %d: %s - Usuario: %s%n", r.getPosicionCola(), r.getId(), r.getIdUsuario());
         }
@@ -942,10 +925,10 @@ public class MenuConsola {
     private void verReservasPorUsuario(IdUsuario idUsuario) {
         List<Reserva> reservas = consultaFacade.obtenerReservasPorUsuario(idUsuario);
         if (reservas.isEmpty()) {
-            System.out.println("📭 El usuario no tiene reservas activas");
+            System.out.println("El usuario no tiene reservas activas");
             return;
         }
-        System.out.println("\n🔖 RESERVAS DEL USUARIO " + idUsuario.getValor() + ":");
+        System.out.println("\nRESERVAS DEL USUARIO " + idUsuario.getValor() + ":");
         for (Reserva r : reservas) {
             System.out.printf("  • %s - Material: %s%n", r.getId(), r.getIdMaterial());
         }
@@ -953,23 +936,19 @@ public class MenuConsola {
 
     private void limpiarReservasExpiradas() {
         bibliotecaFacade.limpiarReservasExpiradas();
-        System.out.println("✅ Reservas expiradas eliminadas");
+        System.out.println("Reservas expiradas eliminadas");
     }
-
-    // ========================================================================
     // MENÚ DE MULTAS
-    // ========================================================================
 
     private void menuMultas() {
         while (true) {
             try {
                 System.out.println("\n" + "=".repeat(60));
-                System.out.println("            💰 GESTIÓN DE MULTAS");
+                System.out.println("            GESTIÓN DE MULTAS");
                 System.out.println("=".repeat(60));
                 System.out.println("1.  Ver multas pendientes");
                 System.out.println("2.  Ver multas por usuario");
                 System.out.println("3.  Pagar multa");
-                System.out.println("4.  Ver cálculo de multa");
                 System.out.println("0.  Volver");
                 System.out.println("=".repeat(60));
                 System.out.print("Seleccione: ");
@@ -980,16 +959,15 @@ public class MenuConsola {
                     case "1": verMultasPendientes(); break;
                     case "2": verMultasPorUsuario(); break;
                     case "3": pagarMulta(); break;
-                    case "4": verCalculoMulta(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado al procesar multas.");
+                System.out.println("Ocurrió un error inesperado al procesar multas.");
                 pausa();
             }
         }
@@ -999,11 +977,11 @@ public class MenuConsola {
         List<Multa> pendientes = consultaFacade.listarMultasPendientes();
 
         if (pendientes.isEmpty()) {
-            System.out.println("\n✅ No hay multas pendientes");
+            System.out.println("\nNo hay multas pendientes");
             return;
         }
 
-        System.out.println("\n💰 MULTAS PENDIENTES:");
+        System.out.println("\nMULTAS PENDIENTES:");
         double total = 0;
 
         for (Multa m : pendientes) {
@@ -1023,11 +1001,11 @@ public class MenuConsola {
         List<Multa> multas = consultaFacade.obtenerMultasPorUsuario(idUsuario);
 
         if (multas.isEmpty()) {
-            System.out.println("📭 El usuario no tiene multas");
+            System.out.println("El usuario no tiene multas");
             return;
         }
 
-        System.out.println("\n💰 MULTAS DEL USUARIO " + idUsuario + ":");
+        System.out.println("\nMULTAS DEL USUARIO " + idUsuario + ":");
         double totalPendiente = 0;
 
         for (Multa m : multas) {
@@ -1058,7 +1036,7 @@ public class MenuConsola {
                 .orElse(null);
 
         if (multa == null) {
-            System.out.println("❌ Multa pendiente no encontrada con ese ID");
+            System.out.println("Multa pendiente no encontrada con ese ID");
             return;
         }
 
@@ -1069,81 +1047,20 @@ public class MenuConsola {
         if (scanner.nextLine().equalsIgnoreCase("s")) {
             Resultado resultado = adminFacade.pagarMulta(idMulta);
             if (resultado.getExito()) {
-                System.out.println("✅ " + resultado.getMensaje());
+                System.out.println("" + resultado.getMensaje());
             } else {
-                System.out.println("❌ Error: " + resultado.getMensaje());
+                System.out.println("Error: " + resultado.getMensaje());
             }
         }
     }
 
-    private void verCalculoMulta() {
-        System.out.println("\n🧮 CALCULAR MULTA");
-        System.out.print("ID Préstamo: ");
-        String idPrestamo = scanner.nextLine();
-
-        Prestamo p = consultaFacade.obtenerPrestamoPorId(idPrestamo);
-        if (p == null) {
-            System.out.println("❌ Préstamo no encontrado");
-            return;
-        }
-
-        System.out.println("Tipo de multa:");
-        System.out.println("1. Por retraso");
-        System.out.println("2. Por daño");
-        System.out.println("3. Por pérdida");
-        System.out.println("4. Administrativa");
-        System.out.print("Seleccione: ");
-
-        String tipo = scanner.nextLine();
-
-        String idUsuario = p.getIdUsuario().getValor();
-        String idMaterial = p.getIdMaterial().getValor();
-
-        ContextoMulta.Builder builder = new ContextoMulta.Builder()
-                .conPrestamo(idPrestamo)
-                .conUsuario(idUsuario)
-                .conMaterial(idMaterial)
-                .conFechaActual(LocalDateTime.now());
-
-        switch (tipo) {
-            case "1":
-                builder.deTipo(TipoMulta.POR_RETRASO);
-                break;
-            case "2":
-                builder.deTipo(TipoMulta.POR_DANO);
-                List<Dano> danos = new java.util.ArrayList<>();
-                danos.add(new Dano("Daño de prueba", NivelGravedad.MODERADO, TipoDano.PAGINAS_RASGADAS));
-                builder.conEvaluacion(new Evaluacion(false, danos));
-                break;
-            case "3":
-                builder.deTipo(TipoMulta.POR_PERDIDA);
-                break;
-            case "4":
-                builder.deTipo(TipoMulta.ADMINISTRATIVA);
-                break;
-        }
-
-        Multa multa = bibliotecaFacade.calcularMulta(builder.build());
-
-        if (multa != null) {
-            System.out.printf("\n💰 RESULTADO:%n");
-            System.out.printf("  Tipo: %s%n", multa.getClass().getSimpleName());
-            System.out.printf("  Motivo: %s%n", multa.getMotivo());
-            System.out.printf("  Monto: $%.2f%n", multa.calcularMontoTotal());
-        } else {
-            System.out.println("❌ No se pudo calcular la multa");
-        }
-    }
-
-    // ========================================================================
     // MENÚ DE CONSULTAS
-    // ========================================================================
 
     private void menuConsultas() {
         while (true) {
             try {
                 System.out.println("\n" + "=".repeat(60));
-                System.out.println("            🔍 CONSULTAS Y REPORTES");
+                System.out.println("            CONSULTAS Y REPORTES");
                 System.out.println("=".repeat(60));
                 System.out.println("1.  Ver disponibilidad de material");
                 System.out.println("2.  Ver estado de usuario");
@@ -1165,14 +1082,14 @@ public class MenuConsola {
                     case "5": verPoliticasTiempo(); break;
                     case "6": verReporteCompleto(); break;
                     case "0": return;
-                    default: System.out.println("❌ Opción no válida");
+                    default: System.out.println("Opción no válida");
                 }
                 pausa();
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Error de validación: " + e.getMessage());
+                System.out.println("Error de validación: " + e.getMessage());
                 pausa();
             } catch (Exception e) {
-                System.out.println("❌ Ocurrió un error inesperado al procesar consultas.");
+                System.out.println("Ocurrió un error inesperado al procesar consultas.");
                 pausa();
             }
         }
@@ -1185,20 +1102,20 @@ public class MenuConsola {
         Material m = consultaFacade.obtenerMaterialPorId(idMaterial);
 
         if (m == null) {
-            System.out.println("❌ Material no encontrado");
+            System.out.println("Material no encontrado");
             return;
         }
 
         boolean disponible = consultaFacade.verificarDisponibilidad(idMaterial);
         EstadoMaterial estado = consultaFacade.obtenerEstadoActual(idMaterial);
 
-        System.out.println("\n📊 INFORMACIÓN DE DISPONIBILIDAD:");
+        System.out.println("\nINFORMACIÓN DE DISPONIBILIDAD:");
         System.out.println("ID: " + m.getId());
         System.out.println("Título: " + m.getTitulo());
         System.out.println("Estado actual: " + estado);
-        System.out.println("¿Disponible?: " + (disponible ? "✅ SÍ" : "❌ NO"));
+        System.out.println("¿Disponible?: " + (disponible ? "SÍ" : "NO"));
         System.out.println("¿Prestable?: " +
-                (consultaFacade.materialEsPrestable(idMaterial, m.getTipo()) ? "✅ SÍ" : "❌ NO"));
+                (consultaFacade.materialEsPrestable(idMaterial, m.getTipo()) ? "SÍ" : "NO"));
     }
 
     private void verEstadoUsuario() {
@@ -1222,13 +1139,10 @@ public class MenuConsola {
     private void verReporteCompleto() {
         System.out.println(consultaFacade.generarReporteCompleto());
     }
-
-    // ========================================================================
     // UTILIDADES
-    // ========================================================================
 
     private void mostrarMaterialDetalle(Material m) {
-        System.out.println("\n📖 DETALLE DEL MATERIAL:");
+        System.out.println("\nDETALLE DEL MATERIAL:");
         System.out.println("ID: " + m.getId());
         System.out.println("Título: " + m.getTitulo());
         System.out.println("Autor: " + m.getAutor());
@@ -1261,7 +1175,7 @@ public class MenuConsola {
     }
 
     private void mostrarUsuarioDetalle(Usuario u) {
-        System.out.println("\n👤 DETALLE DEL USUARIO:");
+        System.out.println("\nDETALLE DEL USUARIO:");
         System.out.println("ID: " + u.getId());
         System.out.println("Nombre: " + u.getNombre());
         System.out.println("Email: " + u.getEmail());

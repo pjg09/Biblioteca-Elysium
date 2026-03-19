@@ -1,4 +1,4 @@
-package com.biblioteca.dominio.builders;
+﻿package com.biblioteca.dominio.builders;
 
 import java.time.LocalDateTime;
 
@@ -40,10 +40,7 @@ public class MaterialBuilder implements IBuilderMaterial {
     private String urlDescarga;
     private int licenciasDisponibles;
     private LocalDateTime fechaVencimientoLicencia;
-    
-    // =========================================
     // MÉTODOS COMUNES
-    // =========================================
     
     public IBuilderMaterial conId(IdMaterial id) {
         this.id = id;
@@ -64,10 +61,7 @@ public class MaterialBuilder implements IBuilderMaterial {
         this.precio = precio;
         return this;
     }
-    
-    // =========================================
     // CONFIGURACIÓN TIPO LIBRO
-    // =========================================
     
     public IBuilderMaterial esLibro() {
         this.tipo = TipoMaterial.LIBRO_NORMAL;
@@ -95,10 +89,7 @@ public class MaterialBuilder implements IBuilderMaterial {
         this.tipo = TipoMaterial.LIBRO_REFERENCIA;
         return this;
     }
-    
-    // =========================================
     // CONFIGURACIÓN TIPO DVD
-    // =========================================
     
     public IBuilderMaterial esDVD() {
         this.tipo = TipoMaterial.DVD;
@@ -119,10 +110,7 @@ public class MaterialBuilder implements IBuilderMaterial {
         this.director = director;
         return this;
     }
-    
-    // =========================================
     // CONFIGURACIÓN TIPO REVISTA
-    // =========================================
 
     public IBuilderMaterial esRevista() {
         this.tipo = TipoMaterial.REVISTA;
@@ -143,10 +131,7 @@ public class MaterialBuilder implements IBuilderMaterial {
         this.esUltimoNumero = true;
         return this;
     }
-
-    // =========================================
     // CONFIGURACIÓN TIPO EBOOK
-    // =========================================
 
     public IBuilderMaterial esEBook() {
         this.tipo = TipoMaterial.EBOOK;
@@ -167,10 +152,7 @@ public class MaterialBuilder implements IBuilderMaterial {
         this.fechaVencimientoLicencia = fecha;
         return this;
     }
-
-    // =========================================
     // BUILD
-    // =========================================
     
     public Material construir() {
         validar();
@@ -259,3 +241,4 @@ public class MaterialBuilder implements IBuilderMaterial {
         return new IdMaterial("MAT-" + num);
     }
 }
+

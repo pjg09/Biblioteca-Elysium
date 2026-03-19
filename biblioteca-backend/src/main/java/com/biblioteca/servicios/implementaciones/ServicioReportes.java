@@ -14,9 +14,7 @@ import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.enumeraciones.EstadoUsuario;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
-import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
-import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 import com.biblioteca.servicios.interfaces.IPoliticaTiempoService;
 import com.biblioteca.servicios.interfaces.IServicioReportes;
@@ -29,7 +27,6 @@ public class ServicioReportes implements IServicioReportes {
     private final IRepositorio<Reserva> repoReserva;
     private final IRepositorio<Multa> repoMulta;
 
-    private final IGestorBloqueoService gestorBloqueo;
     private final ILimitePrestamoService limiteService;
     private final IPoliticaTiempoService politicaTiempoService;
 
@@ -39,7 +36,6 @@ public class ServicioReportes implements IServicioReportes {
             IRepositorio<Prestamo> repoPrestamo,
             IRepositorio<Reserva> repoReserva,
             IRepositorio<Multa> repoMulta,
-            IGestorBloqueoService gestorBloqueo,
             ILimitePrestamoService limiteService,
             IPoliticaTiempoService politicaTiempoService) {
         
@@ -48,7 +44,6 @@ public class ServicioReportes implements IServicioReportes {
         this.repoPrestamo = repoPrestamo;
         this.repoReserva = repoReserva;
         this.repoMulta = repoMulta;
-        this.gestorBloqueo = gestorBloqueo;
         this.limiteService = limiteService;
         this.politicaTiempoService = politicaTiempoService;
     }
@@ -57,32 +52,39 @@ public class ServicioReportes implements IServicioReportes {
     public String generarEstadoUsuario(String idUsuario) {
         Usuario u = repoUsuario.obtenerPorId(idUsuario);
         if (u == null) {
-            return "❌ Usuario no encontrado";
+            return "Usuario no encontrado";
         }
 
-        ResultadoValidacion validacion = gestorBloqueo.verificarSiDebeBloquear(idUsuario);
         int prestamosActivos = (int) repoPrestamo.obtenerTodos().stream()
                 .filter(p -> p.getIdUsuario().getValor().equals(idUsuario) && p.getEstado() == EstadoTransaccion.ACTIVA)
                 .count();
         int limite = limiteService.obtenerLimiteMaximo(u.getTipo());
 
-        BigDecimal multasPendientes = BigDecimal.ZERO;
-        if (gestorBloqueo instanceof GestorBloqueoService) {
-            multasPendientes = ((GestorBloqueoService) gestorBloqueo).obtenerTotalMultasPendientes(idUsuario);
-        }
+        // Calculamos multas pendientes directamente del repositorio
+        BigDecimal multasPendientes = repoMulta.obtenerTodos().stream()
+                .filter(m -> m.getIdUsuario().equals(idUsuario) && m.getEstado() == com.biblioteca.dominio.enumeraciones.EstadoMulta.PENDIENTE)
+                .map(m -> BigDecimal.valueOf(m.calcularMontoTotal()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        boolean puedePrestar = u.getEstado() == com.biblioteca.dominio.enumeraciones.EstadoUsuario.ACTIVO 
+                            && multasPendientes.compareTo(BigDecimal.ZERO) == 0;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("\n👤 ESTADO DEL USUARIO:\n");
+        sb.append("\n ESTADO DEL USUARIO:\n");
         sb.append("ID: ").append(u.getId()).append("\n");
         sb.append("Nombre: ").append(u.getNombre()).append("\n");
         sb.append("Tipo: ").append(u.getTipo()).append("\n");
         sb.append("Estado: ").append(u.getEstado()).append("\n");
         sb.append("Préstamos activos: ").append(prestamosActivos).append("/").append(limite).append("\n");
         sb.append(String.format("Multas pendientes: $%.2f%n", multasPendientes));
-        sb.append("Puede realizar préstamos: ").append(validacion.esValido() ? "✅ SÍ" : "❌ NO").append("\n");
+        sb.append("Puede realizar préstamos: ").append(puedePrestar ? "SÍ" : "NO").append("\n");
 
-        if (!validacion.esValido() && !validacion.getErrores().isEmpty()) {
-            sb.append("Motivo: ").append(validacion.getErrores().get(0)).append("\n");
+        if (!puedePrestar) {
+            if (u.getEstado() != com.biblioteca.dominio.enumeraciones.EstadoUsuario.ACTIVO) {
+                sb.append("Motivo: El usuario no tiene estado ACTIVO\n");
+            } else if (multasPendientes.compareTo(BigDecimal.ZERO) > 0) {
+                sb.append("Motivo: El usuario tiene multas pendientes de pago\n");
+            }
         }
 
         return sb.toString();
@@ -105,7 +107,7 @@ public class ServicioReportes implements IServicioReportes {
                 .count();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("\n📊 ESTADÍSTICAS GENERALES:\n");
+        sb.append("\n ESTADÍSTICAS GENERALES:\n");
         sb.append("Total materiales: ").append(totalMateriales).append("\n");
         sb.append("Total usuarios: ").append(totalUsuarios).append("\n");
         sb.append("Préstamos activos: ").append(prestamosActivos).append("\n");
@@ -118,7 +120,7 @@ public class ServicioReportes implements IServicioReportes {
     @Override
     public String generarLimitesUsuario() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n📋 LÍMITES DE PRÉSTAMO POR TIPO DE USUARIO:\n");
+        sb.append("\n LÍMITES DE PRÉSTAMO POR TIPO DE USUARIO:\n");
         sb.append("ESTUDIANTE: ").append(limiteService.obtenerLimiteMaximo(TipoUsuario.ESTUDIANTE)).append("\n");
         sb.append("PROFESOR: ").append(limiteService.obtenerLimiteMaximo(TipoUsuario.PROFESOR)).append("\n");
         sb.append("INVESTIGADOR: ").append(limiteService.obtenerLimiteMaximo(TipoUsuario.INVESTIGADOR)).append("\n");
@@ -129,7 +131,7 @@ public class ServicioReportes implements IServicioReportes {
     @Override
     public String generarPoliticasTiempo() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n⏱️  DÍAS DE PRÉSTAMO POR TIPO:\n");
+        sb.append("\n DÍAS DE PRÉSTAMO POR TIPO:\n");
         sb.append("-".repeat(50)).append("\n");
         sb.append(String.format("%-15s %-12s %-12s %-12s%n", "MATERIAL", "ESTUDIANTE", "PROFESOR", "INVESTIGADOR"));
         sb.append("-".repeat(50)).append("\n");
@@ -153,12 +155,12 @@ public class ServicioReportes implements IServicioReportes {
     @Override
     public String generarReporteCompleto() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n📑 REPORTE COMPLETO DEL SISTEMA\n");
+        sb.append("\nREPORTE COMPLETO DEL SISTEMA\n");
         sb.append("=".repeat(60)).append("\n");
 
         sb.append(generarEstadisticasGenerales());
 
-        sb.append("\n📚 MATERIALES POR ESTADO:\n");
+        sb.append("\nMATERIALES POR ESTADO:\n");
         for (EstadoMaterial em : EstadoMaterial.values()) {
             long count = repoMaterial.obtenerTodos().stream()
                     .filter(m -> m.getEstado() == em)
@@ -168,7 +170,7 @@ public class ServicioReportes implements IServicioReportes {
             }
         }
 
-        sb.append("\n👥 USUARIOS POR ESTADO:\n");
+        sb.append("\nUSUARIOS POR ESTADO:\n");
         for (EstadoUsuario eu : EstadoUsuario.values()) {
             long count = repoUsuario.obtenerTodos().stream()
                     .filter(u -> u.getEstado() == eu)
@@ -178,7 +180,7 @@ public class ServicioReportes implements IServicioReportes {
             }
         }
 
-        sb.append("\n💰 MULTAS POR ESTADO:\n");
+        sb.append("\nMULTAS POR ESTADO:\n");
         double totalMultas = 0;
         for (EstadoMulta em : EstadoMulta.values()) {
             double suma = repoMulta.obtenerTodos().stream()

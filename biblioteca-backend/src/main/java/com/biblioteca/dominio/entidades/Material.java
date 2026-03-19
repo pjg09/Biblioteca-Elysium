@@ -63,7 +63,7 @@ public abstract class Material {
         this.precio = precio;
     }
 
-    // ✅ COMPORTAMIENTO, NO SOLO DATOS
+    // COMPORTAMIENTO, NO SOLO DATOS
     public void marcarComoPrestado() {
         if (this.estado != EstadoMaterial.DISPONIBLE) {
             throw new IllegalStateException(
