@@ -101,15 +101,7 @@ public class Main {
                 CalculadorMultaPorPerdida calculadorPerdida = new CalculadorMultaPorPerdida(repoMaterial, repoUsuario);
 
                 // =====================================================
-                // 5. CREAR GESTOR DE MULTAS Y REGISTRAR CALCULADORES
-                // =====================================================
-                GestorMultasService gestorMultas = new GestorMultasService();
-                gestorMultas.registrarCalculador(calculadorRetraso);
-                gestorMultas.registrarCalculador(calculadorDano);
-                gestorMultas.registrarCalculador(calculadorPerdida);
-
-                // =====================================================
-                // 6. CREAR OTROS SERVICIOS
+                // 5. CREAR SERVICIOS DE BLOQUEO E INSPECCIÓN
                 // =====================================================
                 IGestorBloqueoService gestorBloqueo = new GestorBloqueoService(
                                 repoUsuario,
@@ -117,6 +109,14 @@ public class Main {
                                 repoPrestamo // ← Este parámetro faltaba
                 );
                 IInspeccionMaterialService inspeccionService = new InspeccionMaterialService(repoMaterial);
+
+                // =====================================================
+                // 6. CREAR GESTOR DE MULTAS Y REGISTRAR CALCULADORES
+                // =====================================================
+                com.biblioteca.servicios.interfaces.IGestorMultasService gestorMultas = new GestorMultasService(repoMulta, repoUsuario, gestorBloqueo);
+                gestorMultas.registrarCalculador(calculadorRetraso);
+                gestorMultas.registrarCalculador(calculadorDano);
+                gestorMultas.registrarCalculador(calculadorPerdida);
 
                 // 6.1 Validador de reglas
                 ValidadorReglasService validadorReglas = new ValidadorReglasService(
@@ -151,21 +151,31 @@ public class Main {
 
                 IServicioReportes servicioReportes = new ServicioReportes(
                                 repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
-                                gestorBloqueo, prestamoService, limiteService, politicaTiempoService);
+                                gestorBloqueo, limiteService, politicaTiempoService);
 
                 // =====================================================
-                // 7. CARGAR DATOS DE EJEMPLO
+                // 7. CREAR FACHADAS ESPECIALIZADAS
+                // =====================================================
+                com.biblioteca.servicios.interfaces.IBibliotecaFacade bibliotecaFacade = new com.biblioteca.servicios.BibliotecaFacade(
+                                prestamoService, devolucionService, reservaService, renovacionService,
+                                gestorMultas);
+
+                com.biblioteca.servicios.interfaces.IConsultaFacade consultaFacade = new com.biblioteca.servicios.ConsultaFacade(
+                                repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
+                                disponibilidadService, servicioReportes);
+
+                com.biblioteca.servicios.interfaces.IAdministracionFacade adminFacade = new com.biblioteca.servicios.AdministracionFacade(
+                                repoMaterial, repoUsuario, gestorBloqueo, gestorMultas);
+
+                // =====================================================
+                // 8. CARGAR DATOS DE EJEMPLO
                 // =====================================================
                 cargarDatosEjemplo(repoMaterial, repoUsuario, repoPrestamo);
 
                 // =====================================================
-                // 8. INICIAR MENÚ DE CONSOLA
+                // 9. INICIAR MENÚ DE CONSOLA (solo 3 fachadas)
                 // =====================================================
-                MenuConsola menu = new MenuConsola(
-                                repoMaterial, repoUsuario, repoPrestamo, repoReserva, repoMulta,
-                                disponibilidadService, gestorBloqueo, gestorMultas,
-                                prestamoService, devolucionService, reservaService, renovacionService,
-                                inspeccionService, validadorReglas, politicaTiempoService, servicioReportes);
+                MenuConsola menu = new MenuConsola(bibliotecaFacade, consultaFacade, adminFacade);
 
                 menu.iniciar();
         }

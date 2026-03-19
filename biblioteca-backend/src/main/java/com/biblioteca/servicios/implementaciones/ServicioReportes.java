@@ -14,13 +14,11 @@ import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
 import com.biblioteca.dominio.enumeraciones.EstadoUsuario;
 import com.biblioteca.dominio.enumeraciones.TipoMaterial;
 import com.biblioteca.dominio.enumeraciones.TipoUsuario;
-import com.biblioteca.dominio.objetosvalor.IdUsuario;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
 import com.biblioteca.servicios.interfaces.ILimitePrestamoService;
 import com.biblioteca.servicios.interfaces.IPoliticaTiempoService;
-import com.biblioteca.servicios.interfaces.IPrestamoService;
 import com.biblioteca.servicios.interfaces.IServicioReportes;
 
 public class ServicioReportes implements IServicioReportes {
@@ -32,7 +30,6 @@ public class ServicioReportes implements IServicioReportes {
     private final IRepositorio<Multa> repoMulta;
 
     private final IGestorBloqueoService gestorBloqueo;
-    private final IPrestamoService prestamoService;
     private final ILimitePrestamoService limiteService;
     private final IPoliticaTiempoService politicaTiempoService;
 
@@ -43,7 +40,6 @@ public class ServicioReportes implements IServicioReportes {
             IRepositorio<Reserva> repoReserva,
             IRepositorio<Multa> repoMulta,
             IGestorBloqueoService gestorBloqueo,
-            IPrestamoService prestamoService,
             ILimitePrestamoService limiteService,
             IPoliticaTiempoService politicaTiempoService) {
         
@@ -53,7 +49,6 @@ public class ServicioReportes implements IServicioReportes {
         this.repoReserva = repoReserva;
         this.repoMulta = repoMulta;
         this.gestorBloqueo = gestorBloqueo;
-        this.prestamoService = prestamoService;
         this.limiteService = limiteService;
         this.politicaTiempoService = politicaTiempoService;
     }
@@ -66,7 +61,9 @@ public class ServicioReportes implements IServicioReportes {
         }
 
         ResultadoValidacion validacion = gestorBloqueo.verificarSiDebeBloquear(idUsuario);
-        int prestamosActivos = prestamoService.obtenerPrestamosActivos(new IdUsuario(idUsuario)).size();
+        int prestamosActivos = (int) repoPrestamo.obtenerTodos().stream()
+                .filter(p -> p.getIdUsuario().getValor().equals(idUsuario) && p.getEstado() == EstadoTransaccion.ACTIVA)
+                .count();
         int limite = limiteService.obtenerLimiteMaximo(u.getTipo());
 
         BigDecimal multasPendientes = BigDecimal.ZERO;

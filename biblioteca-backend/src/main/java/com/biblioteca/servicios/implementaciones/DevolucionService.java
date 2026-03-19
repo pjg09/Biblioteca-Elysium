@@ -16,6 +16,7 @@ import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.repositorios.IRepositorio;
 import com.biblioteca.servicios.interfaces.IDevolucionService;
 import com.biblioteca.servicios.interfaces.IGestorBloqueoService;
+import com.biblioteca.servicios.interfaces.IGestorMultasService;
 import com.biblioteca.servicios.interfaces.IInspeccionMaterialService;
 import com.biblioteca.servicios.interfaces.INotificacionService;
 import com.biblioteca.servicios.interfaces.IReservaService;
@@ -23,7 +24,7 @@ import com.biblioteca.servicios.interfaces.IReservaService;
 public class DevolucionService implements IDevolucionService {
     
     private final IInspeccionMaterialService inspeccion;
-    private final GestorMultasService gestorMultas;
+    private final IGestorMultasService gestorMultas;
     private final IRepositorio<Prestamo> repoPrestamo;
     private final IRepositorio<Material> repoMaterial;
     private final IRepositorio<Usuario> repoUsuario;
@@ -34,7 +35,7 @@ public class DevolucionService implements IDevolucionService {
     
     public DevolucionService(
             IInspeccionMaterialService inspeccion,
-            GestorMultasService gestorMultas,
+            IGestorMultasService gestorMultas,
             IRepositorio<Prestamo> repoPrestamo,
             IRepositorio<Material> repoMaterial,
             IRepositorio<Usuario> repoUsuario,
