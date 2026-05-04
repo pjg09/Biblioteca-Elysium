@@ -1,15 +1,14 @@
 package com.biblioteca.servicios.implementaciones;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.biblioteca.dominio.entidades.Material;
 import com.biblioteca.dominio.entidades.Reserva;
 import com.biblioteca.dominio.entidades.ReservaInterbibliotecaria;
 import com.biblioteca.dominio.entidades.ReservaNormal;
 import com.biblioteca.dominio.enumeraciones.EstadoMaterial;
+import com.biblioteca.dominio.enumeraciones.EstadoReserva;
 import com.biblioteca.dominio.enumeraciones.EstadoTransaccion;
+import com.biblioteca.dominio.eventos.IDomainEvent;
+import com.biblioteca.dominio.excepciones.OperacionNoPermitidaException;
 import com.biblioteca.dominio.objetosvalor.Resultado;
 import com.biblioteca.dominio.objetosvalor.ResultadoValidacion;
 import com.biblioteca.repositorios.IRepositorio;
@@ -18,129 +17,133 @@ import com.biblioteca.servicios.interfaces.INotificacionService;
 import com.biblioteca.servicios.interfaces.IReservaService;
 import com.biblioteca.servicios.interfaces.IValidadorReglasService;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class ReservaService implements IReservaService {
-    
+
     private final IRepositorio<Reserva> repoReserva;
     private final IRepositorio<Material> repoMaterial;
     private final IDisponibilidadService disponibilidad;
     private final IValidadorReglasService validador;
     private final INotificacionService notificador;
-    
+
     public ReservaService(
             IRepositorio<Reserva> repoReserva,
             IRepositorio<Material> repoMaterial,
             IDisponibilidadService disponibilidad,
             IValidadorReglasService validador,
             INotificacionService notificador) {
-        
-        this.repoReserva = repoReserva;
+        this.repoReserva  = repoReserva;
         this.repoMaterial = repoMaterial;
         this.disponibilidad = disponibilidad;
-        this.validador = validador;
-        this.notificador = notificador;
+        this.validador    = validador;
+        this.notificador  = notificador;
     }
-    
+
     @Override
     public Resultado crearReserva(String idUsuario, String idMaterial, String tipoReserva) {
         try {
             ResultadoValidacion validacion = validador.validarReserva(idUsuario, idMaterial);
-            if (!validacion.esValido()) {
+            if (!validacion.esValido())
                 return Resultado.Fallido(validacion.getErrores().get(0));
-            }
-            
-            if (tieneReservaActiva(idUsuario, idMaterial)) {
+
+            if (tieneReservaActiva(idUsuario, idMaterial))
                 return Resultado.Fallido("El usuario ya tiene una reserva activa para este material");
-            }
-            
+
             Material material = repoMaterial.obtenerPorId(idMaterial);
-            if (material == null) {
+            if (material == null)
                 return Resultado.Fallido("Material no encontrado");
-            }
-            if (material.getTipo() == com.biblioteca.dominio.enumeraciones.TipoMaterial.EBOOK) {
+            if (material.getTipo() == com.biblioteca.dominio.enumeraciones.TipoMaterial.EBOOK)
                 return Resultado.Fallido("Solo se pueden reservar materiales físicos.");
-            }
-            if (material.getEstado() == EstadoMaterial.DISPONIBLE) {
-                return Resultado.Fallido("El material está disponible, puede solicitar un préstamo en lugar de reservarlo.");
-            }
-            
+            if (material.getEstado() == EstadoMaterial.DISPONIBLE)
+                return Resultado.Fallido("El material está disponible, puede solicitar un préstamo.");
+
             Reserva reserva = crearReservaSegunTipo(idUsuario, idMaterial, tipoReserva);
-            
             int posicion = calcularPosicionCola(idMaterial);
-            reserva.setPosicionCola(posicion);
-            
+
+            // ── El agregado registra la posición y emite ReservaCreada ──
+            reserva.registrar(posicion);
+
             Resultado resultado = repoReserva.agregar(reserva);
-            
+
             if (resultado.getExito()) {
                 if (material.getEstado() == EstadoMaterial.DISPONIBLE) {
                     material.marcarComoReservado();
                     repoMaterial.actualizar(material);
                 }
-                
-                String mensaje = "Reserva creada exitosamente. Posición en cola: " + posicion;
-                notificador.enviarNotificacion(idUsuario, mensaje);
+                publicarEventos(reserva.pullEvents());
+                notificador.enviarNotificacion(idUsuario,
+                    "Reserva creada exitosamente. Posición en cola: " + posicion);
             }
-            
+
             return resultado;
-            
+
         } catch (Exception e) {
             return Resultado.Fallido("Error al crear reserva: " + e.getMessage());
         }
     }
-    
+
     @Override
     public Resultado cancelarReserva(String idReserva) {
         try {
             Reserva reserva = repoReserva.obtenerPorId(idReserva);
-            if (reserva == null) {
+            if (reserva == null)
                 return Resultado.Fallido("Reserva no encontrada");
+
+            // ── El agregado encapsula la invariante y emite ReservaCancelada ──
+            try {
+                reserva.cancelar();
+            } catch (OperacionNoPermitidaException e) {
+                return Resultado.Fallido("No se puede cancelar la reserva: " + e.getMessage());
             }
-            
-            if (reserva.getEstado() != EstadoTransaccion.ACTIVA) {
-                return Resultado.Fallido("La reserva no está activa");
-            }
-            
-            reserva.setEstado(EstadoTransaccion.CANCELADA);
+
             Resultado resultado = repoReserva.actualizar(reserva);
-            
+
             if (resultado.getExito()) {
-                notificador.enviarNotificacion(
-                    reserva.getIdUsuario(),
-                    "Su reserva ha sido cancelada exitosamente."
-                );
+                publicarEventos(reserva.pullEvents());
+                notificador.enviarNotificacion(reserva.getIdUsuario(),
+                    "Su reserva ha sido cancelada exitosamente.");
                 actualizarPosicionesCola(reserva.getIdMaterial());
                 actualizarEstadoMaterial(reserva.getIdMaterial());
             }
-            
+
             return resultado;
-            
+
         } catch (Exception e) {
             return Resultado.Fallido("Error al cancelar reserva: " + e.getMessage());
         }
     }
-    
+
     @Override
     public Resultado notificarDisponibilidad(String idReserva) {
         try {
             Reserva reserva = repoReserva.obtenerPorId(idReserva);
-            if (reserva == null) {
+            if (reserva == null)
                 return Resultado.Fallido("Reserva no encontrada");
+
+            // ── El agregado encapsula la invariante (posicion==1, estado EN_ESPERA) ──
+            try {
+                reserva.notificarDisponibilidad(LocalDateTime.now());
+            } catch (OperacionNoPermitidaException e) {
+                return Resultado.Fallido("No se puede notificar disponibilidad: " + e.getMessage());
             }
-            
-            reserva.setFechaNotificacion(LocalDateTime.now());
-            reserva.setFechaExpiracion(LocalDateTime.now().plusHours(24));
+
             repoReserva.actualizar(reserva);
-            
+            List<IDomainEvent> eventos = reserva.pullEvents();
+            publicarEventos(eventos);
+
             Material material = repoMaterial.obtenerPorId(reserva.getIdMaterial());
-            String mensaje = "El material " + (material != null ? material.getTitulo() : "") + 
-                            " ya está disponible. Tiene 24 horas para recogerlo.";
-            
-            return notificador.enviarNotificacion(reserva.getIdUsuario(), mensaje);
-            
+            String msg = "El material " + (material != null ? material.getTitulo() : "")
+                + " ya está disponible. Tiene 24 horas para recogerlo.";
+            return notificador.enviarNotificacion(reserva.getIdUsuario(), msg);
+
         } catch (Exception e) {
             return Resultado.Fallido("Error al notificar disponibilidad: " + e.getMessage());
         }
     }
-    
+
     public List<Reserva> obtenerReservasActivasPorUsuario(String idUsuario) {
         LocalDateTime ahora = LocalDateTime.now();
         return repoReserva.obtenerTodos().stream()
@@ -149,7 +152,7 @@ public class ReservaService implements IReservaService {
             .filter(r -> r.getFechaExpiracion().isAfter(ahora))
             .collect(Collectors.toList());
     }
-    
+
     public List<Reserva> obtenerReservasActivasPorMaterial(String idMaterial) {
         LocalDateTime ahora = LocalDateTime.now();
         return repoReserva.obtenerTodos().stream()
@@ -159,42 +162,44 @@ public class ReservaService implements IReservaService {
             .sorted((r1, r2) -> Integer.compare(r1.getPosicionCola(), r2.getPosicionCola()))
             .collect(Collectors.toList());
     }
-    
+
     public Reserva obtenerSiguienteEnCola(String idMaterial) {
         List<Reserva> activas = obtenerReservasActivasPorMaterial(idMaterial);
         return activas.isEmpty() ? null : activas.get(0);
     }
-    
+
     public void limpiarReservasExpiradas() {
         LocalDateTime ahora = LocalDateTime.now();
         List<Reserva> expiradas = repoReserva.obtenerTodos().stream()
-            .filter(r -> r.getEstado() == EstadoTransaccion.ACTIVA)
+            .filter(r -> r.getEstadoReserva() == EstadoReserva.NOTIFICADA)
             .filter(r -> r.getFechaExpiracion().isBefore(ahora))
             .collect(Collectors.toList());
-        
+
         for (Reserva reserva : expiradas) {
-            reserva.setEstado(EstadoTransaccion.CANCELADA);
-            repoReserva.actualizar(reserva);
-            notificador.enviarNotificacion(
-                reserva.getIdUsuario(),
-                "Su reserva ha expirado por falta de recogida."
-            );
+            try {
+                reserva.expirar();
+                repoReserva.actualizar(reserva);
+                publicarEventos(reserva.pullEvents());
+                notificador.enviarNotificacion(reserva.getIdUsuario(),
+                    "Su reserva ha expirado por falta de recogida.");
+            } catch (OperacionNoPermitidaException e) {
+                System.out.println("[WARN] No se pudo expirar reserva " + reserva.getId() + ": " + e.getMessage());
+            }
         }
-        
+
         expiradas.stream()
             .map(Reserva::getIdMaterial)
             .distinct()
-            .forEach(id -> this.actualizarEstadoMaterial(id));
+            .forEach(this::actualizarEstadoMaterial);
     }
-    
+
     private Reserva crearReservaSegunTipo(String idUsuario, String idMaterial, String tipoReserva) {
-        if ("INTERBIBLIOTECARIA".equalsIgnoreCase(tipoReserva)) {
-            return new ReservaInterbibliotecaria(("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Biblioteca Central");
-        } else {
-            return new ReservaNormal(("RES-" + java.util.UUID.randomUUID().toString().substring(0,6)), idUsuario, idMaterial, "Sala de lectura");
-        }
+        String id = "RES-" + java.util.UUID.randomUUID().toString().substring(0, 6);
+        if ("INTERBIBLIOTECARIA".equalsIgnoreCase(tipoReserva))
+            return new ReservaInterbibliotecaria(id, idUsuario, idMaterial, "Biblioteca Central");
+        return new ReservaNormal(id, idUsuario, idMaterial, "Sala de lectura");
     }
-    
+
     private int calcularPosicionCola(String idMaterial) {
         LocalDateTime ahora = LocalDateTime.now();
         return (int) repoReserva.obtenerTodos().stream()
@@ -203,19 +208,19 @@ public class ReservaService implements IReservaService {
             .filter(r -> r.getFechaExpiracion().isAfter(ahora))
             .count() + 1;
     }
-    
+
     private void actualizarPosicionesCola(String idMaterial) {
-        List<Reserva> activas = obtenerReservasActivasPorMaterial((idMaterial));
+        List<Reserva> activas = obtenerReservasActivasPorMaterial(idMaterial);
         for (int i = 0; i < activas.size(); i++) {
-            activas.get(i).setPosicionCola(i + 1);
+            // Reorganización interna de cola: no emite evento
+            activas.get(i).asignarPosicionEnCola(i + 1);
             repoReserva.actualizar(activas.get(i));
         }
     }
-    
+
     private void actualizarEstadoMaterial(String idMaterial) {
-        List<Reserva> activas = obtenerReservasActivasPorMaterial((idMaterial));
+        List<Reserva> activas = obtenerReservasActivasPorMaterial(idMaterial);
         Material material = repoMaterial.obtenerPorId(idMaterial);
-        
         if (material != null) {
             if (activas.isEmpty() && material.getEstado() != EstadoMaterial.PRESTADO) {
                 material.marcarComoDisponible();
@@ -226,13 +231,20 @@ public class ReservaService implements IReservaService {
             }
         }
     }
-    
+
     private boolean tieneReservaActiva(String idUsuario, String idMaterial) {
         LocalDateTime ahora = LocalDateTime.now();
         return repoReserva.obtenerTodos().stream()
-            .anyMatch(r -> r.getIdUsuario().equals(idUsuario) &&
-                          r.getIdMaterial().equals(idMaterial) &&
-                          r.getEstado() == EstadoTransaccion.ACTIVA &&
-                          r.getFechaExpiracion().isAfter(ahora));
+            .anyMatch(r -> r.getIdUsuario().equals(idUsuario)
+                       && r.getIdMaterial().equals(idMaterial)
+                       && r.getEstado() == EstadoTransaccion.ACTIVA
+                       && r.getFechaExpiracion().isAfter(ahora));
+    }
+
+    private void publicarEventos(List<IDomainEvent> eventos) {
+        eventos.forEach(e ->
+            System.out.println("[DOMAIN EVENT] " + e.eventType()
+                + " | aggregate=" + e.aggregateId()
+                + " | id=" + e.eventId()));
     }
 }

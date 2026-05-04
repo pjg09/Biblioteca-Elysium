@@ -80,9 +80,9 @@ public class Main {
                 // 3. CREAR CALCULADOR DE COSTOS DE DAÑOS
                 ICalculadorCostoDanoService calculadorCostoDano = new CalculadorCostoDanoService();
                 // 4. CREAR CALCULADORES DE MULTAS (STRATEGY PATTERN)
-                CalculadorMultaPorRetraso calculadorRetraso = new CalculadorMultaPorRetraso(repoPrestamo, repoUsuario);
+                CalculadorMultaPorRetraso calculadorRetraso = new CalculadorMultaPorRetraso();
                 CalculadorMultaPorDano calculadorDano = new CalculadorMultaPorDano(calculadorCostoDano);
-                CalculadorMultaPorPerdida calculadorPerdida = new CalculadorMultaPorPerdida(repoMaterial, repoUsuario);
+                CalculadorMultaPorPerdida calculadorPerdida = new CalculadorMultaPorPerdida();
                 // 5. CREAR SERVICIOS DE BLOQUEO E INSPECCIÓN
                 IGestorBloqueoService gestorBloqueo = new GestorBloqueoService(
                                 repoUsuario,
