@@ -2,9 +2,11 @@ package com.biblioteca.reservas.aplicacion;
 
 import com.biblioteca.reservas.aplicacion.dto.CrearReservaRequest;
 import com.biblioteca.reservas.dominio.Reserva;
+import com.biblioteca.reservas.dominio.builders.ReservaBuilder;
 import com.biblioteca.reservas.infraestructura.mensajeria.RabbitMQConfig;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaEntity;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaJpaRepository;
+import com.biblioteca.commons.objetosvalor.Resultado;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,7 @@ public class ReservaService {
     }
 
     /**
-     * Crea una nueva reserva en la cola para un material.
+     * Crea una nueva reserva en la cola para un material usando validaciones de dominio.
      * La posición se calcula como el total de reservas activas + 1.
      */
     @Transactional
@@ -49,17 +51,36 @@ public class ReservaService {
                 .findByIdMaterialAndEstadoReservaIn(req.getIdMaterial(), ESTADOS_ACTIVOS);
         int posicion = activas.size() + 1;
 
+        // Usar builder para crear y validar la reserva
+        String id = UUID.randomUUID().toString();
+        ReservaBuilder builder = new ReservaBuilder()
+                .conId(id)
+                .conIdUsuario(req.getIdUsuario())
+                .conIdMaterial(req.getIdMaterial())
+                .conPosicionCola(posicion)
+                .conEstadoReserva("EN_ESPERA")
+                .conFechaReserva(LocalDateTime.now())
+                .conSede(req.getSede());
+
+        Resultado<Reserva> resultadoReserva = builder.construir();
+        if (resultadoReserva.esError()) {
+            throw new IllegalArgumentException("Error al crear la reserva: " + resultadoReserva.getMensajeError());
+        }
+
+        Reserva reservaValida = resultadoReserva.getValor();
+
+        // Convertir a Entity para persistencia
         ReservaEntity entity = new ReservaEntity();
-        entity.setId(UUID.randomUUID().toString());
-        entity.setIdUsuario(req.getIdUsuario());
-        entity.setIdMaterial(req.getIdMaterial());
-        entity.setPosicionCola(posicion);
-        entity.setEstadoReserva("EN_ESPERA");
-        entity.setFechaReserva(LocalDateTime.now());
-        entity.setSede(req.getSede());
+        entity.setId(reservaValida.getId());
+        entity.setIdUsuario(reservaValida.getIdUsuario());
+        entity.setIdMaterial(reservaValida.getIdMaterial());
+        entity.setPosicionCola(reservaValida.getPosicionCola());
+        entity.setEstadoReserva(reservaValida.getEstadoReserva());
+        entity.setFechaReserva(reservaValida.getFechaReserva());
+        entity.setSede(reservaValida.getSede());
 
         ReservaEntity saved = reservaJpaRepository.save(entity);
-        log.info("Reserva creada: id={}, usuario={}, material={}, posicion={}",
+        log.info("Reserva creada con validaciones de dominio: id={}, usuario={}, material={}, posicion={}",
                 saved.getId(), saved.getIdUsuario(), saved.getIdMaterial(), saved.getPosicionCola());
 
         // Publicar evento ReservaCreada

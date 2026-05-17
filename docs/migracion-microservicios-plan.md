@@ -4,9 +4,18 @@
 
 | Campo | Valor |
 |---|---|
-| Fase actual | **M1–M6 COMPLETADAS** — todos los microservicios implementados |
+| Fase actual | ✅ **TODAS LAS FASES COMPLETADAS (0–8)** |
+| FASE 0 | ✅ Comprensión del monolito |
+| FASE 1 | ✅ Plan de migración DDD aprobado |
+| FASE 2 | ✅ State Pattern, Strategy Pattern, Builders, Validation |
+| FASE 3 | ✅ Extracción de 9 microservicios |
+| FASE 4 | ✅ Facades implementadas (6 servicios) |
+| FASE 5 | ✅ Strategy Pattern para CalculadorMulta (4 estrategias) |
+| FASE 6 | ✅ Builders con Resultado<T> (5 builders) |
+| FASE 7 | ✅ Validación con IReglaValidacion (4 reglas + composición) |
+| FASE 8 | ✅ Tests exhaustivos (50+ casos) + Documentación |
 | Próxima acción | Levantar con `docker-compose up --build` desde `microservicios/` |
-| Prerequisito | Docker Desktop activo · `mvn clean install -DskipTests` en `microservicios/` para construir JARs antes del build de imágenes |
+| Prerequisito | Docker Desktop activo · `mvn clean install -DskipTests` en `microservicios/` para construir JARs |
 
 ---
 

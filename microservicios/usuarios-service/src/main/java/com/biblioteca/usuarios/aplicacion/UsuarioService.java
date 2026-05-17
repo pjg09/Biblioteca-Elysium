@@ -3,8 +3,11 @@ package com.biblioteca.usuarios.aplicacion;
 import com.biblioteca.usuarios.aplicacion.dto.CrearUsuarioRequest;
 import com.biblioteca.usuarios.aplicacion.dto.EstadoUsuarioDTO;
 import com.biblioteca.usuarios.aplicacion.dto.LimitePrestamoDTO;
+import com.biblioteca.usuarios.dominio.Usuario;
+import com.biblioteca.usuarios.dominio.builders.UsuarioBuilder;
 import com.biblioteca.usuarios.infraestructura.persistencia.UsuarioEntity;
 import com.biblioteca.usuarios.infraestructura.persistencia.UsuarioJpaRepository;
+import com.biblioteca.commons.objetosvalor.Resultado;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -62,16 +65,34 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioEntity registrarUsuario(CrearUsuarioRequest req) {
+        // Usar el builder para validar y construir el Usuario de dominio
+        UsuarioBuilder builder = new UsuarioBuilder()
+                .conId(req.getId())
+                .conNombre(req.getNombre())
+                .conEmail(req.getEmail())
+                .conTipoUsuario(req.getTipoUsuario())
+                .conLimiteMaximoPrestamos(req.getLimiteMaximoPrestamos());
+
+        Resultado<Usuario> resultado = builder.construir();
+
+        if (resultado.esError()) {
+            // En un servicio REST, esto debería lanzar una excepción apropiada
+            throw new IllegalArgumentException(resultado.getMensajeError());
+        }
+
+        // Usuario válido construido, convertir a Entity para persistir
+        Usuario usuarioValido = resultado.getValor();
         UsuarioEntity entity = new UsuarioEntity();
-        entity.setId(req.getId());
-        entity.setNombre(req.getNombre());
-        entity.setEmail(req.getEmail());
-        entity.setTipoUsuario(req.getTipoUsuario());
-        entity.setEstadoUsuario("ACTIVO");
-        entity.setLimiteMaximoPrestamos(req.getLimiteMaximoPrestamos());
+        entity.setId(usuarioValido.getId());
+        entity.setNombre(usuarioValido.getNombre());
+        entity.setEmail(usuarioValido.getEmail());
+        entity.setTipoUsuario(usuarioValido.getTipoUsuario());
+        entity.setEstadoUsuario(usuarioValido.getEstadoUsuario());
+        entity.setLimiteMaximoPrestamos(usuarioValido.getLimiteMaximoPrestamos());
         entity.setFechaCreacion(LocalDateTime.now());
+
         UsuarioEntity saved = usuarioJpaRepository.save(entity);
-        log.info("Usuario registrado: id={}, nombre={}", saved.getId(), saved.getNombre());
+        log.info("Usuario registrado con validaciones de dominio: id={}, nombre={}", saved.getId(), saved.getNombre());
         return saved;
     }
 

@@ -1,9 +1,24 @@
 package com.biblioteca.reservas.dominio;
 
+import com.biblioteca.reservas.dominio.estados.*;
 import java.time.LocalDateTime;
 
 /**
- * Entidad de dominio (no JPA) que representa una reserva en la cola de espera.
+ * Agregado Reserva implementando State Pattern.
+ * 
+ * El comportamiento de la reserva varía según su estado:
+ * - EN_ESPERA: En la cola, esperando disponibilidad
+ * - NOTIFICADA: Material disponible, usuario notificado (24h para recoger)
+ * - COMPLETADA: Usuario recogió el material (terminal)
+ * - CANCELADA: Reserva cancelada (terminal)
+ * - EXPIRADA: Expiró sin recoger (terminal)
+ * 
+ * Ventajas sobre if/else:
+ * - Cada estado es testeable independientemente
+ * - Fácil agregar nuevos estados
+ * - Lógica clara y sin ramas complejas
+ * - Cumple con OCP (Open/Closed Principle)
+ * 
  * BC8 — Bounded Context: Gestión de reservas.
  */
 public class Reserva {
@@ -12,7 +27,7 @@ public class Reserva {
     private String idUsuario;
     private String idMaterial;
     private int posicionCola;
-    private String estadoReserva;   // EN_ESPERA | NOTIFICADA | COMPLETADA | CANCELADA
+    private IEstadoReserva estado; // Objeto de estado, no un String
     private LocalDateTime fechaReserva;
     private LocalDateTime fechaNotificacion;
     private LocalDateTime fechaExpiracion;
@@ -21,14 +36,14 @@ public class Reserva {
     public Reserva() {}
 
     public Reserva(String id, String idUsuario, String idMaterial, int posicionCola,
-                   String estadoReserva, LocalDateTime fechaReserva,
+                   String estadoString, LocalDateTime fechaReserva,
                    LocalDateTime fechaNotificacion, LocalDateTime fechaExpiracion,
                    String sede) {
         this.id = id;
         this.idUsuario = idUsuario;
         this.idMaterial = idMaterial;
         this.posicionCola = posicionCola;
-        this.estadoReserva = estadoReserva;
+        this.estado = reconstruirEstado(estadoString); // Convertir String a estado
         this.fechaReserva = fechaReserva;
         this.fechaNotificacion = fechaNotificacion;
         this.fechaExpiracion = fechaExpiracion;
@@ -36,60 +51,81 @@ public class Reserva {
     }
 
     // -------------------------------------------------------------------------
-    // Comportamiento de dominio
+    // Comportamiento de dominio con State Pattern
     // -------------------------------------------------------------------------
 
     /**
      * Notifica al usuario que el material está disponible.
-     * Precondición: estado == EN_ESPERA y posicionCola == 1.
+     * Delega al estado actual para validar y ejecutar la operación.
      */
-    public void notificarDisponibilidad(LocalDateTime ahora) {
-        if (!"EN_ESPERA".equals(estadoReserva)) {
-            throw new IllegalStateException(
-                    "Solo se puede notificar una reserva EN_ESPERA. Estado actual: " + estadoReserva);
-        }
-        if (posicionCola != 1) {
-            throw new IllegalStateException(
-                    "Solo se puede notificar la reserva en posición 1. Posición actual: " + posicionCola);
-        }
-        this.estadoReserva = "NOTIFICADA";
-        this.fechaNotificacion = ahora;
-        this.fechaExpiracion = ahora.plusHours(24);
+    public void notificarDisponibilidad(LocalDateTime ahora)
+            throws OperacionNoPermitidaEnEstadoReservaException {
+        ReservaContexto contexto = new ReservaContexto(this.posicionCola, this.estado);
+        
+        // El estado decide si se puede notificar
+        this.estado.notificar(ahora, contexto);
+        
+        // Si no lanzó excepción, actualizar el estado de la reserva
+        this.posicionCola = contexto.getPosicionCola();
+        this.fechaNotificacion = contexto.getFechaNotificacion();
+        this.fechaExpiracion = contexto.getFechaExpiracion();
+        this.estado = contexto.getEstadoActual();
     }
 
     /**
      * Expira la reserva cuando el usuario no recogió el material en 24 horas.
-     * Precondición: estado == NOTIFICADA.
+     * Delega al estado actual para validar y ejecutar la operación.
      */
-    public void expirar() {
-        if (!"NOTIFICADA".equals(estadoReserva)) {
-            throw new IllegalStateException(
-                    "Solo se puede expirar una reserva NOTIFICADA. Estado actual: " + estadoReserva);
-        }
-        this.estadoReserva = "CANCELADA";
+    public void expirar()
+            throws OperacionNoPermitidaEnEstadoReservaException {
+        ReservaContexto contexto = new ReservaContexto(this.posicionCola, this.estado);
+        
+        // El estado decide si se puede expirar
+        this.estado.expirar(contexto);
+        
+        // Si no lanzó excepción, actualizar el estado de la reserva
+        this.estado = contexto.getEstadoActual();
     }
 
     /**
      * Cancela la reserva por solicitud del usuario o del sistema.
-     * Precondición: estado == EN_ESPERA o NOTIFICADA.
+     * Delega al estado actual para validar y ejecutar la operación.
      */
-    public void cancelar() {
-        if (!"EN_ESPERA".equals(estadoReserva) && !"NOTIFICADA".equals(estadoReserva)) {
-            throw new IllegalStateException(
-                    "Solo se puede cancelar una reserva EN_ESPERA o NOTIFICADA. Estado actual: " + estadoReserva);
-        }
-        this.estadoReserva = "CANCELADA";
+    public void cancelar()
+            throws OperacionNoPermitidaEnEstadoReservaException {
+        ReservaContexto contexto = new ReservaContexto(this.posicionCola, this.estado);
+        
+        // El estado decide si se puede cancelar
+        this.estado.cancelar(contexto);
+        
+        // Si no lanzó excepción, actualizar el estado de la reserva
+        this.estado = contexto.getEstadoActual();
+    }
+
+    /**
+     * Completa la reserva cuando el usuario recoge el material.
+     * Delega al estado actual para validar y ejecutar la operación.
+     */
+    public void completar()
+            throws OperacionNoPermitidaEnEstadoReservaException {
+        ReservaContexto contexto = new ReservaContexto(this.posicionCola, this.estado);
+        
+        // El estado decide si se puede completar
+        this.estado.completar(contexto);
+        
+        // Si no lanzó excepción, actualizar el estado de la reserva
+        this.estado = contexto.getEstadoActual();
     }
 
     /**
      * Indica si la reserva aún está activa (pendiente de resolución).
      */
     public boolean isActiva() {
-        return "EN_ESPERA".equals(estadoReserva) || "NOTIFICADA".equals(estadoReserva);
+        return this.estado.esActiva();
     }
 
     // -------------------------------------------------------------------------
-    // Getters
+    // Getters y Setters
     // -------------------------------------------------------------------------
 
     public String getId() {
@@ -108,8 +144,15 @@ public class Reserva {
         return posicionCola;
     }
 
+    /**
+     * Retorna el estado de la reserva como String para compatibilidad con persistencia.
+     */
     public String getEstadoReserva() {
-        return estadoReserva;
+        return estado.nombreEstado();
+    }
+
+    public IEstadoReserva getEstadoObjeto() {
+        return estado;
     }
 
     public LocalDateTime getFechaReserva() {
@@ -130,5 +173,28 @@ public class Reserva {
 
     public void setPosicionCola(int posicionCola) {
         this.posicionCola = posicionCola;
+    }
+
+    // --------- Helper privado ---------
+
+    /**
+     * Convierte un String de estado a un objeto IEstadoReserva.
+     * Útil para reconstrucción desde persistencia.
+     */
+    private static IEstadoReserva reconstruirEstado(String estadoString) {
+        switch (estadoString) {
+            case "EN_ESPERA":
+                return new ReservaEnEsperaState();
+            case "NOTIFICADA":
+                return new ReservaNotificadaState();
+            case "COMPLETADA":
+                return new ReservaCompletadaState();
+            case "CANCELADA":
+                return new ReservaCanceladaState();
+            case "EXPIRADA":
+                return new ReservaExpiradaState();
+            default:
+                throw new IllegalArgumentException("Estado de reserva desconocido: " + estadoString);
+        }
     }
 }

@@ -8,6 +8,9 @@ import com.biblioteca.circulacion.aplicacion.dto.LimitePrestamoDTO;
 import com.biblioteca.circulacion.aplicacion.dto.RegistrarPrestamoRequest;
 import com.biblioteca.circulacion.aplicacion.dto.ResultadoOperacion;
 import com.biblioteca.circulacion.dominio.Prestamo;
+import com.biblioteca.circulacion.dominio.builders.PrestamoBuilder;
+import com.biblioteca.circulacion.dominio.estados.OperacionNoPermitidaEnEstadoException;
+import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.circulacion.infraestructura.clientes.MaterialesClient;
 import com.biblioteca.circulacion.infraestructura.clientes.MultasClient;
 import com.biblioteca.circulacion.infraestructura.clientes.PrestamosExternosClient;
@@ -94,16 +97,22 @@ public class CirculacionService {
         // 5. Calcular fecha de devolucion segun tipo de usuario y tipo de prestamo
         LocalDateTime fechaDevolucion = calcularFechaDevolucion(estadoUsuario.getTipoUsuario(), req.getTipoPrestamo());
 
-        // 6. Crear objeto de dominio
+        // 6. Crear objeto de dominio usando builder con validaciones
         String id = UUID.randomUUID().toString();
-        Prestamo prestamo = Prestamo.crear(
-                id,
-                req.getIdUsuario(),
-                req.getIdMaterial(),
-                fechaDevolucion,
-                req.getTipoPrestamo() != null ? req.getTipoPrestamo() : "NORMAL",
-                req.getSede()
-        );
+        PrestamoBuilder builder = new PrestamoBuilder()
+                .conId(id)
+                .conIdUsuario(req.getIdUsuario())
+                .conIdMaterial(req.getIdMaterial())
+                .conFechaDevolucionEsperada(fechaDevolucion)
+                .conTipoPrestamo(req.getTipoPrestamo() != null ? req.getTipoPrestamo() : "NORMAL")
+                .conSede(req.getSede());
+
+        Resultado<Prestamo> resultadoPrestamo = builder.construir();
+        if (resultadoPrestamo.esError()) {
+            return ResultadoOperacion.fallido("Error al crear el préstamo: " + resultadoPrestamo.getMensajeError());
+        }
+
+        Prestamo prestamo = resultadoPrestamo.getValor();
 
         // 7. Persistir
         PrestamoEntity entity = PrestamoEntity.fromDomain(prestamo);
@@ -142,7 +151,7 @@ public class CirculacionService {
         }
 
         // 11. Retornar resultado exitoso
-        return ResultadoOperacion.exitoso("Prestamo registrado exitosamente.", entity);
+        return ResultadoOperacion.exitoso("Prestamo registrado exitosamente con validaciones de dominio.", entity);
     }
 
     @Transactional
@@ -158,7 +167,8 @@ public class CirculacionService {
         Prestamo prestamo = entity.toDomain();
         try {
             prestamo.devolver(LocalDateTime.now());
-        } catch (IllegalStateException e) {
+        } catch (OperacionNoPermitidaEnEstadoException e) {
+            // El préstamo no está en estado ACTIVO, no puede ser devuelto
             return ResultadoOperacion.fallido("No se puede registrar la devolucion: " + e.getMessage());
         }
 
@@ -224,7 +234,8 @@ public class CirculacionService {
 
         try {
             prestamo.renovar(nuevaFecha, MAX_RENOVACIONES);
-        } catch (IllegalStateException e) {
+        } catch (OperacionNoPermitidaEnEstadoException e) {
+            // El estado del préstamo no permite renovación (p.ej. ya fue completado)
             String motivo = e.getMessage();
             try {
                 eventoPublisher.publicarRenovacionRechazada(idPrestamo, entity.getIdUsuario(), motivo);

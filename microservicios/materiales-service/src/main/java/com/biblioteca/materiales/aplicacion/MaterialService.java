@@ -2,8 +2,11 @@ package com.biblioteca.materiales.aplicacion;
 
 import com.biblioteca.materiales.aplicacion.dto.CrearMaterialRequest;
 import com.biblioteca.materiales.aplicacion.dto.DisponibilidadDTO;
+import com.biblioteca.materiales.dominio.Material;
+import com.biblioteca.materiales.dominio.builders.MaterialBuilder;
 import com.biblioteca.materiales.infraestructura.persistencia.MaterialEntity;
 import com.biblioteca.materiales.infraestructura.persistencia.MaterialJpaRepository;
+import com.biblioteca.commons.objetosvalor.Resultado;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -45,16 +48,33 @@ public class MaterialService {
 
     @Transactional
     public MaterialEntity agregarMaterial(CrearMaterialRequest req) {
+        // Usar el builder para validar y construir el Material de dominio
+        MaterialBuilder builder = new MaterialBuilder()
+                .conId(req.getId())
+                .conTitulo(req.getTitulo())
+                .conAutor(req.getAutor())
+                .conTipo(req.getTipo())
+                .conPrecio(req.getPrecio());
+
+        Resultado<Material> resultado = builder.construir();
+
+        if (resultado.esError()) {
+            throw new IllegalArgumentException(resultado.getMensajeError());
+        }
+
+        // Material válido construido, convertir a Entity para persistir
+        Material materialValido = resultado.getValor();
         MaterialEntity entity = new MaterialEntity();
-        entity.setId(req.getId());
-        entity.setTitulo(req.getTitulo());
-        entity.setAutor(req.getAutor());
-        entity.setTipo(req.getTipo());
-        entity.setPrecio(req.getPrecio());
-        entity.setEstado("DISPONIBLE");
+        entity.setId(materialValido.getId());
+        entity.setTitulo(materialValido.getTitulo());
+        entity.setAutor(materialValido.getAutor());
+        entity.setTipo(materialValido.getTipo());
+        entity.setPrecio(materialValido.getPrecio());
+        entity.setEstado(materialValido.getEstado());
         entity.setFechaCreacion(LocalDateTime.now());
+
         MaterialEntity saved = materialJpaRepository.save(entity);
-        log.info("Material creado: id={}, titulo={}", saved.getId(), saved.getTitulo());
+        log.info("Material creado con validaciones de dominio: id={}, titulo={}", saved.getId(), saved.getTitulo());
         return saved;
     }
 
