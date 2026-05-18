@@ -28,7 +28,7 @@ public class ReservasFacade implements IReservasFacade {
     }
     
     @Override
-    public ReservaEntity cancelarReserva(String id) {
+    public ReservaEntity cancelarReserva(String id) throws com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException {
         return reservaService.cancelarReserva(id);
     }
     

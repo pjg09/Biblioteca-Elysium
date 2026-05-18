@@ -3,6 +3,7 @@ package com.biblioteca.multas.dominio.estados;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoMultaException;
 
 import java.time.LocalDateTime;
 

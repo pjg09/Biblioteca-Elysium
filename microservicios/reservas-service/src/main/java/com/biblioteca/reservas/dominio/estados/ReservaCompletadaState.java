@@ -1,5 +1,6 @@
 package com.biblioteca.reservas.dominio.estados;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import java.time.LocalDateTime;
 
 /**
@@ -13,8 +14,7 @@ public class ReservaCompletadaState implements IEstadoReserva {
             throws OperacionNoPermitidaEnEstadoReservaException {
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "notificar",
-                nombreEstado(),
-                "Una reserva completada no puede ser notificada"
+                "[COMPLETADA] Una reserva completada no puede ser notificada"
         );
     }
     
@@ -23,8 +23,7 @@ public class ReservaCompletadaState implements IEstadoReserva {
             throws OperacionNoPermitidaEnEstadoReservaException {
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "cancelar",
-                nombreEstado(),
-                "Una reserva completada no puede ser cancelada"
+                "[COMPLETADA] Una reserva completada no puede ser cancelada"
         );
     }
     
@@ -33,8 +32,7 @@ public class ReservaCompletadaState implements IEstadoReserva {
             throws OperacionNoPermitidaEnEstadoReservaException {
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "expirar",
-                nombreEstado(),
-                "Una reserva completada no puede expirar"
+                "[COMPLETADA] Una reserva completada no puede expirar"
         );
     }
     
@@ -43,8 +41,7 @@ public class ReservaCompletadaState implements IEstadoReserva {
             throws OperacionNoPermitidaEnEstadoReservaException {
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "completar",
-                nombreEstado(),
-                "Una reserva ya completada no puede ser completada nuevamente"
+                "[COMPLETADA] Una reserva ya completada no puede ser completada nuevamente"
         );
     }
     

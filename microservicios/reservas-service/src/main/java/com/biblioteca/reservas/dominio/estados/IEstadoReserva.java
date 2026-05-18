@@ -1,5 +1,6 @@
 package com.biblioteca.reservas.dominio.estados;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import java.time.LocalDateTime;
 
 /**

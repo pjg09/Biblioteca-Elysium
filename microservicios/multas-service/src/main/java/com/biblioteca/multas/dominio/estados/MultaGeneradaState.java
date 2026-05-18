@@ -1,6 +1,7 @@
 package com.biblioteca.multas.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoMultaException;
 
 /**
  * Estado GENERADA (PENDIENTE) de la Multa.

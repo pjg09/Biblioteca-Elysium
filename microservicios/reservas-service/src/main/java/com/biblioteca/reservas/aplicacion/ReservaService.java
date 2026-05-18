@@ -3,6 +3,7 @@ package com.biblioteca.reservas.aplicacion;
 import com.biblioteca.reservas.aplicacion.dto.CrearReservaRequest;
 import com.biblioteca.reservas.dominio.Reserva;
 import com.biblioteca.reservas.dominio.builders.ReservaBuilder;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import com.biblioteca.reservas.infraestructura.mensajeria.RabbitMQConfig;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaEntity;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaJpaRepository;
@@ -104,19 +105,30 @@ public class ReservaService {
     /**
      * Cancela una reserva por id y reorganiza la cola del material.
      */
-    @Transactional
-    public ReservaEntity cancelarReserva(String id) {
-        ReservaEntity entity = reservaJpaRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada: " + id));
+    /**
+ * Cancela una reserva por id y reorganiza la cola del material.
+ */
+@Transactional
+public ReservaEntity cancelarReserva(String id) throws OperacionNoPermitidaEnEstadoReservaException {
+    ReservaEntity entity = reservaJpaRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada: " + id));
 
-        Reserva dominio = entity.toDomain();
+    Reserva dominio = entity.toDomain();
+    try {
         dominio.cancelar();
+    } catch (OperacionNoPermitidaEnEstadoReservaException e) {
+        log.warn("No se puede cancelar reserva en estado {}: {}", dominio.getEstadoReserva(), e.getMessage());
+        throw new OperacionNoPermitidaEnEstadoReservaException(
+            "cancelarReserva",
+            "Reserva en estado " + dominio.getEstadoReserva() + " no puede ser cancelada"
+        );
+    }
 
-        entity.setEstadoReserva(dominio.getEstadoReserva());
-        ReservaEntity saved = reservaJpaRepository.save(entity);
-        log.info("Reserva cancelada: id={}, material={}", id, entity.getIdMaterial());
+    entity.setEstadoReserva(dominio.getEstadoReserva());
+    ReservaEntity saved = reservaJpaRepository.save(entity);
+    log.info("Reserva cancelada: id={}, material={}", id, entity.getIdMaterial());
 
-        // Publicar evento ReservaCancelada
+    // Publicar evento ReservaCancelada
         Map<String, Object> evento = new HashMap<>();
         evento.put("eventType", "reserva.cancelada");
         evento.put("reservaId", saved.getId());

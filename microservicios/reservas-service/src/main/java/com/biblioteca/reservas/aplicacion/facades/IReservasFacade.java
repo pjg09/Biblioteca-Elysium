@@ -2,6 +2,7 @@ package com.biblioteca.reservas.aplicacion.facades;
 
 import com.biblioteca.reservas.aplicacion.dto.CrearReservaRequest;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaEntity;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,8 +56,9 @@ public interface IReservasFacade {
      * @param id ID de la reserva a cancelar
      * @return ReservaEntity con estado actualizado
      * @throws IllegalArgumentException si la reserva no existe
+     * @throws OperacionNoPermitidaEnEstadoReservaException si el estado no permite cancelación
      */
-    ReservaEntity cancelarReserva(String id);
+    ReservaEntity cancelarReserva(String id) throws OperacionNoPermitidaEnEstadoReservaException;
     
     /**
      * Obtiene una reserva por su ID.

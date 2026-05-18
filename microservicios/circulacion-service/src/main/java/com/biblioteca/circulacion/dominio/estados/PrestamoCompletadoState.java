@@ -1,6 +1,7 @@
 package com.biblioteca.circulacion.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 
 /**
  * Estado COMPLETADO del Préstamo.
@@ -18,8 +19,7 @@ public class PrestamoCompletadoState implements IEstadoPrestamo {
             throws OperacionNoPermitidaEnEstadoException {
         throw new OperacionNoPermitidaEnEstadoException(
                 "renovar",
-                nombreEstado(),
-                "Un préstamo completado no puede ser renovado"
+                "[COMPLETADO] Un préstamo completado no puede ser renovado"
         );
     }
     
@@ -28,8 +28,7 @@ public class PrestamoCompletadoState implements IEstadoPrestamo {
             throws OperacionNoPermitidaEnEstadoException {
         throw new OperacionNoPermitidaEnEstadoException(
                 "devolver",
-                nombreEstado(),
-                "Un préstamo ya completado no puede ser devuelto nuevamente"
+                "[COMPLETADO] Un préstamo ya completado no puede ser devuelto nuevamente"
         );
     }
     
@@ -38,8 +37,7 @@ public class PrestamoCompletadoState implements IEstadoPrestamo {
             throws OperacionNoPermitidaEnEstadoException {
         throw new OperacionNoPermitidaEnEstadoException(
                 "cancelar",
-                nombreEstado(),
-                "Un préstamo completado no puede ser cancelado"
+                "[COMPLETADO] Un préstamo completado no puede ser cancelado"
         );
     }
     

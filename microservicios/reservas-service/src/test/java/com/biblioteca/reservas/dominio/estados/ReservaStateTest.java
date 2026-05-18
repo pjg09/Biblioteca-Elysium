@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 
 import java.time.LocalDateTime;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**

@@ -1,6 +1,7 @@
 package com.biblioteca.circulacion.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 
 /**
  * Estado ACTIVO del Préstamo.
@@ -18,8 +19,7 @@ public class PrestamoActivoState implements IEstadoPrestamo {
         if (contexto.getRenovacionesUsadas() >= maxRenovaciones) {
             throw new OperacionNoPermitidaEnEstadoException(
                     "renovar",
-                    nombreEstado(),
-                    "Se ha alcanzado el límite de renovaciones (" + maxRenovaciones + ")"
+                    "[ACTIVO] Se ha alcanzado el límite de renovaciones (" + maxRenovaciones + ")"
             );
         }
         

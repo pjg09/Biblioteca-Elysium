@@ -1,5 +1,6 @@
 package com.biblioteca.reservas.dominio.estados;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import java.time.LocalDateTime;
 
 /**
@@ -19,8 +20,7 @@ public class ReservaEnEsperaState implements IEstadoReserva {
         if (contexto.getPosicionCola() != 1) {
             throw new OperacionNoPermitidaEnEstadoReservaException(
                     "notificar",
-                    nombreEstado(),
-                    "Solo se puede notificar la reserva en posición 1. Posición actual: " + contexto.getPosicionCola()
+                    "[EN_ESPERA] Solo se puede notificar la reserva en posición 1. Posición actual: " + contexto.getPosicionCola()
             );
         }
         
@@ -42,8 +42,7 @@ public class ReservaEnEsperaState implements IEstadoReserva {
         
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "expirar",
-                nombreEstado(),
-                "Una reserva en estado EN_ESPERA no puede expirar"
+                "[EN_ESPERA] Una reserva en estado EN_ESPERA no puede expirar"
         );
     }
     
@@ -53,8 +52,7 @@ public class ReservaEnEsperaState implements IEstadoReserva {
         
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "completar",
-                nombreEstado(),
-                "Una reserva en estado EN_ESPERA no puede ser completada"
+                "[EN_ESPERA] Una reserva en estado EN_ESPERA no puede ser completada"
         );
     }
     

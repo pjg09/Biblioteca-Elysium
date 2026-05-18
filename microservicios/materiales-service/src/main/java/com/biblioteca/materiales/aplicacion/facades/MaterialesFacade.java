@@ -15,7 +15,7 @@ import java.util.Optional;
  * Delega todas las operaciones al MaterialService subyacente.
  */
 @Component
-public class MaterialesFacade implements IMaterialesFacade {
+public class MaterialesFacade implements IMateriales {
     
     private final MaterialService materialService;
     
@@ -39,8 +39,8 @@ public class MaterialesFacade implements IMaterialesFacade {
     }
     
     @Override
-    public Optional<MaterialEntity> actualizarEstado(String id, String nuevoEstado) {
-        return materialService.actualizarEstado(id, nuevoEstado);
+    public void actualizarEstado(String id, String nuevoEstado) {
+        materialService.actualizarEstado(id, nuevoEstado);
     }
     
     @Override
@@ -48,7 +48,6 @@ public class MaterialesFacade implements IMaterialesFacade {
         return materialService.listarTodos();
     }
     
-    @Override
     public List<MaterialEntity> listarPorTipo(String tipo) {
         return materialService.listarPorTipo(tipo);
     }

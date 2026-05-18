@@ -9,7 +9,7 @@ import com.biblioteca.circulacion.aplicacion.dto.RegistrarPrestamoRequest;
 import com.biblioteca.circulacion.aplicacion.dto.ResultadoOperacion;
 import com.biblioteca.circulacion.dominio.Prestamo;
 import com.biblioteca.circulacion.dominio.builders.PrestamoBuilder;
-import com.biblioteca.circulacion.dominio.estados.OperacionNoPermitidaEnEstadoException;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.circulacion.infraestructura.clientes.MaterialesClient;
 import com.biblioteca.circulacion.infraestructura.clientes.MultasClient;

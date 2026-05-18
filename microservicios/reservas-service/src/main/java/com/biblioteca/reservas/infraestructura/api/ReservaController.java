@@ -3,6 +3,7 @@ package com.biblioteca.reservas.infraestructura.api;
 import com.biblioteca.reservas.aplicacion.ReservaService;
 import com.biblioteca.reservas.aplicacion.dto.CrearReservaRequest;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaEntity;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class ReservaController {
      * Cancela una reserva existente y reorganiza la cola.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ReservaEntity> cancelarReserva(@PathVariable String id) {
+    public ResponseEntity<ReservaEntity> cancelarReserva(@PathVariable String id) throws OperacionNoPermitidaEnEstadoReservaException {
         try {
             ReservaEntity cancelled = reservaService.cancelarReserva(id);
             return ResponseEntity.ok(cancelled);

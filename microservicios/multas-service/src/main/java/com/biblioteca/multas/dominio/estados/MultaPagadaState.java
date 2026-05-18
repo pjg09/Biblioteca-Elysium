@@ -1,6 +1,7 @@
 package com.biblioteca.multas.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoMultaException;
 
 /**
  * Estado PAGADA de la Multa.
@@ -14,8 +15,7 @@ public class MultaPagadaState implements IEstadoMulta {
         
         throw new OperacionNoPermitidaEnEstadoMultaException(
                 "pagar",
-                nombreEstado(),
-                "Una multa ya pagada no puede ser pagada nuevamente"
+                "[PAGADA] Una multa ya pagada no puede ser pagada nuevamente"
         );
     }
     
@@ -25,8 +25,7 @@ public class MultaPagadaState implements IEstadoMulta {
         
         throw new OperacionNoPermitidaEnEstadoMultaException(
                 "condonar",
-                nombreEstado(),
-                "Una multa ya pagada no puede ser condonada"
+                "[PAGADA] Una multa ya pagada no puede ser condonada"
         );
     }
     

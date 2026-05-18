@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 
 import java.time.LocalDateTime;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -24,7 +26,7 @@ class PrestamoStateTest {
     void setup() {
         ahora = LocalDateTime.now();
         contexto = new PrestamoContexto(
-                "PRESTAMO-001",
+                ahora.plusDays(14),
                 0,
                 new PrestamoActivoState()
         );
@@ -48,11 +50,12 @@ class PrestamoStateTest {
     void testActivoNoRenuevaALimiteSobrepasado() throws OperacionNoPermitidaEnEstadoException {
         PrestamoActivoState estado = (PrestamoActivoState) contexto.getEstadoActual();
         
-        estado.renovar(ahora.plusDays(14), 2, contexto); // Primera renovación
+        estado.renovar(ahora.plusDays(14), 2, contexto); // Primera renovación (renovacionesUsadas = 1)
+        estado.renovar(ahora.plusDays(28), 2, contexto); // Segunda renovación (renovacionesUsadas = 2)
         
         OperacionNoPermitidaEnEstadoException ex = assertThrows(
                 OperacionNoPermitidaEnEstadoException.class,
-                () -> estado.renovar(ahora.plusDays(28), 2, contexto) // Segunda renovación
+                () -> estado.renovar(ahora.plusDays(42), 2, contexto) // Tercera renovación debe fallar
         );
         
         assertTrue(ex.getMessage().contains("límite de renovaciones"));

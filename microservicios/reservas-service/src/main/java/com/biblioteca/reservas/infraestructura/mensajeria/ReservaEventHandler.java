@@ -113,6 +113,8 @@ public class ReservaEventHandler {
 
         } catch (IllegalStateException e) {
             log.error("Error de estado al notificar reserva id={}: {}", primeraEntity.getId(), e.getMessage());
+        } catch (com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException e) {
+            log.error("Operación no permitida al notificar reserva id={}: {}", primeraEntity.getId(), e.getMessage());
         }
     }
 }

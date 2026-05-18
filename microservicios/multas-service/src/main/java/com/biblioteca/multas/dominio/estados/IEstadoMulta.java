@@ -1,6 +1,7 @@
 package com.biblioteca.multas.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoMultaException;
 
 /**
  * Interfaz que define el contrato para todos los estados de una Multa.

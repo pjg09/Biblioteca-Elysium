@@ -2,7 +2,7 @@ package com.biblioteca.multas.aplicacion;
 
 import com.biblioteca.multas.aplicacion.dto.DeudaPendienteDTO;
 import com.biblioteca.multas.dominio.Multa;
-import com.biblioteca.multas.dominio.estados.OperacionNoPermitidaEnEstadoMultaException;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoMultaException;
 import com.biblioteca.multas.infraestructura.persistencia.MultaEntity;
 import com.biblioteca.multas.infraestructura.persistencia.MultaJpaRepository;
 import org.slf4j.Logger;
@@ -67,21 +67,15 @@ public class MultaService {
         MultaEntity entity = multaJpaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Multa no encontrada: " + id));
 
-        // Convertir a dominio, aplicar pago mediante State Pattern
-        Multa multa = entity.toDomain();
-        multa.pagar(LocalDateTime.now());
+        Multa dominio = entity.toDomain();
+        dominio.pagar(LocalDateTime.now());  // ← Lanza OperacionNoPermitidaEnEstadoMultaException
 
-        // Sincronizar cambios de vuelta a entity y persistir
-        entity.setEstado(multa.getEstado());
-        entity.setFechaPago(multa.getFechaPago());
-        entity = multaJpaRepository.save(entity);
+        entity.setEstado(dominio.getEstado());
+        entity.setFechaPago(dominio.getFechaPago());
+        MultaEntity saved = multaJpaRepository.save(entity);
 
         log.info("Multa pagada: id={}, usuario={}, monto={}", id, entity.getIdUsuario(), entity.getMontoTotal());
-
-        // Publicar evento MultaPagada (si hay infraestructura de eventos)
-        // eventoPublisher.publicarMultaPagada(entity);
-
-        return entity;
+        return saved;
     }
 
     /**
@@ -94,19 +88,18 @@ public class MultaService {
         MultaEntity entity = multaJpaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Multa no encontrada: " + id));
 
-        // Convertir a dominio, aplicar condonación mediante State Pattern
-        Multa multa = entity.toDomain();
-        multa.condonar();
+        Multa dominio = entity.toDomain();
+        dominio.condonar();  // ← Lanza OperacionNoPermitidaEnEstadoMultaException
 
-        // Sincronizar cambios de vuelta a entity y persistir
-        entity.setEstado(multa.getEstado());
-        entity = multaJpaRepository.save(entity);
+        entity.setEstado(dominio.getEstado());
+        MultaEntity saved = multaJpaRepository.save(entity);
 
         log.info("Multa condonada: id={}, usuario={}, monto={}", id, entity.getIdUsuario(), entity.getMontoTotal());
+        return saved;
+    }
 
-        // Publicar evento MultaCondonada (si hay infraestructura de eventos)
-        // eventoPublisher.publicarMultaCondonada(entity);
-
-        return entity;
+    @Transactional(readOnly = true)
+    public List<MultaEntity> obtenerTodas() {
+        return multaJpaRepository.findAll();
     }
 }

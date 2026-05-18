@@ -1,6 +1,7 @@
 package com.biblioteca.circulacion.dominio;
 
 import com.biblioteca.circulacion.dominio.estados.*;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 

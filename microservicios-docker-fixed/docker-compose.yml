@@ -1,0 +1,328 @@
+services:
+  # Infrastructure
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-circulacion:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: circulacion_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5433:5432"
+
+  postgres-materiales:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: materiales_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5434:5432"
+
+  postgres-usuarios:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5435:5432"
+
+  postgres-multas:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: multas_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5436:5432"
+
+  postgres-cobros:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cobros_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5437:5432"
+
+  postgres-reservas:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: reservas_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5438:5432"
+
+  postgres-prestamos-externos:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: prestamos_externos_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5439:5432"
+
+  postgres-reportes:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: reportes_db
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    ports:
+      - "5440:5432"
+
+  mongodb-notificaciones:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: notificaciones_db
+    ports:
+      - "27017:27017"
+
+  # Service Registry
+  eureka-server:
+    image: steeltoeoss/eureka-server:latest
+    ports:
+      - "8761:8761"
+    environment:
+      server.port: 8761
+      eureka.instance.hostname: eureka-server
+
+  # Microservices
+  notificaciones-service:
+    build:
+      context: .
+      dockerfile: ./notificaciones-service/Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      MONGODB_URI: mongodb://mongodb-notificaciones:27017/notificaciones_db
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb-notificaciones:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  reportes-service:
+    build:
+      context: .
+      dockerfile: ./reportes-service/Dockerfile
+    ports:
+      - "8087:8087"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-reportes:5432/reportes_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-reportes:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  materiales-service:
+    build:
+      context: .
+      dockerfile: ./materiales-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-materiales:5432/materiales_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-materiales:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  usuarios-service:
+    build:
+      context: .
+      dockerfile: ./usuarios-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-usuarios:5432/usuarios_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-usuarios:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  multas-service:
+    build:
+      context: .
+      dockerfile: ./multas-service/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-multas:5432/multas_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-multas:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  cobros-service:
+    build:
+      context: .
+      dockerfile: ./cobros-service/Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-cobros:5432/cobros_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      multas-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  reservas-service:
+    build:
+      context: .
+      dockerfile: ./reservas-service/Dockerfile
+    ports:
+      - "8088:8088"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-reservas:5432/reservas_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-reservas:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  prestamos-externos-service:
+    build:
+      context: .
+      dockerfile: ./prestamos-externos-service/Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-prestamos-externos:5432/prestamos_externos_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      postgres-prestamos-externos:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  circulacion-service:
+    build:
+      context: .
+      dockerfile: ./circulacion-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-circulacion:5432/circulacion_db
+      DB_USER: biblioteca
+      DB_PASS: biblioteca
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-circulacion:
+        condition: service_started
+      materiales-service:
+        condition: service_started
+      usuarios-service:
+        condition: service_started
+      multas-service:
+        condition: service_started
+      prestamos-externos-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  cli-service:
+    build:
+      context: .
+      dockerfile: ./cli-service/Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+      materiales-service:
+        condition: service_started
+      usuarios-service:
+        condition: service_started
+      multas-service:
+        condition: service_started
+      reservas-service:
+        condition: service_started
+      circulacion-service:
+        condition: service_started
+    stdin_open: true
+    tty: true
+

@@ -1,6 +1,7 @@
 package com.biblioteca.circulacion.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 
 /**
  * Interfaz que define el contrato para todos los estados de un Préstamo.

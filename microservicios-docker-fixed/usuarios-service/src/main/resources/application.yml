@@ -1,0 +1,33 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: usuarios-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/usuarios_db}
+    username: ${DB_USER:biblioteca}
+    password: ${DB_PASS:biblioteca}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+    non-secure-port: 8083
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

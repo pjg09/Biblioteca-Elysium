@@ -1,5 +1,6 @@
 package com.biblioteca.reservas.dominio.estados;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import java.time.LocalDateTime;
 
 /**
@@ -19,8 +20,7 @@ public class ReservaNotificadaState implements IEstadoReserva {
         
         throw new OperacionNoPermitidaEnEstadoReservaException(
                 "notificar",
-                nombreEstado(),
-                "Una reserva ya notificada no puede ser notificada nuevamente"
+                "[NOTIFICADA] Una reserva ya notificada no puede ser notificada nuevamente"
         );
     }
     

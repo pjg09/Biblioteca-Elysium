@@ -1,6 +1,7 @@
 package com.biblioteca.circulacion.dominio.estados;
 
 import java.time.LocalDateTime;
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 
 /**
  * Estado CANCELADO del Préstamo.
@@ -18,8 +19,7 @@ public class PrestamoCanceladoState implements IEstadoPrestamo {
             throws OperacionNoPermitidaEnEstadoException {
         throw new OperacionNoPermitidaEnEstadoException(
                 "renovar",
-                nombreEstado(),
-                "Un préstamo cancelado no puede ser renovado"
+                "[CANCELADO] Un préstamo cancelado no puede ser renovado"
         );
     }
     
@@ -28,8 +28,7 @@ public class PrestamoCanceladoState implements IEstadoPrestamo {
             throws OperacionNoPermitidaEnEstadoException {
         throw new OperacionNoPermitidaEnEstadoException(
                 "devolver",
-                nombreEstado(),
-                "Un préstamo cancelado no puede ser devuelto"
+                "[CANCELADO] Un préstamo cancelado no puede ser devuelto"
         );
     }
     
@@ -38,8 +37,7 @@ public class PrestamoCanceladoState implements IEstadoPrestamo {
             throws OperacionNoPermitidaEnEstadoException {
         throw new OperacionNoPermitidaEnEstadoException(
                 "cancelar",
-                nombreEstado(),
-                "Un préstamo ya cancelado no puede ser cancelado nuevamente"
+                "[CANCELADO] Un préstamo ya cancelado no puede ser cancelado nuevamente"
         );
     }
     

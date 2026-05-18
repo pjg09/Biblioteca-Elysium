@@ -1,5 +1,6 @@
 package com.biblioteca.reservas.aplicacion;
 
+import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import com.biblioteca.reservas.dominio.Reserva;
 import com.biblioteca.reservas.infraestructura.mensajeria.RabbitMQConfig;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaEntity;
@@ -56,10 +57,15 @@ public class LimpiezaReservasScheduler {
 
             try {
                 Reserva dominio = entity.toDomain();
-                dominio.expirar();
+                dominio.expirar(); // ← ESTA LÍNEA LANZA LA EXCEPCIÓN
 
                 entity.setEstadoReserva(dominio.getEstadoReserva());
+                entity.setFechaExpiracion(dominio.getFechaExpiracion());
                 reservaJpaRepository.save(entity);
+
+                materialesAfectados.add(entity.getIdMaterial());
+                log.info("Reserva expirada: id={}, usuario={}, material={}", 
+                    entity.getId(), entity.getIdUsuario(), entity.getIdMaterial());
 
                 // Publicar evento ReservaExpirada
                 Map<String, Object> evento = new HashMap<>();
@@ -67,20 +73,10 @@ public class LimpiezaReservasScheduler {
                 evento.put("reservaId", entity.getId());
                 evento.put("usuarioId", entity.getIdUsuario());
                 evento.put("materialId", entity.getIdMaterial());
-                evento.put("fechaExpiracion", entity.getFechaExpiracion().toString());
-
-                rabbitTemplate.convertAndSend(
-                        RabbitMQConfig.EXCHANGE_NAME,
-                        RabbitMQConfig.ROUTING_KEY_RESERVA_EXPIRADA,
-                        evento);
-
-                log.info("Reserva expirada: id={}, usuario={}, material={}",
-                        entity.getId(), entity.getIdUsuario(), entity.getIdMaterial());
-
-                materialesAfectados.add(entity.getIdMaterial());
-
-            } catch (IllegalStateException e) {
-                log.error("Error al expirar reserva id={}: {}", entity.getId(), e.getMessage());
+                
+            } catch (OperacionNoPermitidaEnEstadoReservaException e) {
+                log.error("No se puede expirar reserva en estado {}: operación={}, motivo={}", 
+                    entity.getEstadoReserva(), e.getOperacion(), e.getMotivo());
             }
         }
 
