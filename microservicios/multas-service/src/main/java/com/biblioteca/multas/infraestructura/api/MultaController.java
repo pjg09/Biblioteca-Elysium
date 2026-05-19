@@ -27,15 +27,19 @@ public class MultaController {
     }
 
     @GetMapping("/multas")
-    public ResponseEntity<List<MultaEntity>> obtenerPorUsuario(
-            @RequestParam String usuarioId,
+    public ResponseEntity<List<MultaEntity>> obtenerMultas(
+            @RequestParam(required = false) String usuarioId,
             @RequestParam(required = false) String estado) {
 
         List<MultaEntity> multas;
-        if (estado != null && !estado.isBlank()) {
-            multas = multaService.obtenerPorUsuarioYEstado(usuarioId, estado.toUpperCase());
+        if (usuarioId != null && !usuarioId.isBlank()) {
+            if (estado != null && !estado.isBlank()) {
+                multas = multaService.obtenerPorUsuarioYEstado(usuarioId, estado.toUpperCase());
+            } else {
+                multas = multaService.obtenerPorUsuario(usuarioId);
+            }
         } else {
-            multas = multaService.obtenerPorUsuario(usuarioId);
+            multas = multaService.obtenerTodas();
         }
         return ResponseEntity.ok(multas);
     }

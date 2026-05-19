@@ -69,15 +69,13 @@ public class ReservaController {
             @RequestParam(required = false) String usuarioId) {
 
         if (materialId != null && !materialId.isBlank()) {
-            List<ReservaEntity> lista = reservaService.listarPorMaterial(materialId);
-            return ResponseEntity.ok(lista);
+            return ResponseEntity.ok(reservaService.listarPorMaterial(materialId));
         }
 
         if (usuarioId != null && !usuarioId.isBlank()) {
-            List<ReservaEntity> lista = reservaService.listarPorUsuario(usuarioId);
-            return ResponseEntity.ok(lista);
+            return ResponseEntity.ok(reservaService.listarPorUsuario(usuarioId));
         }
 
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(reservaService.listarTodas());
     }
 }

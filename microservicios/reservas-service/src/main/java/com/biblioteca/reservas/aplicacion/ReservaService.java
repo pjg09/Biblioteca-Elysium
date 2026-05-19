@@ -170,6 +170,11 @@ public ReservaEntity cancelarReserva(String id) throws OperacionNoPermitidaEnEst
         return reservaJpaRepository.findByIdUsuarioAndEstadoReservaIn(idUsuario, ESTADOS_ACTIVOS);
     }
 
+    @Transactional(readOnly = true)
+    public List<ReservaEntity> listarTodas() {
+        return reservaJpaRepository.findAll();
+    }
+
     /**
      * Reorganiza las posiciones de la cola EN_ESPERA para un material.
      * Asigna posiciones 1, 2, 3... consecutivamente.

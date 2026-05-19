@@ -25,13 +25,14 @@ public class ReservasClient {
                 new ParameterizedTypeReference<List<Map<String, Object>>>() {}).getBody();
     }
 
-    public Map<String, Object> crear(String idUsuario, String idMaterial, String tipo) {
+    public Map<String, Object> crear(String idUsuario, String idMaterial, String tipo, String sede) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         Map<String, Object> body = Map.of(
                 "idUsuario", idUsuario,
                 "idMaterial", idMaterial,
-                "tipoReserva", tipo
+                "tipoReserva", tipo,
+                "sede", sede
         );
         return rest.postForObject(base + "/reservas", new HttpEntity<>(body, headers), Map.class);
     }

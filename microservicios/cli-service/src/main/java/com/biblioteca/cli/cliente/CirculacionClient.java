@@ -34,13 +34,14 @@ public class CirculacionClient {
         }
     }
 
-    public Map<String, Object> registrar(String idUsuario, String idMaterial, String tipo) {
+    public Map<String, Object> registrar(String idUsuario, String idMaterial, String tipo, String sede) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         Map<String, Object> body = Map.of(
                 "idUsuario", idUsuario,
                 "idMaterial", idMaterial,
-                "tipoPrestamo", tipo
+                "tipoPrestamo", tipo,
+                "sede", sede
         );
         return rest.postForObject(base + "/prestamos", new HttpEntity<>(body, headers), Map.class);
     }

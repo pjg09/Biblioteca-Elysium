@@ -63,15 +63,25 @@ public class UsuarioService {
                 .orElse(new LimitePrestamoDTO(id, null, 0));
     }
 
+    private int limitePorTipo(String tipo) {
+        return switch (tipo == null ? "" : tipo.toUpperCase()) {
+            case "PROFESOR"        -> 10;
+            case "INVESTIGADOR"    -> 15;
+            case "PUBLICO_GENERAL" -> 3;
+            default                -> 5; // ESTUDIANTE y cualquier otro
+        };
+    }
+
     @Transactional
     public UsuarioEntity registrarUsuario(CrearUsuarioRequest req) {
-        // Usar el builder para validar y construir el Usuario de dominio
+        int limite = limitePorTipo(req.getTipoUsuario());
+
         UsuarioBuilder builder = new UsuarioBuilder()
                 .conId(req.getId())
                 .conNombre(req.getNombre())
                 .conEmail(req.getEmail())
                 .conTipoUsuario(req.getTipoUsuario())
-                .conLimiteMaximoPrestamos(req.getLimiteMaximoPrestamos());
+                .conLimiteMaximoPrestamos(limite);
 
         Resultado<Usuario> resultado = builder.construir();
 
