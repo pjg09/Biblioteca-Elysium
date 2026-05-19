@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -62,9 +64,16 @@ public class MaterialController {
      * Crea un nuevo material (admin). Retorna 201 Created.
      */
     @PostMapping
-    public ResponseEntity<MaterialEntity> crear(@RequestBody CrearMaterialRequest request) {
+    public ResponseEntity<?> crear(@RequestBody CrearMaterialRequest request) {
         MaterialEntity created = materialService.agregarMaterial(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleValidacion(IllegalArgumentException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", e.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 
     /**

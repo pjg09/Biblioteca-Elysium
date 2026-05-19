@@ -97,18 +97,23 @@ services:
 
   # Service Registry
   eureka-server:
-    image: springcloud/eureka
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
     ports:
       - "8761:8761"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 5
+      retries: 8
+      start_period: 30s
 
   # Microservices
   notificaciones-service:
-    build: ./notificaciones-service
+    build:
+      context: .
+      dockerfile: notificaciones-service/Dockerfile
     ports:
       - "8086:8086"
     environment:
@@ -124,7 +129,9 @@ services:
         condition: service_healthy
 
   reportes-service:
-    build: ./reportes-service
+    build:
+      context: .
+      dockerfile: reportes-service/Dockerfile
     ports:
       - "8087:8087"
     environment:
@@ -142,7 +149,9 @@ services:
         condition: service_healthy
 
   materiales-service:
-    build: ./materiales-service
+    build:
+      context: .
+      dockerfile: materiales-service/Dockerfile
     ports:
       - "8082:8082"
     environment:
@@ -160,7 +169,9 @@ services:
         condition: service_healthy
 
   usuarios-service:
-    build: ./usuarios-service
+    build:
+      context: .
+      dockerfile: usuarios-service/Dockerfile
     ports:
       - "8083:8083"
     environment:
@@ -178,7 +189,9 @@ services:
         condition: service_healthy
 
   multas-service:
-    build: ./multas-service
+    build:
+      context: .
+      dockerfile: multas-service/Dockerfile
     ports:
       - "8084:8084"
     environment:
@@ -196,7 +209,9 @@ services:
         condition: service_healthy
 
   cobros-service:
-    build: ./cobros-service
+    build:
+      context: .
+      dockerfile: cobros-service/Dockerfile
     ports:
       - "8089:8089"
     environment:
@@ -214,7 +229,9 @@ services:
         condition: service_healthy
 
   reservas-service:
-    build: ./reservas-service
+    build:
+      context: .
+      dockerfile: reservas-service/Dockerfile
     ports:
       - "8088:8088"
     environment:
@@ -232,7 +249,9 @@ services:
         condition: service_healthy
 
   prestamos-externos-service:
-    build: ./prestamos-externos-service
+    build:
+      context: .
+      dockerfile: prestamos-externos-service/Dockerfile
     ports:
       - "8085:8085"
     environment:
@@ -246,8 +265,33 @@ services:
       eureka-server:
         condition: service_healthy
 
+  cli-service:
+    build:
+      context: .
+      dockerfile: cli-service/Dockerfile
+    stdin_open: true
+    tty: true
+    environment:
+      MATERIALES_URL: http://materiales-service:8082
+      USUARIOS_URL: http://usuarios-service:8083
+      CIRCULACION_URL: http://circulacion-service:8081
+      MULTAS_URL: http://multas-service:8084
+      RESERVAS_URL: http://reservas-service:8088
+      COBROS_URL: http://cobros-service:8089
+    profiles:
+      - cli
+    depends_on:
+      - materiales-service
+      - usuarios-service
+      - circulacion-service
+      - multas-service
+      - reservas-service
+      - cobros-service
+
   circulacion-service:
-    build: ./circulacion-service
+    build:
+      context: .
+      dockerfile: circulacion-service/Dockerfile
     ports:
       - "8081:8081"
     environment:

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: cli-service
+  main:
+    web-application-type: none
+
+servicios:
+  materiales: ${MATERIALES_URL:http://localhost:8082}
+  usuarios: ${USUARIOS_URL:http://localhost:8083}
+  circulacion: ${CIRCULACION_URL:http://localhost:8081}
+  multas: ${MULTAS_URL:http://localhost:8084}
+  reservas: ${RESERVAS_URL:http://localhost:8088}
+  cobros: ${COBROS_URL:http://localhost:8089}

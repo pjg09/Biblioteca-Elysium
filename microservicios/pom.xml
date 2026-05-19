@@ -25,6 +25,7 @@
         <module>reservas-service</module>
         <module>prestamos-externos-service</module>
         <module>circulacion-service</module>
+        <module>cli-service</module>
     </modules>
 
     <properties>

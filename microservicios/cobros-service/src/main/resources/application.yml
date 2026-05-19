@@ -5,9 +5,9 @@ spring:
   application:
     name: cobros-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/cobros_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cobros_db}
+    username: ${DB_USER:biblioteca}
+    password: ${DB_PASS:biblioteca}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -20,8 +20,8 @@ spring:
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
     virtual-host: /
 
 eureka:
