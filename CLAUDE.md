@@ -55,7 +55,10 @@ Single-responsibility services: `PrestamoService`, `DevolucionService`, `Reserva
 
 **Domain** (`dominio/`)
 - `entidades/` — abstract bases (`Usuario`, `Material`, `Prestamo`, `Multa`) with concrete subtypes (e.g., `Estudiante`, `Libro`, `PrestamoNormal`)
-- `objetosValor/` — `Resultado<T>` (universal result wrapper), `Evaluacion`, `ContextoMulta`, `ContextoValidacion`
+- `objetosValor/` — `Resultado<T>` (universal result wrapper), `Evaluacion`, `ContextoMulta`, `ContextoValidacion`, `Dano`, `ResultadoValidacion`
+- `excepciones/` — jerarquía checked: `BibliotecaException` (base), `LimiteExcedidoException`, `MaterialNoDisponibleException`, `MaterialNoEncontradoException`, `OperacionNoPermitidaException`, `UsuarioBloqueadoException`
+- `factories/` — `ContextoCreacionPrestamo` (contexto de creación para la fábrica de préstamos)
+- `config/` — `ConfiguracionBiblioteca` (constantes de configuración del dominio)
 - `estados/` — State pattern for loan lifecycle (`IEstadoPrestamo`)
 - `builders/` — Builder pattern for entities
 - `enumeraciones/` — All enums (`TipoUsuario`, `TipoMaterial`, `EstadoMaterial`, `EstadoReserva`, etc.)
@@ -87,6 +90,8 @@ Generic `IRepositorio<T>` interface with in-memory implementations. `IRepositori
 ## Key Files
 
 - `biblioteca-backend/src/main/java/com/biblioteca/Main.java` — entry point, DI wiring, mock data loading
+- `REFERENCIA_RAPIDA_MICROSERVICIOS.md` — referencia rápida de endpoints y servicios
+- `ANALISIS_MICROSERVICIOS.md` — análisis de la arquitectura de microservicios
 - `biblioteca-backend/pom.xml` — build config, main class set to `com.biblioteca.Main`
 - `diagrama_nuevo_patrones.puml` — diagrama UML actualizado con todos los patrones y cambios de Fase 2
 - `docs/migracion-microservicios-plan.md` — plan completo de migración DDD con estado actual
@@ -118,7 +123,11 @@ Tests en `biblioteca-backend/src/test/java/com/biblioteca/dominio/` (4 clases, 3
 
 ## Microservicios (Fase 3)
 
-Directorio: `microservicios/`. Construcción desde la raíz del módulo:
+Hay dos variantes del módulo de microservicios:
+- `microservicios/` — versión original
+- `microservicios-docker-fixed/` — **versión Docker lista para usar**, con PostgreSQL por servicio, MongoDB para notificaciones y `cli-service` interactivo (puerto 8090)
+
+Construcción desde la raíz del módulo elegido:
 
 ```bash
 # Construir todos los módulos (desde microservicios/)
@@ -141,5 +150,6 @@ RabbitMQ exchange: `biblioteca.events` (tipo topic). Routing keys: `prestamo.reg
 | `reportes-service` | 8087 |
 | `reservas-service` | 8088 |
 | `cobros-service` | 8089 |
+| `cli-service` | 8090 |
 | Eureka Server | 8761 |
 | RabbitMQ UI | 15672 |
