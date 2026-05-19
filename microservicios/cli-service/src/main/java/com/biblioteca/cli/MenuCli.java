@@ -187,7 +187,7 @@ public class MenuCli {
             for (Map<String, Object> u : lista) {
                 System.out.printf("%-12s %-22s %-28s %-15s %-12s%n",
                         trunc(u.get("id"), 12), trunc(u.get("nombre"), 20),
-                        trunc(u.get("email"), 26), u.get("tipoUsuario"), u.get("estado"));
+                        trunc(u.get("email"), 26), u.get("tipoUsuario"), u.get("estadoUsuario"));
             }
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -210,10 +210,10 @@ public class MenuCli {
         try {
             Map<String, Object> e = usuarios.consultarEstado(id);
             if (e == null) { System.out.println("Usuario no encontrado"); return; }
-            System.out.println("Estado: " + e.get("estado"));
-            System.out.println("Bloqueado: " + e.get("bloqueado"));
-            System.out.println("Préstamos activos: " + e.get("prestamosActivos"));
-            System.out.println("Deuda pendiente: " + e.get("deudaPendiente"));
+            System.out.println("Usuario: " + e.get("nombre"));
+            System.out.println("Estado:  " + e.get("estadoUsuario"));
+            System.out.println("Activo:  " + e.get("activo"));
+            System.out.println("Tipo:    " + e.get("tipoUsuario"));
         } catch (Exception ex) {
             System.out.println("Error: " + ex.getMessage());
         }
@@ -502,7 +502,7 @@ public class MenuCli {
         System.out.println("Nombre: " + u.get("nombre"));
         System.out.println("Email:  " + u.get("email"));
         System.out.println("Tipo:   " + u.get("tipoUsuario"));
-        System.out.println("Estado: " + u.get("estado"));
+        System.out.println("Estado: " + u.get("estadoUsuario"));
         System.out.println("Límite: " + u.get("limiteMaximoPrestamos"));
     }
 
