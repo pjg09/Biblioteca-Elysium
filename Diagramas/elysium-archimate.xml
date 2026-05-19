@@ -1,0 +1,931 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd"
+       identifier="elysium-biblioteca-upb">
+
+  <name xml:lang="es">Sistema de Gestión Bibliotecaria Elysium — Arquitectura Empresarial</name>
+  <documentation xml:lang="es">
+    Arquitectura empresarial del sistema Elysium modelada con ArchiMate 3.1 y alineada con TOGAF ADM.
+    Desarrollado por: Pedro José Gómez López, David Alexander Salazar Villa, Juan Miguel Muñoz Gómez.
+    Universidad Pontificia Bolivariana — Arquitectura de Software — 2026.
+    Aplica DDD (9 Bounded Contexts), principios SOLID y arquitectura de microservicios con Docker.
+  </documentation>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       ELEMENTOS
+  ═══════════════════════════════════════════════════════════════ -->
+  <elements>
+
+    <!-- ─── CAPA DE MOTIVACIÓN ─────────────────────────────────── -->
+
+    <element identifier="stk-biblioteca" xsi:type="Stakeholder">
+      <name xml:lang="es">Biblioteca UPB</name>
+      <documentation xml:lang="es">Institución responsable de la gestión de recursos bibliográficos y acceso cultural.</documentation>
+    </element>
+    <element identifier="stk-usuario" xsi:type="Stakeholder">
+      <name xml:lang="es">Usuario Biblioteca</name>
+      <documentation xml:lang="es">Estudiante, Profesor, Investigador o Público General con acceso al sistema.</documentation>
+    </element>
+    <element identifier="stk-admin-ti" xsi:type="Stakeholder">
+      <name xml:lang="es">Administrador TI</name>
+      <documentation xml:lang="es">Equipo técnico responsable de la operación de los microservicios.</documentation>
+    </element>
+
+    <element identifier="drv-gestion-manual" xsi:type="Driver">
+      <name xml:lang="es">Gestión manual de préstamos</name>
+      <documentation xml:lang="es">Procesos en papel generan errores, pérdida de trazabilidad y cuellos de botella en mostrador.</documentation>
+    </element>
+    <element identifier="drv-sancion-diferenciada" xsi:type="Driver">
+      <name xml:lang="es">Cálculo diferenciado de sanciones</name>
+      <documentation xml:lang="es">Distintos tipos de usuario requieren reglas de multa específicas que ningún sistema genérico resuelve.</documentation>
+    </element>
+    <element identifier="drv-acceso-justo" xsi:type="Driver">
+      <name xml:lang="es">Acceso justo a recursos</name>
+      <documentation xml:lang="es">Cola de reservas manual no garantiza equidad ni notificación oportuna al siguiente usuario.</documentation>
+    </element>
+    <element identifier="drv-escalabilidad" xsi:type="Driver">
+      <name xml:lang="es">Escalabilidad del sistema</name>
+      <documentation xml:lang="es">El monolito no permite escalar de forma independiente los contextos de alta demanda.</documentation>
+    </element>
+
+    <element identifier="goal-disponibilidad" xsi:type="Goal">
+      <name xml:lang="es">Maximizar disponibilidad de materiales</name>
+    </element>
+    <element identifier="goal-trazabilidad" xsi:type="Goal">
+      <name xml:lang="es">Trazabilidad completa de transacciones</name>
+    </element>
+    <element identifier="goal-automatizacion" xsi:type="Goal">
+      <name xml:lang="es">Automatización de multas y bloqueos</name>
+    </element>
+    <element identifier="goal-escalabilidad" xsi:type="Goal">
+      <name xml:lang="es">Arquitectura escalable e independiente por BC</name>
+    </element>
+
+    <element identifier="req-solid" xsi:type="Requirement">
+      <name xml:lang="es">Principios SOLID en cada servicio</name>
+      <documentation xml:lang="es">SRP, OCP, LSP, ISP, DIP aplicados en la implementación de cada Bounded Context.</documentation>
+    </element>
+    <element identifier="req-ddd" xsi:type="Requirement">
+      <name xml:lang="es">Domain-Driven Design — 9 Bounded Contexts</name>
+      <documentation xml:lang="es">Cada BC encapsula su dominio con agregados, eventos y lenguaje ubicuo propios.</documentation>
+    </element>
+    <element identifier="req-eventos-dominio" xsi:type="Requirement">
+      <name xml:lang="es">Comunicación asíncrona por eventos de dominio</name>
+      <documentation xml:lang="es">RabbitMQ como bus de eventos; routing keys por tipo de evento.</documentation>
+    </element>
+    <element identifier="req-docker" xsi:type="Requirement">
+      <name xml:lang="es">Despliegue en contenedores Docker independientes</name>
+      <documentation xml:lang="es">Cada microservicio con su propia base de datos y Dockerfile multi-stage.</documentation>
+    </element>
+
+    <element identifier="princ-separacion-contextos" xsi:type="Principle">
+      <name xml:lang="es">Separación estricta de Bounded Contexts</name>
+      <documentation xml:lang="es">Ningún BC accede directamente a la base de datos de otro. Comunicación solo por API o eventos.</documentation>
+    </element>
+    <element identifier="princ-bd-por-servicio" xsi:type="Principle">
+      <name xml:lang="es">Base de datos por servicio</name>
+      <documentation xml:lang="es">Cada microservicio posee su esquema de datos exclusivo. Ningún JOIN entre BCs.</documentation>
+    </element>
+
+    <!-- ─── CAPA DE NEGOCIO ─────────────────────────────────────── -->
+
+    <element identifier="actor-bibliotecario" xsi:type="BusinessActor">
+      <name xml:lang="es">Bibliotecario</name>
+    </element>
+    <element identifier="actor-usuario-final" xsi:type="BusinessActor">
+      <name xml:lang="es">Usuario Final</name>
+      <documentation xml:lang="es">Estudiante, Profesor, Investigador o Público General.</documentation>
+    </element>
+    <element identifier="actor-sistema-elysium" xsi:type="BusinessActor">
+      <name xml:lang="es">Sistema Elysium</name>
+    </element>
+
+    <element identifier="role-encargado-circulacion" xsi:type="BusinessRole">
+      <name xml:lang="es">Encargado de Circulación</name>
+    </element>
+    <element identifier="role-prestatario" xsi:type="BusinessRole">
+      <name xml:lang="es">Prestatario</name>
+    </element>
+    <element identifier="role-gestor-reservas" xsi:type="BusinessRole">
+      <name xml:lang="es">Gestor de Reservas</name>
+    </element>
+
+    <element identifier="bsvc-prestamo" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Préstamo Bibliográfico</name>
+    </element>
+    <element identifier="bsvc-devolucion" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Devolución</name>
+    </element>
+    <element identifier="bsvc-renovacion" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Renovación</name>
+    </element>
+    <element identifier="bsvc-reserva" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Reserva en Cola</name>
+    </element>
+    <element identifier="bsvc-multas" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Cálculo de Multas</name>
+    </element>
+    <element identifier="bsvc-cobro" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Cobro y Condonación</name>
+    </element>
+    <element identifier="bsvc-catalogo" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Catálogo de Materiales</name>
+    </element>
+    <element identifier="bsvc-notificacion" xsi:type="BusinessService">
+      <name xml:lang="es">Servicio de Notificación al Usuario</name>
+    </element>
+
+    <element identifier="bproc-circulacion" xsi:type="BusinessProcess">
+      <name xml:lang="es">Circulación Bibliográfica</name>
+      <documentation xml:lang="es">Flujo completo: búsqueda → préstamo → devolución → renovación → reserva.</documentation>
+    </element>
+    <element identifier="bproc-multas" xsi:type="BusinessProcess">
+      <name xml:lang="es">Control de Multas y Bloqueos</name>
+      <documentation xml:lang="es">Generar multa → calcular → notificar → pagar/condonar → desbloquear.</documentation>
+    </element>
+    <element identifier="bproc-reservas" xsi:type="BusinessProcess">
+      <name xml:lang="es">Gestión de Cola de Reservas</name>
+      <documentation xml:lang="es">Reserva → cola de prioridad → notificación disponibilidad → expiración 24h.</documentation>
+    </element>
+
+    <element identifier="bobj-prestamo" xsi:type="BusinessObject">
+      <name xml:lang="es">Préstamo</name>
+      <documentation xml:lang="es">Contrato temporal de uso de un material bibliográfico. Ciclo: ACTIVO → COMPLETADO.</documentation>
+    </element>
+    <element identifier="bobj-reserva" xsi:type="BusinessObject">
+      <name xml:lang="es">Reserva</name>
+      <documentation xml:lang="es">Separación en cola de espera. Estados: EN_ESPERA → NOTIFICADA → COMPLETADA | CANCELADA | EXPIRADA.</documentation>
+    </element>
+    <element identifier="bobj-multa" xsi:type="BusinessObject">
+      <name xml:lang="es">Multa</name>
+      <documentation xml:lang="es">Sanción económica por retraso, daño o pérdida. Diferenciada por tipo de usuario.</documentation>
+    </element>
+    <element identifier="bobj-material" xsi:type="BusinessObject">
+      <name xml:lang="es">Material Bibliográfico</name>
+      <documentation xml:lang="es">Libro, DVD, Revista, EBook. Estados: DISPONIBLE, PRESTADO, RESERVADO, EN_REPARACION, PERDIDO.</documentation>
+    </element>
+    <element identifier="bobj-usuario" xsi:type="BusinessObject">
+      <name xml:lang="es">Usuario</name>
+      <documentation xml:lang="es">Estudiante (límite 5), Profesor (10), Investigador (15), Público General (3).</documentation>
+    </element>
+    <element identifier="bobj-pago" xsi:type="BusinessObject">
+      <name xml:lang="es">Registro de Pago</name>
+    </element>
+
+    <element identifier="bevt-material-devuelto" xsi:type="BusinessEvent">
+      <name xml:lang="es">MaterialDevuelto</name>
+      <documentation xml:lang="es">Dispara BC4 (multas), BC8 (reservas), BC6 (notificaciones), BC7 (reportes).</documentation>
+    </element>
+    <element identifier="bevt-multa-generada" xsi:type="BusinessEvent">
+      <name xml:lang="es">MultaGenerada</name>
+      <documentation xml:lang="es">Dispara BC9 (cobro), BC6 (notificaciones), BC7 (reportes).</documentation>
+    </element>
+    <element identifier="bevt-reserva-notificada" xsi:type="BusinessEvent">
+      <name xml:lang="es">ReservaNotificada</name>
+      <documentation xml:lang="es">Dispara BC6 (notificaciones) y BC1 (habilita retiro).</documentation>
+    </element>
+    <element identifier="bevt-usuario-bloqueado" xsi:type="BusinessEvent">
+      <name xml:lang="es">UsuarioBloqueadoPorDeuda</name>
+      <documentation xml:lang="es">Emitido por BC9 cuando deuda supera umbral. Recibido por BC3.</documentation>
+    </element>
+
+    <!-- ─── CAPA DE APLICACIÓN — Componentes (9 BC + CLI + Eureka) -->
+
+    <element identifier="app-circulacion" xsi:type="ApplicationComponent">
+      <name xml:lang="es">circulacion-service (BC1)</name>
+      <documentation xml:lang="es">Core. Puerto 8081. Préstamos, devoluciones, renovaciones. Depende sincrónicamente de BC2 y BC3. Emite eventos asíncronos.</documentation>
+    </element>
+    <element identifier="app-materiales" xsi:type="ApplicationComponent">
+      <name xml:lang="es">materiales-service (BC2)</name>
+      <documentation xml:lang="es">Supporting. Puerto 8082. Catálogo, disponibilidad, estados físicos. PostgreSQL materiales_db.</documentation>
+    </element>
+    <element identifier="app-usuarios" xsi:type="ApplicationComponent">
+      <name xml:lang="es">usuarios-service (BC3)</name>
+      <documentation xml:lang="es">Supporting. Puerto 8083. Perfiles, límites, estados de cuenta. PostgreSQL usuarios_db.</documentation>
+    </element>
+    <element identifier="app-multas" xsi:type="ApplicationComponent">
+      <name xml:lang="es">multas-service (BC4)</name>
+      <documentation xml:lang="es">Core. Puerto 8084. Cálculo diferenciado por tipo usuario. Estrategia por tipo infracción. PostgreSQL multas_db.</documentation>
+    </element>
+    <element identifier="app-prestamos-ext" xsi:type="ApplicationComponent">
+      <name xml:lang="es">prestamos-externos-service (BC5)</name>
+      <documentation xml:lang="es">Supporting. Puerto 8085. Coordinación con bibliotecas aliadas. PostgreSQL prestamos_externos_db.</documentation>
+    </element>
+    <element identifier="app-notificaciones" xsi:type="ApplicationComponent">
+      <name xml:lang="es">notificaciones-service (BC6)</name>
+      <documentation xml:lang="es">Generic. Puerto 8086. Suscriptor de todos los eventos. MongoDB notificaciones_db.</documentation>
+    </element>
+    <element identifier="app-reportes" xsi:type="ApplicationComponent">
+      <name xml:lang="es">reportes-service (BC7)</name>
+      <documentation xml:lang="es">Generic. Puerto 8087. Observador pasivo, modelos de lectura. PostgreSQL reportes_db.</documentation>
+    </element>
+    <element identifier="app-reservas" xsi:type="ApplicationComponent">
+      <name xml:lang="es">reservas-service (BC8)</name>
+      <documentation xml:lang="es">Core. Puerto 8088. Cola de prioridad, expiración 24h. PostgreSQL reservas_db.</documentation>
+    </element>
+    <element identifier="app-cobros" xsi:type="ApplicationComponent">
+      <name xml:lang="es">cobros-service (BC9)</name>
+      <documentation xml:lang="es">Supporting. Puerto 8089. Pagos, condonaciones, umbral de bloqueo. PostgreSQL cobros_db.</documentation>
+    </element>
+    <element identifier="app-cli" xsi:type="ApplicationComponent">
+      <name xml:lang="es">cli-service</name>
+      <documentation xml:lang="es">Puerto 8090. Menú interactivo de consola. Llama a BC1-BC4, BC8, BC9 via REST. Profile Docker: cli.</documentation>
+    </element>
+    <element identifier="app-eureka" xsi:type="ApplicationComponent">
+      <name xml:lang="es">eureka-server</name>
+      <documentation xml:lang="es">Service Registry. Puerto 8761. Registro y descubrimiento de todos los microservicios.</documentation>
+    </element>
+
+    <!-- Servicios de aplicación expuestos (REST API) -->
+    <element identifier="asvc-registrar-prestamo" xsi:type="ApplicationService">
+      <name xml:lang="es">POST /prestamos</name>
+    </element>
+    <element identifier="asvc-devolver" xsi:type="ApplicationService">
+      <name xml:lang="es">POST /prestamos/{id}/devolucion</name>
+    </element>
+    <element identifier="asvc-renovar" xsi:type="ApplicationService">
+      <name xml:lang="es">POST /prestamos/{id}/renovacion</name>
+    </element>
+    <element identifier="asvc-disponibilidad" xsi:type="ApplicationService">
+      <name xml:lang="es">GET /materiales/{id}/disponibilidad</name>
+    </element>
+    <element identifier="asvc-estado-usuario" xsi:type="ApplicationService">
+      <name xml:lang="es">GET /usuarios/{id}/estado</name>
+    </element>
+    <element identifier="asvc-calcular-multa" xsi:type="ApplicationService">
+      <name xml:lang="es">GET /multas — Calcular Multa</name>
+    </element>
+    <element identifier="asvc-registrar-pago" xsi:type="ApplicationService">
+      <name xml:lang="es">POST /pagos</name>
+    </element>
+    <element identifier="asvc-crear-reserva" xsi:type="ApplicationService">
+      <name xml:lang="es">POST /reservas</name>
+    </element>
+    <element identifier="asvc-notificar" xsi:type="ApplicationService">
+      <name xml:lang="es">Notificacion Handler (evento)</name>
+    </element>
+    <element identifier="asvc-reportes" xsi:type="ApplicationService">
+      <name xml:lang="es">Estadistica Handler (evento)</name>
+    </element>
+
+    <!-- Eventos de dominio como ApplicationEvent -->
+    <element identifier="aevt-prestamo-registrado" xsi:type="ApplicationEvent">
+      <name xml:lang="es">PrestamoRegistrado</name>
+    </element>
+    <element identifier="aevt-material-devuelto" xsi:type="ApplicationEvent">
+      <name xml:lang="es">MaterialDevuelto</name>
+    </element>
+    <element identifier="aevt-multa-generada" xsi:type="ApplicationEvent">
+      <name xml:lang="es">MultaGenerada</name>
+    </element>
+    <element identifier="aevt-multa-pagada" xsi:type="ApplicationEvent">
+      <name xml:lang="es">MultaPagada</name>
+    </element>
+    <element identifier="aevt-reserva-creada" xsi:type="ApplicationEvent">
+      <name xml:lang="es">ReservaCreada</name>
+    </element>
+    <element identifier="aevt-reserva-notificada" xsi:type="ApplicationEvent">
+      <name xml:lang="es">ReservaNotificada</name>
+    </element>
+    <element identifier="aevt-reserva-expirada" xsi:type="ApplicationEvent">
+      <name xml:lang="es">ReservaExpirada</name>
+    </element>
+    <element identifier="aevt-usuario-bloqueado" xsi:type="ApplicationEvent">
+      <name xml:lang="es">UsuarioBloqueadoPorDeuda</name>
+    </element>
+
+    <!-- Objetos de datos -->
+    <element identifier="data-prestamo-entity" xsi:type="DataObject">
+      <name xml:lang="es">PrestamoEntity (JPA)</name>
+    </element>
+    <element identifier="data-material-entity" xsi:type="DataObject">
+      <name xml:lang="es">MaterialEntity (JPA)</name>
+    </element>
+    <element identifier="data-usuario-entity" xsi:type="DataObject">
+      <name xml:lang="es">UsuarioEntity (JPA)</name>
+    </element>
+    <element identifier="data-multa-entity" xsi:type="DataObject">
+      <name xml:lang="es">MultaEntity (JPA)</name>
+    </element>
+    <element identifier="data-reserva-entity" xsi:type="DataObject">
+      <name xml:lang="es">ReservaEntity (JPA)</name>
+    </element>
+    <element identifier="data-pago-entity" xsi:type="DataObject">
+      <name xml:lang="es">RegistroPagoEntity (JPA)</name>
+    </element>
+    <element identifier="data-notificacion-doc" xsi:type="DataObject">
+      <name xml:lang="es">Notificacion (MongoDB Document)</name>
+    </element>
+    <element identifier="data-evento-amqp" xsi:type="DataObject">
+      <name xml:lang="es">DomainEvent (AMQP Message)</name>
+      <documentation xml:lang="es">Exchange: biblioteca.events (topic). Routing keys: prestamo.registrado, material.devuelto, multa.generada, etc.</documentation>
+    </element>
+
+    <!-- ─── CAPA DE TECNOLOGÍA ──────────────────────────────────── -->
+
+    <element identifier="device-host" xsi:type="Device">
+      <name xml:lang="es">Servidor Host Linux</name>
+      <documentation xml:lang="es">Ubuntu/Linux con Docker 29.x y Docker Compose v5. Grupo docker configurado sin sudo.</documentation>
+    </element>
+
+    <element identifier="net-docker" xsi:type="CommunicationNetwork">
+      <name xml:lang="es">Docker Network (microservicios_default)</name>
+      <documentation xml:lang="es">Red bridge interna. Permite resolución de nombres de servicio entre contenedores.</documentation>
+    </element>
+
+    <element identifier="sw-jre-17" xsi:type="SystemSoftware">
+      <name xml:lang="es">Eclipse Temurin JRE 17 Alpine</name>
+    </element>
+    <element identifier="sw-jre-21" xsi:type="SystemSoftware">
+      <name xml:lang="es">Eclipse Temurin JRE 21 Alpine</name>
+      <documentation xml:lang="es">Usado exclusivamente por eureka-server (JAR compilado con Java 21).</documentation>
+    </element>
+    <element identifier="sw-springboot" xsi:type="SystemSoftware">
+      <name xml:lang="es">Spring Boot 3.2.3</name>
+      <documentation xml:lang="es">Framework base. Spring Cloud 2023.0.1 para Eureka. Spring Data JPA + Spring AMQP.</documentation>
+    </element>
+    <element identifier="sw-rabbitmq" xsi:type="SystemSoftware">
+      <name xml:lang="es">RabbitMQ 3.12-management</name>
+      <documentation xml:lang="es">Bus de mensajería. Puerto 5672 (AMQP), 15672 (UI). Exchange tipo topic: biblioteca.events.</documentation>
+    </element>
+    <element identifier="sw-postgres-circ" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — circulacion_db</name>
+      <documentation xml:lang="es">Puerto host: 5433. Tablas: prestamos.</documentation>
+    </element>
+    <element identifier="sw-postgres-mat" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — materiales_db</name>
+      <documentation xml:lang="es">Puerto host: 5434. Tablas: materiales.</documentation>
+    </element>
+    <element identifier="sw-postgres-usr" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — usuarios_db</name>
+      <documentation xml:lang="es">Puerto host: 5435. Tablas: usuarios.</documentation>
+    </element>
+    <element identifier="sw-postgres-mul" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — multas_db</name>
+      <documentation xml:lang="es">Puerto host: 5436. Tablas: multas.</documentation>
+    </element>
+    <element identifier="sw-postgres-cob" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — cobros_db</name>
+      <documentation xml:lang="es">Puerto host: 5437. Tablas: deudas_pendientes, registros_pago.</documentation>
+    </element>
+    <element identifier="sw-postgres-res" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — reservas_db</name>
+      <documentation xml:lang="es">Puerto host: 5438. Tablas: reservas.</documentation>
+    </element>
+    <element identifier="sw-postgres-ext" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — prestamos_externos_db</name>
+      <documentation xml:lang="es">Puerto host: 5439. Tablas: solicitudes_externas.</documentation>
+    </element>
+    <element identifier="sw-postgres-rep" xsi:type="SystemSoftware">
+      <name xml:lang="es">PostgreSQL 16 — reportes_db</name>
+      <documentation xml:lang="es">Puerto host: 5440. Tablas: estadisticas.</documentation>
+    </element>
+    <element identifier="sw-mongodb" xsi:type="SystemSoftware">
+      <name xml:lang="es">MongoDB 7 — notificaciones_db</name>
+      <documentation xml:lang="es">Puerto host: 27017. Colección: notificaciones (documentos).</documentation>
+    </element>
+    <element identifier="sw-eureka-server" xsi:type="SystemSoftware">
+      <name xml:lang="es">Netflix Eureka Server</name>
+      <documentation xml:lang="es">Puerto 8761. Service registry y discovery para todos los microservicios.</documentation>
+    </element>
+    <element identifier="sw-maven" xsi:type="SystemSoftware">
+      <name xml:lang="es">Maven 3.9 (Docker build stage)</name>
+      <documentation xml:lang="es">Stage de build en Dockerfile multi-etapa. mvn install -N + mvn install -f biblioteca-commons/pom.xml.</documentation>
+    </element>
+
+    <!-- Nodos Docker (contenedores) -->
+    <element identifier="node-circ" xsi:type="Node">
+      <name xml:lang="es">Container: circulacion-service</name>
+      <documentation xml:lang="es">Puerto 8081. Imagen: microservicios-circulacion-service.</documentation>
+    </element>
+    <element identifier="node-mat" xsi:type="Node">
+      <name xml:lang="es">Container: materiales-service</name>
+      <documentation xml:lang="es">Puerto 8082.</documentation>
+    </element>
+    <element identifier="node-usr" xsi:type="Node">
+      <name xml:lang="es">Container: usuarios-service</name>
+      <documentation xml:lang="es">Puerto 8083.</documentation>
+    </element>
+    <element identifier="node-mul" xsi:type="Node">
+      <name xml:lang="es">Container: multas-service</name>
+      <documentation xml:lang="es">Puerto 8084.</documentation>
+    </element>
+    <element identifier="node-ext" xsi:type="Node">
+      <name xml:lang="es">Container: prestamos-externos-service</name>
+      <documentation xml:lang="es">Puerto 8085.</documentation>
+    </element>
+    <element identifier="node-not" xsi:type="Node">
+      <name xml:lang="es">Container: notificaciones-service</name>
+      <documentation xml:lang="es">Puerto 8086.</documentation>
+    </element>
+    <element identifier="node-rep" xsi:type="Node">
+      <name xml:lang="es">Container: reportes-service</name>
+      <documentation xml:lang="es">Puerto 8087.</documentation>
+    </element>
+    <element identifier="node-res" xsi:type="Node">
+      <name xml:lang="es">Container: reservas-service</name>
+      <documentation xml:lang="es">Puerto 8088.</documentation>
+    </element>
+    <element identifier="node-cob" xsi:type="Node">
+      <name xml:lang="es">Container: cobros-service</name>
+      <documentation xml:lang="es">Puerto 8089.</documentation>
+    </element>
+    <element identifier="node-cli" xsi:type="Node">
+      <name xml:lang="es">Container: cli-service</name>
+      <documentation xml:lang="es">Puerto 8090. Profile Docker: cli. Lanzado con: docker compose --profile cli run --rm cli-service.</documentation>
+    </element>
+    <element identifier="node-eureka" xsi:type="Node">
+      <name xml:lang="es">Container: eureka-server</name>
+      <documentation xml:lang="es">Puerto 8761. JAR precompilado con Java 21.</documentation>
+    </element>
+    <element identifier="node-rabbit" xsi:type="Node">
+      <name xml:lang="es">Container: rabbitmq</name>
+      <documentation xml:lang="es">Puertos 5672, 15672.</documentation>
+    </element>
+
+    <!-- Artefactos (JARs) -->
+    <element identifier="art-jar-circ" xsi:type="Artifact">
+      <name xml:lang="es">circulacion-service-1.0.0.jar</name>
+    </element>
+    <element identifier="art-jar-mat" xsi:type="Artifact">
+      <name xml:lang="es">materiales-service-1.0.0.jar</name>
+    </element>
+    <element identifier="art-jar-usr" xsi:type="Artifact">
+      <name xml:lang="es">usuarios-service-1.0.0.jar</name>
+    </element>
+    <element identifier="art-jar-mul" xsi:type="Artifact">
+      <name xml:lang="es">multas-service-1.0.0.jar</name>
+    </element>
+    <element identifier="art-jar-res" xsi:type="Artifact">
+      <name xml:lang="es">reservas-service-1.0.0.jar</name>
+    </element>
+    <element identifier="art-jar-cob" xsi:type="Artifact">
+      <name xml:lang="es">cobros-service-1.0.0.jar</name>
+    </element>
+    <element identifier="art-commons" xsi:type="Artifact">
+      <name xml:lang="es">biblioteca-commons-1.0.0.jar</name>
+      <documentation xml:lang="es">Librería compartida: eventos de dominio, enumeraciones, objetos de valor, interfaces de patrones.</documentation>
+    </element>
+
+  </elements>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       RELACIONES
+  ═══════════════════════════════════════════════════════════════ -->
+  <relationships>
+
+    <!-- MOTIVACIÓN: Stakeholders → Drivers → Goals → Requirements -->
+    <relationship identifier="rel-stk-bib-drv1" xsi:type="Influence" source="stk-biblioteca" target="drv-gestion-manual"/>
+    <relationship identifier="rel-stk-bib-drv2" xsi:type="Influence" source="stk-biblioteca" target="drv-sancion-diferenciada"/>
+    <relationship identifier="rel-stk-usr-drv3" xsi:type="Influence" source="stk-usuario" target="drv-acceso-justo"/>
+    <relationship identifier="rel-stk-ti-drv4" xsi:type="Influence" source="stk-admin-ti" target="drv-escalabilidad"/>
+
+    <relationship identifier="rel-drv1-goal1" xsi:type="Influence" source="drv-gestion-manual" target="goal-trazabilidad"/>
+    <relationship identifier="rel-drv2-goal2" xsi:type="Influence" source="drv-sancion-diferenciada" target="goal-automatizacion"/>
+    <relationship identifier="rel-drv3-goal3" xsi:type="Influence" source="drv-acceso-justo" target="goal-disponibilidad"/>
+    <relationship identifier="rel-drv4-goal4" xsi:type="Influence" source="drv-escalabilidad" target="goal-escalabilidad"/>
+
+    <relationship identifier="rel-goal-req-solid" xsi:type="Influence" source="goal-escalabilidad" target="req-solid"/>
+    <relationship identifier="rel-goal-req-ddd" xsi:type="Influence" source="goal-escalabilidad" target="req-ddd"/>
+    <relationship identifier="rel-goal-req-eventos" xsi:type="Influence" source="goal-automatizacion" target="req-eventos-dominio"/>
+    <relationship identifier="rel-goal-req-docker" xsi:type="Influence" source="goal-escalabilidad" target="req-docker"/>
+
+    <relationship identifier="rel-req-solid-app-circ" xsi:type="Influence" source="req-solid" target="app-circulacion"/>
+    <relationship identifier="rel-req-ddd-app-circ" xsi:type="Influence" source="req-ddd" target="app-circulacion"/>
+
+    <!-- NEGOCIO: Actores → Roles → Procesos → Servicios -->
+    <relationship identifier="rel-actor-bib-role" xsi:type="Assignment" source="actor-bibliotecario" target="role-encargado-circulacion"/>
+    <relationship identifier="rel-actor-usr-role" xsi:type="Assignment" source="actor-usuario-final" target="role-prestatario"/>
+    <relationship identifier="rel-role-proc-circ" xsi:type="Assignment" source="role-encargado-circulacion" target="bproc-circulacion"/>
+
+    <relationship identifier="rel-proc-circ-svc1" xsi:type="Composition" source="bproc-circulacion" target="bsvc-prestamo"/>
+    <relationship identifier="rel-proc-circ-svc2" xsi:type="Composition" source="bproc-circulacion" target="bsvc-devolucion"/>
+    <relationship identifier="rel-proc-circ-svc3" xsi:type="Composition" source="bproc-circulacion" target="bsvc-renovacion"/>
+    <relationship identifier="rel-proc-res-svc4" xsi:type="Composition" source="bproc-reservas" target="bsvc-reserva"/>
+    <relationship identifier="rel-proc-mul-svc5" xsi:type="Composition" source="bproc-multas" target="bsvc-multas"/>
+    <relationship identifier="rel-proc-mul-svc6" xsi:type="Composition" source="bproc-multas" target="bsvc-cobro"/>
+
+    <relationship identifier="rel-svc-devolucion-evt" xsi:type="Triggering" source="bsvc-devolucion" target="bevt-material-devuelto"/>
+    <relationship identifier="rel-svc-multas-evt" xsi:type="Triggering" source="bsvc-multas" target="bevt-multa-generada"/>
+    <relationship identifier="rel-svc-reserva-evt" xsi:type="Triggering" source="bsvc-reserva" target="bevt-reserva-notificada"/>
+    <relationship identifier="rel-svc-cobro-evt" xsi:type="Triggering" source="bsvc-cobro" target="bevt-usuario-bloqueado"/>
+
+    <!-- NEGOCIO → APLICACIÓN: Realización de servicios de negocio -->
+    <relationship identifier="rel-bsvc-asvc-prestamo" xsi:type="Realization" source="asvc-registrar-prestamo" target="bsvc-prestamo"/>
+    <relationship identifier="rel-bsvc-asvc-devolucion" xsi:type="Realization" source="asvc-devolver" target="bsvc-devolucion"/>
+    <relationship identifier="rel-bsvc-asvc-renovar" xsi:type="Realization" source="asvc-renovar" target="bsvc-renovacion"/>
+    <relationship identifier="rel-bsvc-asvc-reserva" xsi:type="Realization" source="asvc-crear-reserva" target="bsvc-reserva"/>
+    <relationship identifier="rel-bsvc-asvc-multa" xsi:type="Realization" source="asvc-calcular-multa" target="bsvc-multas"/>
+    <relationship identifier="rel-bsvc-asvc-cobro" xsi:type="Realization" source="asvc-registrar-pago" target="bsvc-cobro"/>
+    <relationship identifier="rel-bsvc-asvc-notif" xsi:type="Realization" source="asvc-notificar" target="bsvc-notificacion"/>
+
+    <!-- APLICACIÓN: Servicios expuestos por componentes -->
+    <relationship identifier="rel-circ-asvc-pre" xsi:type="Composition" source="app-circulacion" target="asvc-registrar-prestamo"/>
+    <relationship identifier="rel-circ-asvc-dev" xsi:type="Composition" source="app-circulacion" target="asvc-devolver"/>
+    <relationship identifier="rel-circ-asvc-ren" xsi:type="Composition" source="app-circulacion" target="asvc-renovar"/>
+    <relationship identifier="rel-mat-asvc-dis" xsi:type="Composition" source="app-materiales" target="asvc-disponibilidad"/>
+    <relationship identifier="rel-usr-asvc-est" xsi:type="Composition" source="app-usuarios" target="asvc-estado-usuario"/>
+    <relationship identifier="rel-mul-asvc-cal" xsi:type="Composition" source="app-multas" target="asvc-calcular-multa"/>
+    <relationship identifier="rel-cob-asvc-pag" xsi:type="Composition" source="app-cobros" target="asvc-registrar-pago"/>
+    <relationship identifier="rel-res-asvc-cre" xsi:type="Composition" source="app-reservas" target="asvc-crear-reserva"/>
+    <relationship identifier="rel-not-asvc-not" xsi:type="Composition" source="app-notificaciones" target="asvc-notificar"/>
+    <relationship identifier="rel-rep-asvc-rep" xsi:type="Composition" source="app-reportes" target="asvc-reportes"/>
+
+    <!-- APLICACIÓN: Dependencias síncronas REST -->
+    <relationship identifier="rel-circ-mat-sync" xsi:type="Serving" source="app-materiales" target="app-circulacion">
+      <name xml:lang="es">GET /materiales/{id}/disponibilidad</name>
+    </relationship>
+    <relationship identifier="rel-circ-usr-sync" xsi:type="Serving" source="app-usuarios" target="app-circulacion">
+      <name xml:lang="es">GET /usuarios/{id}/estado + límite</name>
+    </relationship>
+    <relationship identifier="rel-circ-ext-sync" xsi:type="Serving" source="app-prestamos-ext" target="app-circulacion">
+      <name xml:lang="es">POST /solicitudes-externas</name>
+    </relationship>
+    <relationship identifier="rel-cli-circ" xsi:type="Serving" source="app-circulacion" target="app-cli">
+      <name xml:lang="es">REST API préstamos/devoluciones</name>
+    </relationship>
+    <relationship identifier="rel-cli-mat" xsi:type="Serving" source="app-materiales" target="app-cli">
+      <name xml:lang="es">REST API materiales</name>
+    </relationship>
+    <relationship identifier="rel-cli-usr" xsi:type="Serving" source="app-usuarios" target="app-cli">
+      <name xml:lang="es">REST API usuarios</name>
+    </relationship>
+    <relationship identifier="rel-cli-mul" xsi:type="Serving" source="app-multas" target="app-cli">
+      <name xml:lang="es">REST API multas</name>
+    </relationship>
+    <relationship identifier="rel-cli-res" xsi:type="Serving" source="app-reservas" target="app-cli">
+      <name xml:lang="es">REST API reservas</name>
+    </relationship>
+    <relationship identifier="rel-cli-cob" xsi:type="Serving" source="app-cobros" target="app-cli">
+      <name xml:lang="es">REST API pagos</name>
+    </relationship>
+
+    <!-- APLICACIÓN: Flujos de eventos asíncronos (RabbitMQ) -->
+    <relationship identifier="rel-circ-evt-dev" xsi:type="Triggering" source="app-circulacion" target="aevt-material-devuelto"/>
+    <relationship identifier="rel-circ-evt-pre" xsi:type="Triggering" source="app-circulacion" target="aevt-prestamo-registrado"/>
+    <relationship identifier="rel-aevt-dev-mul" xsi:type="Triggering" source="aevt-material-devuelto" target="app-multas"/>
+    <relationship identifier="rel-aevt-dev-res" xsi:type="Triggering" source="aevt-material-devuelto" target="app-reservas"/>
+    <relationship identifier="rel-aevt-dev-not" xsi:type="Triggering" source="aevt-material-devuelto" target="app-notificaciones"/>
+    <relationship identifier="rel-aevt-dev-rep" xsi:type="Triggering" source="aevt-material-devuelto" target="app-reportes"/>
+    <relationship identifier="rel-mul-evt-gen" xsi:type="Triggering" source="app-multas" target="aevt-multa-generada"/>
+    <relationship identifier="rel-aevt-gen-cob" xsi:type="Triggering" source="aevt-multa-generada" target="app-cobros"/>
+    <relationship identifier="rel-aevt-gen-not" xsi:type="Triggering" source="aevt-multa-generada" target="app-notificaciones"/>
+    <relationship identifier="rel-cob-evt-pag" xsi:type="Triggering" source="app-cobros" target="aevt-multa-pagada"/>
+    <relationship identifier="rel-cob-evt-blk" xsi:type="Triggering" source="app-cobros" target="aevt-usuario-bloqueado"/>
+    <relationship identifier="rel-aevt-blk-usr" xsi:type="Triggering" source="aevt-usuario-bloqueado" target="app-usuarios"/>
+    <relationship identifier="rel-res-evt-cre" xsi:type="Triggering" source="app-reservas" target="aevt-reserva-creada"/>
+    <relationship identifier="rel-res-evt-not" xsi:type="Triggering" source="app-reservas" target="aevt-reserva-notificada"/>
+    <relationship identifier="rel-res-evt-exp" xsi:type="Triggering" source="app-reservas" target="aevt-reserva-expirada"/>
+    <relationship identifier="rel-aevt-not-not" xsi:type="Triggering" source="aevt-reserva-notificada" target="app-notificaciones"/>
+    <relationship identifier="rel-aevt-exp-not" xsi:type="Triggering" source="aevt-reserva-expirada" target="app-notificaciones"/>
+    <relationship identifier="rel-aevt-exp-circ" xsi:type="Triggering" source="aevt-reserva-expirada" target="app-circulacion"/>
+
+    <!-- Acceso a datos -->
+    <relationship identifier="rel-circ-data" xsi:type="Access" source="app-circulacion" target="data-prestamo-entity"/>
+    <relationship identifier="rel-mat-data" xsi:type="Access" source="app-materiales" target="data-material-entity"/>
+    <relationship identifier="rel-usr-data" xsi:type="Access" source="app-usuarios" target="data-usuario-entity"/>
+    <relationship identifier="rel-mul-data" xsi:type="Access" source="app-multas" target="data-multa-entity"/>
+    <relationship identifier="rel-res-data" xsi:type="Access" source="app-reservas" target="data-reserva-entity"/>
+    <relationship identifier="rel-cob-data" xsi:type="Access" source="app-cobros" target="data-pago-entity"/>
+    <relationship identifier="rel-not-data" xsi:type="Access" source="app-notificaciones" target="data-notificacion-doc"/>
+    <relationship identifier="rel-eventos-amqp" xsi:type="Flow" source="aevt-material-devuelto" target="data-evento-amqp"/>
+
+    <!-- TECNOLOGÍA: Aplicaciones realizadas por artefactos en nodos -->
+    <relationship identifier="rel-art-circ-node" xsi:type="Assignment" source="node-circ" target="art-jar-circ"/>
+    <relationship identifier="rel-art-mat-node" xsi:type="Assignment" source="node-mat" target="art-jar-mat"/>
+    <relationship identifier="rel-art-usr-node" xsi:type="Assignment" source="node-usr" target="art-jar-usr"/>
+    <relationship identifier="rel-art-mul-node" xsi:type="Assignment" source="node-mul" target="art-jar-mul"/>
+    <relationship identifier="rel-art-res-node" xsi:type="Assignment" source="node-res" target="art-jar-res"/>
+    <relationship identifier="rel-art-cob-node" xsi:type="Assignment" source="node-cob" target="art-jar-cob"/>
+
+    <relationship identifier="rel-app-circ-art" xsi:type="Realization" source="art-jar-circ" target="app-circulacion"/>
+    <relationship identifier="rel-app-mat-art" xsi:type="Realization" source="art-jar-mat" target="app-materiales"/>
+    <relationship identifier="rel-app-usr-art" xsi:type="Realization" source="art-jar-usr" target="app-usuarios"/>
+    <relationship identifier="rel-app-mul-art" xsi:type="Realization" source="art-jar-mul" target="app-multas"/>
+    <relationship identifier="rel-app-res-art" xsi:type="Realization" source="art-jar-res" target="app-reservas"/>
+    <relationship identifier="rel-app-cob-art" xsi:type="Realization" source="art-jar-cob" target="app-cobros"/>
+
+    <!-- Nodos sobre host y conectados por red Docker -->
+    <relationship identifier="rel-node-circ-host" xsi:type="Assignment" source="device-host" target="node-circ"/>
+    <relationship identifier="rel-node-mat-host" xsi:type="Assignment" source="device-host" target="node-mat"/>
+    <relationship identifier="rel-node-usr-host" xsi:type="Assignment" source="device-host" target="node-usr"/>
+    <relationship identifier="rel-node-mul-host" xsi:type="Assignment" source="device-host" target="node-mul"/>
+    <relationship identifier="rel-node-ext-host" xsi:type="Assignment" source="device-host" target="node-ext"/>
+    <relationship identifier="rel-node-not-host" xsi:type="Assignment" source="device-host" target="node-not"/>
+    <relationship identifier="rel-node-rep-host" xsi:type="Assignment" source="device-host" target="node-rep"/>
+    <relationship identifier="rel-node-res-host" xsi:type="Assignment" source="device-host" target="node-res"/>
+    <relationship identifier="rel-node-cob-host" xsi:type="Assignment" source="device-host" target="node-cob"/>
+    <relationship identifier="rel-node-cli-host" xsi:type="Assignment" source="device-host" target="node-cli"/>
+    <relationship identifier="rel-node-eur-host" xsi:type="Assignment" source="device-host" target="node-eureka"/>
+    <relationship identifier="rel-node-rab-host" xsi:type="Assignment" source="device-host" target="node-rabbit"/>
+
+    <relationship identifier="rel-node-circ-net" xsi:type="Association" source="node-circ" target="net-docker"/>
+    <relationship identifier="rel-node-mat-net" xsi:type="Association" source="node-mat" target="net-docker"/>
+    <relationship identifier="rel-node-usr-net" xsi:type="Association" source="node-usr" target="net-docker"/>
+    <relationship identifier="rel-node-mul-net" xsi:type="Association" source="node-mul" target="net-docker"/>
+    <relationship identifier="rel-node-res-net" xsi:type="Association" source="node-res" target="net-docker"/>
+    <relationship identifier="rel-node-rab-net" xsi:type="Association" source="node-rabbit" target="net-docker"/>
+    <relationship identifier="rel-node-eur-net" xsi:type="Association" source="node-eureka" target="net-docker"/>
+
+    <!-- Software sobre nodos -->
+    <relationship identifier="rel-jre17-circ" xsi:type="Assignment" source="node-circ" target="sw-jre-17"/>
+    <relationship identifier="rel-jre21-eur" xsi:type="Assignment" source="node-eureka" target="sw-jre-21"/>
+    <relationship identifier="rel-rabbit-node" xsi:type="Assignment" source="node-rabbit" target="sw-rabbitmq"/>
+    <relationship identifier="rel-commons-shared" xsi:type="Association" source="art-commons" target="art-jar-circ"/>
+
+    <!-- Eureka registra todos los servicios -->
+    <relationship identifier="rel-eureka-circ" xsi:type="Serving" source="sw-eureka-server" target="app-circulacion">
+      <name xml:lang="es">Service Discovery</name>
+    </relationship>
+    <relationship identifier="rel-eureka-mat" xsi:type="Serving" source="sw-eureka-server" target="app-materiales"/>
+    <relationship identifier="rel-eureka-usr" xsi:type="Serving" source="sw-eureka-server" target="app-usuarios"/>
+    <relationship identifier="rel-eureka-mul" xsi:type="Serving" source="sw-eureka-server" target="app-multas"/>
+    <relationship identifier="rel-eureka-res" xsi:type="Serving" source="sw-eureka-server" target="app-reservas"/>
+    <relationship identifier="rel-eureka-cob" xsi:type="Serving" source="sw-eureka-server" target="app-cobros"/>
+
+    <!-- BDs asignadas a servicios -->
+    <relationship identifier="rel-db-circ" xsi:type="Serving" source="sw-postgres-circ" target="app-circulacion"/>
+    <relationship identifier="rel-db-mat" xsi:type="Serving" source="sw-postgres-mat" target="app-materiales"/>
+    <relationship identifier="rel-db-usr" xsi:type="Serving" source="sw-postgres-usr" target="app-usuarios"/>
+    <relationship identifier="rel-db-mul" xsi:type="Serving" source="sw-postgres-mul" target="app-multas"/>
+    <relationship identifier="rel-db-cob" xsi:type="Serving" source="sw-postgres-cob" target="app-cobros"/>
+    <relationship identifier="rel-db-res" xsi:type="Serving" source="sw-postgres-res" target="app-reservas"/>
+    <relationship identifier="rel-db-ext" xsi:type="Serving" source="sw-postgres-ext" target="app-prestamos-ext"/>
+    <relationship identifier="rel-db-rep" xsi:type="Serving" source="sw-postgres-rep" target="app-reportes"/>
+    <relationship identifier="rel-db-not" xsi:type="Serving" source="sw-mongodb" target="app-notificaciones"/>
+
+    <!-- RabbitMQ como middleware de mensajería -->
+    <relationship identifier="rel-rabbit-circ" xsi:type="Serving" source="sw-rabbitmq" target="app-circulacion"/>
+    <relationship identifier="rel-rabbit-mul" xsi:type="Serving" source="sw-rabbitmq" target="app-multas"/>
+    <relationship identifier="rel-rabbit-res" xsi:type="Serving" source="sw-rabbitmq" target="app-reservas"/>
+    <relationship identifier="rel-rabbit-not" xsi:type="Serving" source="sw-rabbitmq" target="app-notificaciones"/>
+    <relationship identifier="rel-rabbit-rep" xsi:type="Serving" source="sw-rabbitmq" target="app-reportes"/>
+    <relationship identifier="rel-rabbit-cob" xsi:type="Serving" source="sw-rabbitmq" target="app-cobros"/>
+
+  </relationships>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       VISTAS / DIAGRAMAS
+  ═══════════════════════════════════════════════════════════════ -->
+  <views>
+    <diagrams>
+
+      <!-- ─── VISTA 1: Motivación y Estrategia ─────────────────── -->
+      <view identifier="view-motivacion" xsi:type="Diagram">
+        <name xml:lang="es">1. Motivación y Estrategia</name>
+        <documentation xml:lang="es">Capa de Motivación TOGAF/ArchiMate: Stakeholders, Drivers, Goals y Requirements del sistema Elysium.</documentation>
+
+        <!-- Stakeholders -->
+        <node identifier="n-stk-bib" elementRef="stk-biblioteca" xsi:type="Element" x="60" y="30" w="160" h="55"/>
+        <node identifier="n-stk-usr" elementRef="stk-usuario" xsi:type="Element" x="260" y="30" w="160" h="55"/>
+        <node identifier="n-stk-ti" elementRef="stk-admin-ti" xsi:type="Element" x="460" y="30" w="160" h="55"/>
+
+        <!-- Drivers -->
+        <node identifier="n-drv1" elementRef="drv-gestion-manual" xsi:type="Element" x="20" y="140" w="180" h="55"/>
+        <node identifier="n-drv2" elementRef="drv-sancion-diferenciada" xsi:type="Element" x="220" y="140" w="180" h="55"/>
+        <node identifier="n-drv3" elementRef="drv-acceso-justo" xsi:type="Element" x="420" y="140" w="160" h="55"/>
+        <node identifier="n-drv4" elementRef="drv-escalabilidad" xsi:type="Element" x="600" y="140" w="160" h="55"/>
+
+        <!-- Goals -->
+        <node identifier="n-goal1" elementRef="goal-disponibilidad" xsi:type="Element" x="20" y="260" w="170" h="55"/>
+        <node identifier="n-goal2" elementRef="goal-trazabilidad" xsi:type="Element" x="210" y="260" w="170" h="55"/>
+        <node identifier="n-goal3" elementRef="goal-automatizacion" xsi:type="Element" x="400" y="260" w="170" h="55"/>
+        <node identifier="n-goal4" elementRef="goal-escalabilidad" xsi:type="Element" x="590" y="260" w="170" h="55"/>
+
+        <!-- Requirements -->
+        <node identifier="n-req1" elementRef="req-solid" xsi:type="Element" x="20" y="380" w="160" h="55"/>
+        <node identifier="n-req2" elementRef="req-ddd" xsi:type="Element" x="200" y="380" w="180" h="55"/>
+        <node identifier="n-req3" elementRef="req-eventos-dominio" xsi:type="Element" x="400" y="380" w="180" h="55"/>
+        <node identifier="n-req4" elementRef="req-docker" xsi:type="Element" x="600" y="380" w="160" h="55"/>
+
+        <!-- Principles -->
+        <node identifier="n-princ1" elementRef="princ-separacion-contextos" xsi:type="Element" x="100" y="490" w="200" h="55"/>
+        <node identifier="n-princ2" elementRef="princ-bd-por-servicio" xsi:type="Element" x="420" y="490" w="180" h="55"/>
+
+        <!-- Connections -->
+        <connection identifier="cn-stk-bib-drv1" relationshipRef="rel-stk-bib-drv1" source="n-stk-bib" target="n-drv1"/>
+        <connection identifier="cn-stk-bib-drv2" relationshipRef="rel-stk-bib-drv2" source="n-stk-bib" target="n-drv2"/>
+        <connection identifier="cn-stk-usr-drv3" relationshipRef="rel-stk-usr-drv3" source="n-stk-usr" target="n-drv3"/>
+        <connection identifier="cn-stk-ti-drv4" relationshipRef="rel-stk-ti-drv4" source="n-stk-ti" target="n-drv4"/>
+        <connection identifier="cn-drv1-g2" relationshipRef="rel-drv1-goal1" source="n-drv1" target="n-goal2"/>
+        <connection identifier="cn-drv2-g3" relationshipRef="rel-drv2-goal2" source="n-drv2" target="n-goal3"/>
+        <connection identifier="cn-drv3-g1" relationshipRef="rel-drv3-goal3" source="n-drv3" target="n-goal1"/>
+        <connection identifier="cn-drv4-g4" relationshipRef="rel-drv4-goal4" source="n-drv4" target="n-goal4"/>
+        <connection identifier="cn-g4-req1" relationshipRef="rel-goal-req-solid" source="n-goal4" target="n-req1"/>
+        <connection identifier="cn-g4-req2" relationshipRef="rel-goal-req-ddd" source="n-goal4" target="n-req2"/>
+        <connection identifier="cn-g3-req3" relationshipRef="rel-goal-req-eventos" source="n-goal3" target="n-req3"/>
+        <connection identifier="cn-g4-req4" relationshipRef="rel-goal-req-docker" source="n-goal4" target="n-req4"/>
+      </view>
+
+      <!-- ─── VISTA 2: Arquitectura de Negocio ─────────────────── -->
+      <view identifier="view-negocio" xsi:type="Diagram">
+        <name xml:lang="es">2. Arquitectura de Negocio (TOGAF Fase B)</name>
+        <documentation xml:lang="es">Actores, roles, procesos de negocio, servicios y objetos de dominio del sistema Elysium.</documentation>
+
+        <!-- Actores y Roles -->
+        <node identifier="n-act-bib" elementRef="actor-bibliotecario" xsi:type="Element" x="40" y="30" w="150" h="55"/>
+        <node identifier="n-act-usr" elementRef="actor-usuario-final" xsi:type="Element" x="220" y="30" w="150" h="55"/>
+        <node identifier="n-act-sys" elementRef="actor-sistema-elysium" xsi:type="Element" x="400" y="30" w="150" h="55"/>
+        <node identifier="n-role-enc" elementRef="role-encargado-circulacion" xsi:type="Element" x="40" y="130" w="180" h="55"/>
+        <node identifier="n-role-pre" elementRef="role-prestatario" xsi:type="Element" x="240" y="130" w="150" h="55"/>
+        <node identifier="n-role-ges" elementRef="role-gestor-reservas" xsi:type="Element" x="410" y="130" w="160" h="55"/>
+
+        <!-- Procesos de negocio -->
+        <node identifier="n-proc-circ" elementRef="bproc-circulacion" xsi:type="Element" x="40" y="250" w="200" h="70"/>
+        <node identifier="n-proc-res" elementRef="bproc-reservas" xsi:type="Element" x="270" y="250" w="200" h="70"/>
+        <node identifier="n-proc-mul" elementRef="bproc-multas" xsi:type="Element" x="500" y="250" w="200" h="70"/>
+
+        <!-- Servicios de negocio -->
+        <node identifier="n-bsvc-pre" elementRef="bsvc-prestamo" xsi:type="Element" x="20" y="390" w="140" h="50"/>
+        <node identifier="n-bsvc-dev" elementRef="bsvc-devolucion" xsi:type="Element" x="175" y="390" w="130" h="50"/>
+        <node identifier="n-bsvc-ren" elementRef="bsvc-renovacion" xsi:type="Element" x="320" y="390" w="130" h="50"/>
+        <node identifier="n-bsvc-res" elementRef="bsvc-reserva" xsi:type="Element" x="465" y="390" w="130" h="50"/>
+        <node identifier="n-bsvc-mul" elementRef="bsvc-multas" xsi:type="Element" x="610" y="390" w="130" h="50"/>
+        <node identifier="n-bsvc-cob" elementRef="bsvc-cobro" xsi:type="Element" x="755" y="390" w="140" h="50"/>
+        <node identifier="n-bsvc-cat" elementRef="bsvc-catalogo" xsi:type="Element" x="270" y="460" w="150" h="50"/>
+        <node identifier="n-bsvc-not" elementRef="bsvc-notificacion" xsi:type="Element" x="500" y="460" w="180" h="50"/>
+
+        <!-- Objetos de dominio -->
+        <node identifier="n-bobj-pre" elementRef="bobj-prestamo" xsi:type="Element" x="40" y="570" w="130" h="50"/>
+        <node identifier="n-bobj-res" elementRef="bobj-reserva" xsi:type="Element" x="190" y="570" w="130" h="50"/>
+        <node identifier="n-bobj-mul" elementRef="bobj-multa" xsi:type="Element" x="340" y="570" w="130" h="50"/>
+        <node identifier="n-bobj-mat" elementRef="bobj-material" xsi:type="Element" x="490" y="570" w="160" h="50"/>
+        <node identifier="n-bobj-usr" elementRef="bobj-usuario" xsi:type="Element" x="670" y="570" w="130" h="50"/>
+        <node identifier="n-bobj-pag" elementRef="bobj-pago" xsi:type="Element" x="820" y="570" w="130" h="50"/>
+
+        <!-- Eventos de negocio -->
+        <node identifier="n-bevt-dev" elementRef="bevt-material-devuelto" xsi:type="Element" x="100" y="680" w="170" h="50"/>
+        <node identifier="n-bevt-mul" elementRef="bevt-multa-generada" xsi:type="Element" x="300" y="680" w="160" h="50"/>
+        <node identifier="n-bevt-res" elementRef="bevt-reserva-notificada" xsi:type="Element" x="490" y="680" w="170" h="50"/>
+        <node identifier="n-bevt-blk" elementRef="bevt-usuario-bloqueado" xsi:type="Element" x="690" y="680" w="190" h="50"/>
+
+        <!-- Connections -->
+        <connection identifier="cn-bib-role" relationshipRef="rel-actor-bib-role" source="n-act-bib" target="n-role-enc"/>
+        <connection identifier="cn-usr-role" relationshipRef="rel-actor-usr-role" source="n-act-usr" target="n-role-pre"/>
+        <connection identifier="cn-role-proc" relationshipRef="rel-role-proc-circ" source="n-role-enc" target="n-proc-circ"/>
+        <connection identifier="cn-proc-svc1" relationshipRef="rel-proc-circ-svc1" source="n-proc-circ" target="n-bsvc-pre"/>
+        <connection identifier="cn-proc-svc2" relationshipRef="rel-proc-circ-svc2" source="n-proc-circ" target="n-bsvc-dev"/>
+        <connection identifier="cn-proc-svc3" relationshipRef="rel-proc-circ-svc3" source="n-proc-circ" target="n-bsvc-ren"/>
+        <connection identifier="cn-proc-svc4" relationshipRef="rel-proc-res-svc4" source="n-proc-res" target="n-bsvc-res"/>
+        <connection identifier="cn-proc-svc5" relationshipRef="rel-proc-mul-svc5" source="n-proc-mul" target="n-bsvc-mul"/>
+        <connection identifier="cn-proc-svc6" relationshipRef="rel-proc-mul-svc6" source="n-proc-mul" target="n-bsvc-cob"/>
+        <connection identifier="cn-svc-evt-dev" relationshipRef="rel-svc-devolucion-evt" source="n-bsvc-dev" target="n-bevt-dev"/>
+        <connection identifier="cn-svc-evt-mul" relationshipRef="rel-svc-multas-evt" source="n-bsvc-mul" target="n-bevt-mul"/>
+        <connection identifier="cn-svc-evt-res" relationshipRef="rel-svc-reserva-evt" source="n-bsvc-res" target="n-bevt-res"/>
+        <connection identifier="cn-svc-evt-blk" relationshipRef="rel-svc-cobro-evt" source="n-bsvc-cob" target="n-bevt-blk"/>
+      </view>
+
+      <!-- ─── VISTA 3: Arquitectura de Aplicaciones ─────────────── -->
+      <view identifier="view-aplicaciones" xsi:type="Diagram">
+        <name xml:lang="es">3. Arquitectura de Aplicaciones — 9 Bounded Contexts (TOGAF Fase C)</name>
+        <documentation xml:lang="es">Microservicios DDD: 3 Core BCs, 4 Supporting BCs, 2 Generic BCs + CLI + Eureka. Comunicación síncrona REST y asíncrona RabbitMQ.</documentation>
+
+        <!-- CLI como punto de entrada -->
+        <node identifier="n-cli" elementRef="app-cli" xsi:type="Element" x="330" y="20" w="200" h="60"/>
+        <!-- Eureka -->
+        <node identifier="n-eureka-app" elementRef="app-eureka" xsi:type="Element" x="600" y="20" w="180" h="60"/>
+
+        <!-- Core BCs -->
+        <node identifier="n-circ" elementRef="app-circulacion" xsi:type="Element" x="330" y="140" w="200" h="65"/>
+        <node identifier="n-mul" elementRef="app-multas" xsi:type="Element" x="100" y="140" w="200" h="65"/>
+        <node identifier="n-res" elementRef="app-reservas" xsi:type="Element" x="560" y="140" w="200" h="65"/>
+
+        <!-- Supporting BCs -->
+        <node identifier="n-mat" elementRef="app-materiales" xsi:type="Element" x="100" y="280" w="200" h="65"/>
+        <node identifier="n-usr" elementRef="app-usuarios" xsi:type="Element" x="330" y="280" w="200" h="65"/>
+        <node identifier="n-ext" elementRef="app-prestamos-ext" xsi:type="Element" x="560" y="280" w="200" h="65"/>
+        <node identifier="n-cob" elementRef="app-cobros" xsi:type="Element" x="780" y="280" w="200" h="65"/>
+
+        <!-- Generic BCs -->
+        <node identifier="n-not" elementRef="app-notificaciones" xsi:type="Element" x="200" y="420" w="200" h="65"/>
+        <node identifier="n-rep" elementRef="app-reportes" xsi:type="Element" x="500" y="420" w="200" h="65"/>
+
+        <!-- Eventos asíncronos (bus RabbitMQ) -->
+        <node identifier="n-aevt-dev" elementRef="aevt-material-devuelto" xsi:type="Element" x="100" y="570" w="180" h="50"/>
+        <node identifier="n-aevt-gen" elementRef="aevt-multa-generada" xsi:type="Element" x="310" y="570" w="160" h="50"/>
+        <node identifier="n-aevt-pag" elementRef="aevt-multa-pagada" xsi:type="Element" x="500" y="570" w="160" h="50"/>
+        <node identifier="n-aevt-blk" elementRef="aevt-usuario-bloqueado" xsi:type="Element" x="690" y="570" w="180" h="50"/>
+        <node identifier="n-aevt-rcre" elementRef="aevt-reserva-creada" xsi:type="Element" x="100" y="650" w="160" h="50"/>
+        <node identifier="n-aevt-rnot" elementRef="aevt-reserva-notificada" xsi:type="Element" x="290" y="650" w="180" h="50"/>
+        <node identifier="n-aevt-rexp" elementRef="aevt-reserva-expirada" xsi:type="Element" x="500" y="650" w="160" h="50"/>
+
+        <!-- CLI → servicios REST -->
+        <connection identifier="cn-cli-circ" relationshipRef="rel-cli-circ" source="n-cli" target="n-circ"/>
+        <connection identifier="cn-cli-mat" relationshipRef="rel-cli-mat" source="n-cli" target="n-mat"/>
+        <connection identifier="cn-cli-usr" relationshipRef="rel-cli-usr" source="n-cli" target="n-usr"/>
+        <connection identifier="cn-cli-mul" relationshipRef="rel-cli-mul" source="n-cli" target="n-mul"/>
+        <connection identifier="cn-cli-res" relationshipRef="rel-cli-res" source="n-cli" target="n-res"/>
+        <connection identifier="cn-cli-cob" relationshipRef="rel-cli-cob" source="n-cli" target="n-cob"/>
+
+        <!-- BC1 consume síncronamente BC2, BC3, BC5 -->
+        <connection identifier="cn-circ-mat" relationshipRef="rel-circ-mat-sync" source="n-mat" target="n-circ"/>
+        <connection identifier="cn-circ-usr" relationshipRef="rel-circ-usr-sync" source="n-usr" target="n-circ"/>
+        <connection identifier="cn-circ-ext" relationshipRef="rel-circ-ext-sync" source="n-ext" target="n-circ"/>
+
+        <!-- BC1 emite eventos asíncronos -->
+        <connection identifier="cn-circ-evt-dev" relationshipRef="rel-circ-evt-dev" source="n-circ" target="n-aevt-dev"/>
+        <connection identifier="cn-circ-evt-pre" relationshipRef="rel-circ-evt-pre" source="n-circ" target="n-aevt-rcre"/>
+
+        <!-- MaterialDevuelto → BC4, BC8, BC6, BC7 -->
+        <connection identifier="cn-aevt-dev-mul" relationshipRef="rel-aevt-dev-mul" source="n-aevt-dev" target="n-mul"/>
+        <connection identifier="cn-aevt-dev-res" relationshipRef="rel-aevt-dev-res" source="n-aevt-dev" target="n-res"/>
+        <connection identifier="cn-aevt-dev-not" relationshipRef="rel-aevt-dev-not" source="n-aevt-dev" target="n-not"/>
+        <connection identifier="cn-aevt-dev-rep" relationshipRef="rel-aevt-dev-rep" source="n-aevt-dev" target="n-rep"/>
+
+        <!-- BC4 emite MultaGenerada → BC9, BC6 -->
+        <connection identifier="cn-mul-evt-gen" relationshipRef="rel-mul-evt-gen" source="n-mul" target="n-aevt-gen"/>
+        <connection identifier="cn-aevt-gen-cob" relationshipRef="rel-aevt-gen-cob" source="n-aevt-gen" target="n-cob"/>
+        <connection identifier="cn-aevt-gen-not" relationshipRef="rel-aevt-gen-not" source="n-aevt-gen" target="n-not"/>
+
+        <!-- BC9 emite MultaPagada, UsuarioBloqueado -->
+        <connection identifier="cn-cob-evt-pag" relationshipRef="rel-cob-evt-pag" source="n-cob" target="n-aevt-pag"/>
+        <connection identifier="cn-cob-evt-blk" relationshipRef="rel-cob-evt-blk" source="n-cob" target="n-aevt-blk"/>
+        <connection identifier="cn-aevt-blk-usr" relationshipRef="rel-aevt-blk-usr" source="n-aevt-blk" target="n-usr"/>
+
+        <!-- BC8 emite Reserva eventos -->
+        <connection identifier="cn-res-evt-not" relationshipRef="rel-res-evt-not" source="n-res" target="n-aevt-rnot"/>
+        <connection identifier="cn-res-evt-exp" relationshipRef="rel-res-evt-exp" source="n-res" target="n-aevt-rexp"/>
+        <connection identifier="cn-aevt-rnot-not" relationshipRef="rel-aevt-not-not" source="n-aevt-rnot" target="n-not"/>
+        <connection identifier="cn-aevt-exp-circ" relationshipRef="rel-aevt-exp-circ" source="n-aevt-rexp" target="n-circ"/>
+      </view>
+
+      <!-- ─── VISTA 4: Arquitectura de Tecnología ───────────────── -->
+      <view identifier="view-tecnologia" xsi:type="Diagram">
+        <name xml:lang="es">4. Arquitectura de Tecnología — Infraestructura Docker (TOGAF Fase D)</name>
+        <documentation xml:lang="es">Contenedores Docker, bases de datos por servicio, RabbitMQ y Eureka sobre servidor host Linux.</documentation>
+
+        <!-- Host -->
+        <node identifier="n-host" elementRef="device-host" xsi:type="Element" x="20" y="20" w="200" h="60"/>
+        <node identifier="n-docker-net" elementRef="net-docker" xsi:type="Element" x="250" y="20" w="220" h="60"/>
+
+        <!-- Middleware e infraestructura -->
+        <node identifier="n-sw-rabbit" elementRef="sw-rabbitmq" xsi:type="Element" x="20" y="150" w="200" h="55"/>
+        <node identifier="n-sw-eureka" elementRef="sw-eureka-server" xsi:type="Element" x="250" y="150" w="200" h="55"/>
+        <node identifier="n-sw-maven" elementRef="sw-maven" xsi:type="Element" x="480" y="150" w="200" h="55"/>
+        <node identifier="n-sw-jre17" elementRef="sw-jre-17" xsi:type="Element" x="700" y="150" w="200" h="55"/>
+        <node identifier="n-sw-jre21" elementRef="sw-jre-21" xsi:type="Element" x="700" y="220" w="200" h="55"/>
+
+        <!-- Contenedores de microservicios -->
+        <node identifier="n-node-circ" elementRef="node-circ" xsi:type="Element" x="20" y="280" w="160" h="55"/>
+        <node identifier="n-node-mat" elementRef="node-mat" xsi:type="Element" x="200" y="280" w="160" h="55"/>
+        <node identifier="n-node-usr" elementRef="node-usr" xsi:type="Element" x="380" y="280" w="160" h="55"/>
+        <node identifier="n-node-mul" elementRef="node-mul" xsi:type="Element" x="560" y="280" w="160" h="55"/>
+        <node identifier="n-node-ext" elementRef="node-ext" xsi:type="Element" x="740" y="280" w="160" h="55"/>
+        <node identifier="n-node-not" elementRef="node-not" xsi:type="Element" x="20" y="360" w="160" h="55"/>
+        <node identifier="n-node-rep" elementRef="node-rep" xsi:type="Element" x="200" y="360" w="160" h="55"/>
+        <node identifier="n-node-res" elementRef="node-res" xsi:type="Element" x="380" y="360" w="160" h="55"/>
+        <node identifier="n-node-cob" elementRef="node-cob" xsi:type="Element" x="560" y="360" w="160" h="55"/>
+        <node identifier="n-node-cli" elementRef="node-cli" xsi:type="Element" x="740" y="360" w="160" h="55"/>
+        <node identifier="n-node-eur" elementRef="node-eureka" xsi:type="Element" x="20" y="440" w="160" h="55"/>
+        <node identifier="n-node-rab" elementRef="node-rabbit" xsi:type="Element" x="200" y="440" w="160" h="55"/>
+
+        <!-- Bases de datos -->
+        <node identifier="n-db-circ" elementRef="sw-postgres-circ" xsi:type="Element" x="20" y="560" w="160" h="55"/>
+        <node identifier="n-db-mat" elementRef="sw-postgres-mat" xsi:type="Element" x="200" y="560" w="160" h="55"/>
+        <node identifier="n-db-usr" elementRef="sw-postgres-usr" xsi:type="Element" x="380" y="560" w="160" h="55"/>
+        <node identifier="n-db-mul" elementRef="sw-postgres-mul" xsi:type="Element" x="560" y="560" w="160" h="55"/>
+        <node identifier="n-db-cob" elementRef="sw-postgres-cob" xsi:type="Element" x="740" y="560" w="160" h="55"/>
+        <node identifier="n-db-res" elementRef="sw-postgres-res" xsi:type="Element" x="20" y="640" w="160" h="55"/>
+        <node identifier="n-db-ext" elementRef="sw-postgres-ext" xsi:type="Element" x="200" y="640" w="180" h="55"/>
+        <node identifier="n-db-rep" elementRef="sw-postgres-rep" xsi:type="Element" x="400" y="640" w="160" h="55"/>
+        <node identifier="n-db-not" elementRef="sw-mongodb" xsi:type="Element" x="600" y="640" w="200" h="55"/>
+
+        <!-- Artefactos (JARs) -->
+        <node identifier="n-art-circ" elementRef="art-jar-circ" xsi:type="Element" x="20" y="760" w="170" h="50"/>
+        <node identifier="n-art-mat" elementRef="art-jar-mat" xsi:type="Element" x="210" y="760" w="170" h="50"/>
+        <node identifier="n-art-usr" elementRef="art-jar-usr" xsi:type="Element" x="400" y="760" w="170" h="50"/>
+        <node identifier="n-art-mul" elementRef="art-jar-mul" xsi:type="Element" x="590" y="760" w="170" h="50"/>
+        <node identifier="n-art-commons" elementRef="art-commons" xsi:type="Element" x="780" y="760" w="190" h="50"/>
+
+        <!-- Connections -->
+        <connection identifier="cn-host-circ" relationshipRef="rel-node-circ-host" source="n-host" target="n-node-circ"/>
+        <connection identifier="cn-host-mat" relationshipRef="rel-node-mat-host" source="n-host" target="n-node-mat"/>
+        <connection identifier="cn-host-usr" relationshipRef="rel-node-usr-host" source="n-host" target="n-node-usr"/>
+        <connection identifier="cn-host-mul" relationshipRef="rel-node-mul-host" source="n-host" target="n-node-mul"/>
+        <connection identifier="cn-host-rab" relationshipRef="rel-node-rab-host" source="n-host" target="n-node-rab"/>
+        <connection identifier="cn-host-eur" relationshipRef="rel-node-eur-host" source="n-host" target="n-node-eur"/>
+        <connection identifier="cn-net-circ" relationshipRef="rel-node-circ-net" source="n-node-circ" target="n-docker-net"/>
+        <connection identifier="cn-net-mat" relationshipRef="rel-node-mat-net" source="n-node-mat" target="n-docker-net"/>
+        <connection identifier="cn-net-rab" relationshipRef="rel-node-rab-net" source="n-node-rab" target="n-docker-net"/>
+        <connection identifier="cn-node-circ-art" relationshipRef="rel-art-circ-node" source="n-node-circ" target="n-art-circ"/>
+        <connection identifier="cn-node-mat-art" relationshipRef="rel-art-mat-node" source="n-node-mat" target="n-art-mat"/>
+        <connection identifier="cn-node-usr-art" relationshipRef="rel-art-usr-node" source="n-node-usr" target="n-art-usr"/>
+        <connection identifier="cn-db-circ-node" relationshipRef="rel-db-circ" source="n-db-circ" target="n-node-circ"/>
+        <connection identifier="cn-db-mat-node" relationshipRef="rel-db-mat" source="n-db-mat" target="n-node-mat"/>
+        <connection identifier="cn-db-usr-node" relationshipRef="rel-db-usr" source="n-db-usr" target="n-node-usr"/>
+        <connection identifier="cn-db-mul-node" relationshipRef="rel-db-mul" source="n-db-mul" target="n-node-mul"/>
+        <connection identifier="cn-db-not-node" relationshipRef="rel-db-not" source="n-db-not" target="n-node-not"/>
+        <connection identifier="cn-rabbit-circ" relationshipRef="rel-rabbit-circ" source="n-sw-rabbit" target="n-node-circ"/>
+        <connection identifier="cn-rabbit-mul" relationshipRef="rel-rabbit-mul" source="n-sw-rabbit" target="n-node-mul"/>
+        <connection identifier="cn-rabbit-not" relationshipRef="rel-rabbit-not" source="n-sw-rabbit" target="n-node-not"/>
+        <connection identifier="cn-eureka-circ" relationshipRef="rel-eureka-circ" source="n-sw-eureka" target="n-node-circ"/>
+        <connection identifier="cn-eureka-mat" relationshipRef="rel-eureka-mat" source="n-sw-eureka" target="n-node-mat"/>
+        <connection identifier="cn-jre-circ" relationshipRef="rel-jre17-circ" source="n-node-circ" target="n-sw-jre17"/>
+        <connection identifier="cn-jre-eur" relationshipRef="rel-jre21-eur" source="n-node-eur" target="n-sw-jre21"/>
+      </view>
+
+    </diagrams>
+  </views>
+
+</model>

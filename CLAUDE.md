@@ -99,6 +99,13 @@ Generic `IRepositorio<T>` interface with in-memory implementations. `IRepositori
 
 ## Gotchas
 
+- Docker en Linux: nunca usar `sudo docker compose` — los contenedores creados con sudo no se pueden parar sin sudo. Agregar usuario al grupo: `sudo usermod -aG docker $USER && newgrp docker`. Si hay contenedores bloqueados: `sudo systemctl restart docker`.
+- Tipos de material en microservicios: `LIBRO_NORMAL`, `BESTSELLER`, `REFERENCIA`, `DVD`, `REVISTA`, `EBOOK` — distintos a los del monolito.
+- `UsuarioEntity` serializa `estadoUsuario` (no `estado`) y `tipoUsuario` (no `tipo`) — usar estos nombres exactos en clientes HTTP y CLI.
+- `MaterialController` necesita `@ExceptionHandler(IllegalArgumentException.class)` para devolver 400 en vez de 500 cuando el builder rechaza datos inválidos.
+- `DataInitializer` en cada servicio carga mock data al primer arranque (verifica `count() > 0`). No duplica si el contenedor se reinicia.
+- Dockerfile multi-módulo Maven: usar `mvn install -N` para instalar el pom padre sin recursar, luego `mvn install -f biblioteca-commons/pom.xml` para la librería compartida.
+- `docker-compose.yml`: eliminar el atributo `version:` (obsoleto en Compose v2, genera WARN en cada comando).
 - `OperacionNoPermitidaException(String operacion, String motivo)` requiere **dos argumentos** — nunca uno solo.
 - `BibliotecaException` extiende `Exception` (checked, no RuntimeException). Los métodos de agregado que la lanzan deben declarar `throws OperacionNoPermitidaException`. Los tests también.
 - `@EnableEurekaClient` no existe en Spring Cloud 3.x — usar solo `@SpringBootApplication` (auto-configurado).
@@ -123,19 +130,26 @@ Tests en `biblioteca-backend/src/test/java/com/biblioteca/dominio/` (4 clases, 3
 
 ## Microservicios (Fase 3)
 
-Hay dos variantes del módulo de microservicios:
-- `microservicios/` — versión original
-- `microservicios-docker-fixed/` — **versión Docker lista para usar**, con PostgreSQL por servicio, MongoDB para notificaciones y `cli-service` interactivo (puerto 8090)
-
-Construcción desde la raíz del módulo elegido:
+El módulo activo es `microservicios/`. Arranque completo (build + stack + CLI interactivo):
 
 ```bash
-# Construir todos los módulos (desde microservicios/)
-mvn clean install -DskipTests
-
-# Levantar infraestructura + servicios
-docker-compose up --build
+cd microservicios/
+./start.sh          # build, levanta en -d, espera health, lanza CLI
+docker compose down # para apagar
 ```
+
+Reconstruir solo el CLI sin reiniciar el stack:
+```bash
+docker compose --profile cli build cli-service && docker compose --profile cli run --rm cli-service
+```
+
+Si `docker compose up` falla con "permission denied" o "network not found":
+```bash
+sudo systemctl restart docker                              # contenedores bloqueados por sudo
+docker container prune -f && docker network prune -f      # redes/contenedores zombies
+```
+
+> `start.sh` requiere que el usuario esté en el grupo `docker` (sin sudo): `sudo usermod -aG docker $USER && newgrp docker`.
 
 RabbitMQ exchange: `biblioteca.events` (tipo topic). Routing keys: `prestamo.registrado`, `material.devuelto`, `multa.generada`, `multa.pagada`, `reserva.notificada`, entre otros.
 
@@ -152,4 +166,6 @@ RabbitMQ exchange: `biblioteca.events` (tipo topic). Routing keys: `prestamo.reg
 | `cobros-service` | 8089 |
 | `cli-service` | 8090 |
 | Eureka Server | 8761 |
+
+> `cli-service` usa `profiles: [cli]` — no arranca con `docker compose up`. Solo se lanza vía `./start.sh` o `docker compose --profile cli run --rm cli-service`.
 | RabbitMQ UI | 15672 |
