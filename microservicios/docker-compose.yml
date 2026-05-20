@@ -118,6 +118,7 @@ services:
       MONGODB_URI: mongodb://mongodb-notificaciones:27017/notificaciones_db
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
