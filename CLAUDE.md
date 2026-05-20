@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Java console application demonstrating SOLID principles and design patterns in the context of a library management system (Sistema de Biblioteca). University assignment — no web framework, in-memory persistence only.
+Sistema de Gestión Bibliotecaria **Elysium**. Proyecto universitario con dos módulos activos:
+- `biblioteca-backend/` — monolito Java con patrones SOLID (referencia/Fase 1-2)
+- `microservicios/` — arquitectura de microservicios DDD con Docker **(módulo activo)**
 
 **Requirements:** Java 17+, Maven 3.6+
 
@@ -104,6 +106,11 @@ Generic `IRepositorio<T>` interface with in-memory implementations. `IRepositori
 - `UsuarioEntity` serializa `estadoUsuario` (no `estado`) y `tipoUsuario` (no `tipo`) — usar estos nombres exactos en clientes HTTP y CLI.
 - `MaterialController` necesita `@ExceptionHandler(IllegalArgumentException.class)` para devolver 400 en vez de 500 cuando el builder rechaza datos inválidos.
 - `DataInitializer` en cada servicio carga mock data al primer arranque (verifica `count() > 0`). No duplica si el contenedor se reinicia.
+- `DataInitializer` en cada servicio: anotar con `@Profile("dev")` para aislar mock data del código funcional. Activar con `SPRING_PROFILES_ACTIVE=dev` en docker-compose.
+- Multas: el estado inicial debe ser `"GENERADA"` (no `"PENDIENTE"`) — `consultarDeudaPendiente` filtra por `"GENERADA"` y `MultaEventHandler` también lo usa. Si divergen, la deuda siempre aparece en cero.
+- Cobros: `DeudaPendienteEntity` debe existir para que el pago funcione. Si solo existe la `MultaEntity` sin su `DeudaPendienteEntity` en cobros-service, el pago se registra pero no cierra la multa.
+- IDs generados en servicios: `PRE-XXXXXX` (circulacion, usando `count()+1`), `RES-XXXXXX` (reservas), `MUL-XXXXXX` (multas). Materiales y usuarios: `MAT-XXXXXX` / `USR-XXXXXX` generados en el CLI.
+- Límites de préstamos por tipo (calculados automáticamente en `UsuarioService.limitePorTipo()`): ESTUDIANTE=5, PROFESOR=10, INVESTIGADOR=15, PUBLICO_GENERAL=3.
 - Dockerfile multi-módulo Maven: usar `mvn install -N` para instalar el pom padre sin recursar, luego `mvn install -f biblioteca-commons/pom.xml` para la librería compartida.
 - `docker-compose.yml`: eliminar el atributo `version:` (obsoleto en Compose v2, genera WARN en cada comando).
 - `OperacionNoPermitidaException(String operacion, String motivo)` requiere **dos argumentos** — nunca uno solo.
@@ -134,7 +141,7 @@ El módulo activo es `microservicios/`. Arranque completo (build + stack + CLI i
 
 ```bash
 cd microservicios/
-./start.sh          # build, levanta en -d, espera health, lanza CLI
+./start.sh          # mvn package → docker build → up -d → espera health → lanza CLI
 docker compose down # para apagar
 ```
 
@@ -166,6 +173,6 @@ RabbitMQ exchange: `biblioteca.events` (tipo topic). Routing keys: `prestamo.reg
 | `cobros-service` | 8089 |
 | `cli-service` | 8090 |
 | Eureka Server | 8761 |
+| RabbitMQ UI   | 15672 |
 
 > `cli-service` usa `profiles: [cli]` — no arranca con `docker compose up`. Solo se lanza vía `./start.sh` o `docker compose --profile cli run --rm cli-service`.
-| RabbitMQ UI | 15672 |

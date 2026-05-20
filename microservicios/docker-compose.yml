@@ -158,6 +158,7 @@ services:
       DB_PASS: biblioteca
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -178,6 +179,7 @@ services:
       DB_PASS: biblioteca
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -198,6 +200,7 @@ services:
       DB_PASS: biblioteca
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -218,6 +221,7 @@ services:
       DB_PASS: biblioteca
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -238,6 +242,7 @@ services:
       DB_PASS: biblioteca
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -298,6 +303,7 @@ services:
       DB_PASS: biblioteca
       RABBITMQ_HOST: rabbitmq
       EUREKA_URL: http://eureka-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       rabbitmq:
         condition: service_healthy
