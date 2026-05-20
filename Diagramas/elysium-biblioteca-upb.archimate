@@ -6,7 +6,6 @@
     <element xsi:type="archimate:BusinessActor" name="Usuario Final" id="actor-usuario-final">
       <documentation>Estudiante, Profesor, Investigador o Público General.</documentation>
     </element>
-    <element xsi:type="archimate:BusinessActor" name="Sistema Elysium" id="actor-sistema-elysium"/>
     <element xsi:type="archimate:BusinessRole" name="Encargado de Circulación" id="role-encargado-circulacion"/>
     <element xsi:type="archimate:BusinessRole" name="Prestatario" id="role-prestatario"/>
     <element xsi:type="archimate:BusinessRole" name="Gestor de Reservas" id="role-gestor-reservas"/>
@@ -283,17 +282,9 @@
     <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-ddd" source="goal-escalabilidad" target="req-ddd"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-eventos" source="goal-automatizacion" target="req-eventos-dominio"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-docker" source="goal-escalabilidad" target="req-docker"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-req-solid-app-circ" source="req-solid" target="app-circulacion"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-req-ddd-app-circ" source="req-ddd" target="app-circulacion"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-actor-bib-role" source="actor-bibliotecario" target="role-encargado-circulacion"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-actor-usr-role" source="actor-usuario-final" target="role-prestatario"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-role-proc-circ" source="role-encargado-circulacion" target="bproc-circulacion"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-proc-circ-svc1" source="bproc-circulacion" target="bsvc-prestamo"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-proc-circ-svc2" source="bproc-circulacion" target="bsvc-devolucion"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-proc-circ-svc3" source="bproc-circulacion" target="bsvc-renovacion"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-proc-res-svc4" source="bproc-reservas" target="bsvc-reserva"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-proc-mul-svc5" source="bproc-multas" target="bsvc-multas"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-proc-mul-svc6" source="bproc-multas" target="bsvc-cobro"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-devolucion-evt" source="bsvc-devolucion" target="bevt-material-devuelto"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-multas-evt" source="bsvc-multas" target="bevt-multa-generada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-reserva-evt" source="bsvc-reserva" target="bevt-reserva-notificada"/>
@@ -305,16 +296,6 @@
     <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-multa" source="asvc-calcular-multa" target="bsvc-multas"/>
     <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-cobro" source="asvc-registrar-pago" target="bsvc-cobro"/>
     <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-notif" source="asvc-notificar" target="bsvc-notificacion"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-circ-asvc-pre" source="app-circulacion" target="asvc-registrar-prestamo"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-circ-asvc-dev" source="app-circulacion" target="asvc-devolver"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-circ-asvc-ren" source="app-circulacion" target="asvc-renovar"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-mat-asvc-dis" source="app-materiales" target="asvc-disponibilidad"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-usr-asvc-est" source="app-usuarios" target="asvc-estado-usuario"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-mul-asvc-cal" source="app-multas" target="asvc-calcular-multa"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-cob-asvc-pag" source="app-cobros" target="asvc-registrar-pago"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-res-asvc-cre" source="app-reservas" target="asvc-crear-reserva"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-not-asvc-not" source="app-notificaciones" target="asvc-notificar"/>
-    <element xsi:type="archimate:CompositionRelationship" id="rel-rep-asvc-rep" source="app-reportes" target="asvc-reportes"/>
     <element xsi:type="archimate:ServingRelationship" name="GET /materiales/{id}/disponibilidad" id="rel-circ-mat-sync" source="app-materiales" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="GET /usuarios/{id}/estado + límite" id="rel-circ-usr-sync" source="app-usuarios" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="POST /solicitudes-externas" id="rel-circ-ext-sync" source="app-prestamos-ext" target="app-circulacion"/>
@@ -349,7 +330,6 @@
     <element xsi:type="archimate:AccessRelationship" id="rel-res-data" source="app-reservas" target="data-reserva-entity"/>
     <element xsi:type="archimate:AccessRelationship" id="rel-cob-data" source="app-cobros" target="data-pago-entity"/>
     <element xsi:type="archimate:AccessRelationship" id="rel-not-data" source="app-notificaciones" target="data-notificacion-doc"/>
-    <element xsi:type="archimate:FlowRelationship" id="rel-eventos-amqp" source="aevt-material-devuelto" target="data-evento-amqp"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-art-circ-node" source="node-circ" target="art-jar-circ"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-art-mat-node" source="node-mat" target="art-jar-mat"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-art-usr-node" source="node-usr" target="art-jar-usr"/>
@@ -362,18 +342,6 @@
     <element xsi:type="archimate:RealizationRelationship" id="rel-app-mul-art" source="art-jar-mul" target="app-multas"/>
     <element xsi:type="archimate:RealizationRelationship" id="rel-app-res-art" source="art-jar-res" target="app-reservas"/>
     <element xsi:type="archimate:RealizationRelationship" id="rel-app-cob-art" source="art-jar-cob" target="app-cobros"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-circ-host" source="device-host" target="node-circ"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-mat-host" source="device-host" target="node-mat"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-usr-host" source="device-host" target="node-usr"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-mul-host" source="device-host" target="node-mul"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-ext-host" source="device-host" target="node-ext"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-not-host" source="device-host" target="node-not"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-rep-host" source="device-host" target="node-rep"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-res-host" source="device-host" target="node-res"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-cob-host" source="device-host" target="node-cob"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-cli-host" source="device-host" target="node-cli"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-eur-host" source="device-host" target="node-eureka"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-rab-host" source="device-host" target="node-rabbit"/>
     <element xsi:type="archimate:AssociationRelationship" id="rel-node-circ-net" source="node-circ" target="net-docker"/>
     <element xsi:type="archimate:AssociationRelationship" id="rel-node-mat-net" source="node-mat" target="net-docker"/>
     <element xsi:type="archimate:AssociationRelationship" id="rel-node-usr-net" source="node-usr" target="net-docker"/>
@@ -455,7 +423,19 @@
     <element xsi:type="archimate:FlowRelationship" id="id-f8a5aff008d44074959726109eeea93f" source="bevt-reserva-notificada" target="bsvc-notificacion"/>
     <element xsi:type="archimate:AccessRelationship" id="id-c592e8d66eba4fc69f3cedd331fc3fb7" source="bevt-usuario-bloqueado" target="bobj-usuario"/>
     <element xsi:type="archimate:TriggeringRelationship" id="id-c942e714bc9f48af85c70c4dd6c5ca3f" source="aevt-reserva-creada" target="app-reservas"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-20010d6baee94391ab8728a6a67ce2df" source="app-cli" target="app-reportes"/>
+    <element xsi:type="archimate:AccessRelationship" id="id-6cd5503823c945e8a6c0d9b491a3d9bb" source="aevt-material-devuelto" target="data-evento-amqp"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-af547c89f2e84d3cb272e3ae68a9cbf7" source="device-host" target="node-circ"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-f1e7df2b1a7145bca6e14db9948e67f4" source="device-host" target="node-mat"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-c13af6682a084aa6bd3cd2ba218dfe8f" source="device-host" target="node-usr"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-e925df0545a746ff9a4674b9a5039cf4" source="device-host" target="node-mul"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-cf32b28a889546528a744bf3ff0fc90a" source="device-host" target="node-ext"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-22ede442b5064ba8a48200b8a2141dee" source="device-host" target="node-not"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-fbb861f86fd64d18a0b97a062a6a07c4" source="device-host" target="node-rep"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-73cde4a51c93421ca814fa39fc9869e8" source="device-host" target="node-res"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-6adae83b161f4a38be8c70469d05da72" source="device-host" target="node-cob"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-a23cffbb3bc744edadad471dca970e41" source="device-host" target="node-cli"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-f0eb061159a2444a830c85e8ff876196" source="device-host" target="node-eureka"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-b3d5be0ddb604e6ab77174959a183969" source="device-host" target="node-rabbit"/>
   </folder>
   <folder name="Views" id="id-964f298f567e49e1ae60be507fd5eae6" type="diagrams">
     <element xsi:type="archimate:ArchimateDiagramModel" name="1. Motivacion y Estrategia" id="view-motivacion">
@@ -649,17 +629,16 @@
     </element>
     <element xsi:type="archimate:ArchimateDiagramModel" name="3. Arquitectura de Aplicaciones" id="view-aplicaciones">
       <child xsi:type="archimate:DiagramObject" id="n-cli" archimateElement="app-cli">
-        <bounds x="-84" y="-96" width="200" height="60"/>
+        <bounds x="-156" y="-96" width="200" height="60"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-circ" source="n-cli" target="n-circ" archimateRelationship="rel-cli-circ"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-mat" source="n-cli" target="n-mat" archimateRelationship="rel-cli-mat"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-usr" source="n-cli" target="n-usr" archimateRelationship="rel-cli-usr"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-mul" source="n-cli" target="n-mul" archimateRelationship="rel-cli-mul"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-res" source="n-cli" target="n-res" archimateRelationship="rel-cli-res"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-cob" source="n-cli" target="n-cob" archimateRelationship="rel-cli-cob"/>
-        <sourceConnection xsi:type="archimate:Connection" id="id-d5e66c84a1154f85858fa0a3f0ceab97" source="n-cli" target="n-rep" archimateRelationship="id-20010d6baee94391ab8728a6a67ce2df"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-eureka-app" archimateElement="app-eureka">
-        <bounds x="996" y="-96" width="180" height="60"/>
+        <bounds x="756" width="180" height="60"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-circ" targetConnections="cn-cli-circ cn-circ-mat cn-circ-usr cn-circ-ext cn-aevt-exp-circ" archimateElement="app-circulacion">
         <bounds x="-252" y="244" width="200" height="65"/>
@@ -694,8 +673,8 @@
       <child xsi:type="archimate:DiagramObject" id="n-not" targetConnections="cn-aevt-dev-not cn-aevt-gen-not cn-aevt-rnot-not" archimateElement="app-notificaciones">
         <bounds x="1128" y="180" width="200" height="65"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-rep" targetConnections="cn-aevt-dev-rep id-d5e66c84a1154f85858fa0a3f0ceab97" archimateElement="app-reportes">
-        <bounds x="1620" y="128" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-rep" targetConnections="cn-aevt-dev-rep" archimateElement="app-reportes">
+        <bounds x="1608" y="156" width="200" height="65"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-dev" targetConnections="cn-circ-evt-dev" archimateElement="aevt-material-devuelto">
         <bounds x="792" y="600" width="180" height="50"/>
@@ -705,7 +684,7 @@
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-dev-rep" source="n-aevt-dev" target="n-rep" archimateRelationship="rel-aevt-dev-rep"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-gen" targetConnections="cn-mul-evt-gen" archimateElement="aevt-multa-generada">
-        <bounds x="900" y="308" width="160" height="50"/>
+        <bounds x="900" y="276" width="160" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-gen-cob" source="n-aevt-gen" target="n-cob" archimateRelationship="rel-aevt-gen-cob"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-gen-not" source="n-aevt-gen" target="n-not" archimateRelationship="rel-aevt-gen-not"/>
       </child>
@@ -730,129 +709,129 @@
       </child>
       <documentation>Microservicios DDD: 3 Core BCs, 4 Supporting BCs, 2 Generic BCs + CLI + Eureka. Comunicación síncrona REST y asíncrona RabbitMQ.</documentation>
     </element>
-    <element xsi:type="archimate:ArchimateDiagramModel" name="4. Arquitectura de Tecnología — Infraestructura Docker (TOGAF Fase D)" id="view-tecnologia">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="4. Arquitectura de tecnologia" id="view-tecnologia">
       <child xsi:type="archimate:DiagramObject" id="n-host" archimateElement="device-host">
-        <bounds x="20" y="20" width="200" height="60"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-host-circ" source="n-host" target="n-node-circ" archimateRelationship="rel-node-circ-host"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-host-mat" source="n-host" target="n-node-mat" archimateRelationship="rel-node-mat-host"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-host-usr" source="n-host" target="n-node-usr" archimateRelationship="rel-node-usr-host"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-host-mul" source="n-host" target="n-node-mul" archimateRelationship="rel-node-mul-host"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-host-rab" source="n-host" target="n-node-rab" archimateRelationship="rel-node-rab-host"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-host-eur" source="n-host" target="n-node-eur" archimateRelationship="rel-node-eur-host"/>
-      </child>
-      <child xsi:type="archimate:DiagramObject" id="n-docker-net" targetConnections="cn-net-circ cn-net-mat cn-net-rab" archimateElement="net-docker">
-        <bounds x="250" y="20" width="220" height="60"/>
+        <bounds x="1010" y="12" width="200" height="60"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-circ" source="n-host" target="n-node-circ" archimateRelationship="id-af547c89f2e84d3cb272e3ae68a9cbf7"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-mat" source="n-host" target="n-node-mat" archimateRelationship="id-f1e7df2b1a7145bca6e14db9948e67f4"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-usr" source="n-host" target="n-node-usr" archimateRelationship="id-c13af6682a084aa6bd3cd2ba218dfe8f"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-mul" source="n-host" target="n-node-mul" archimateRelationship="id-e925df0545a746ff9a4674b9a5039cf4"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-rab" source="n-host" target="n-node-rab" archimateRelationship="id-b3d5be0ddb604e6ab77174959a183969"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-eur" source="n-host" target="n-node-eur" archimateRelationship="id-f0eb061159a2444a830c85e8ff876196"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-rabbit" archimateElement="sw-rabbitmq">
-        <bounds x="20" y="150" width="200" height="55"/>
+        <bounds x="372" y="95" width="200" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-circ" source="n-sw-rabbit" target="n-node-circ" archimateRelationship="rel-rabbit-circ"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-mul" source="n-sw-rabbit" target="n-node-mul" archimateRelationship="rel-rabbit-mul"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-not" source="n-sw-rabbit" target="n-node-not" archimateRelationship="rel-rabbit-not"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-eureka" archimateElement="sw-eureka-server">
-        <bounds x="250" y="150" width="200" height="55"/>
+        <bounds x="480" y="154" width="200" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-circ" source="n-sw-eureka" target="n-node-circ" archimateRelationship="rel-eureka-circ"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-mat" source="n-sw-eureka" target="n-node-mat" archimateRelationship="rel-eureka-mat"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-maven" archimateElement="sw-maven">
-        <bounds x="480" y="150" width="200" height="55"/>
+        <bounds x="708" y="154" width="200" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-jre17" targetConnections="cn-jre-circ" archimateElement="sw-jre-17">
-        <bounds x="700" y="150" width="200" height="55"/>
+        <bounds x="930" y="154" width="200" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-jre21" targetConnections="cn-jre-eur" archimateElement="sw-jre-21">
-        <bounds x="700" y="220" width="200" height="55"/>
+        <bounds x="930" y="224" width="200" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-circ" targetConnections="cn-host-circ cn-db-circ-node cn-rabbit-circ cn-eureka-circ" archimateElement="node-circ">
-        <bounds x="20" y="280" width="160" height="55"/>
+        <bounds x="60" y="284" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-net-circ" source="n-node-circ" target="n-docker-net" archimateRelationship="rel-node-circ-net"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-node-circ-art" source="n-node-circ" target="n-art-circ" archimateRelationship="rel-art-circ-node"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-jre-circ" source="n-node-circ" target="n-sw-jre17" archimateRelationship="rel-jre17-circ"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-mat" targetConnections="cn-host-mat cn-db-mat-node cn-eureka-mat" archimateElement="node-mat">
-        <bounds x="200" y="280" width="160" height="55"/>
+        <bounds x="430" y="284" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-net-mat" source="n-node-mat" target="n-docker-net" archimateRelationship="rel-node-mat-net"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-node-mat-art" source="n-node-mat" target="n-art-mat" archimateRelationship="rel-art-mat-node"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-usr" targetConnections="cn-host-usr cn-db-usr-node" archimateElement="node-usr">
-        <bounds x="380" y="280" width="160" height="55"/>
+        <bounds x="610" y="284" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-node-usr-art" source="n-node-usr" target="n-art-usr" archimateRelationship="rel-art-usr-node"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-mul" targetConnections="cn-host-mul cn-db-mul-node cn-rabbit-mul" archimateElement="node-mul">
-        <bounds x="560" y="280" width="160" height="55"/>
+        <bounds x="790" y="284" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-ext" archimateElement="node-ext">
-        <bounds x="740" y="280" width="160" height="55"/>
+        <bounds x="970" y="284" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-not" targetConnections="cn-db-not-node cn-rabbit-not" archimateElement="node-not">
-        <bounds x="20" y="360" width="160" height="55"/>
+        <bounds x="250" y="364" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-rep" archimateElement="node-rep">
-        <bounds x="200" y="360" width="160" height="55"/>
+        <bounds x="430" y="364" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-res" archimateElement="node-res">
-        <bounds x="380" y="360" width="160" height="55"/>
+        <bounds x="610" y="364" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-cob" archimateElement="node-cob">
-        <bounds x="560" y="360" width="160" height="55"/>
+        <bounds x="790" y="364" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-cli" archimateElement="node-cli">
-        <bounds x="740" y="360" width="160" height="55"/>
+        <bounds x="970" y="364" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-eur" targetConnections="cn-host-eur" archimateElement="node-eureka">
-        <bounds x="20" y="440" width="160" height="55"/>
+        <bounds x="250" y="444" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-jre-eur" source="n-node-eur" target="n-sw-jre21" archimateRelationship="rel-jre21-eur"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-rab" targetConnections="cn-host-rab" archimateElement="node-rabbit">
-        <bounds x="200" y="440" width="160" height="55"/>
+        <bounds x="430" y="444" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-net-rab" source="n-node-rab" target="n-docker-net" archimateRelationship="rel-node-rab-net"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-circ" archimateElement="sw-postgres-circ">
-        <bounds x="20" y="560" width="160" height="55"/>
+        <bounds x="250" y="564" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-db-circ-node" source="n-db-circ" target="n-node-circ" archimateRelationship="rel-db-circ"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-mat" archimateElement="sw-postgres-mat">
-        <bounds x="200" y="560" width="160" height="55"/>
+        <bounds x="430" y="564" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-db-mat-node" source="n-db-mat" target="n-node-mat" archimateRelationship="rel-db-mat"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-usr" archimateElement="sw-postgres-usr">
-        <bounds x="380" y="560" width="160" height="55"/>
+        <bounds x="610" y="564" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-db-usr-node" source="n-db-usr" target="n-node-usr" archimateRelationship="rel-db-usr"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-mul" archimateElement="sw-postgres-mul">
-        <bounds x="560" y="560" width="160" height="55"/>
+        <bounds x="790" y="564" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-db-mul-node" source="n-db-mul" target="n-node-mul" archimateRelationship="rel-db-mul"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-cob" archimateElement="sw-postgres-cob">
-        <bounds x="740" y="560" width="160" height="55"/>
+        <bounds x="970" y="564" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-res" archimateElement="sw-postgres-res">
-        <bounds x="20" y="640" width="160" height="55"/>
+        <bounds x="250" y="644" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-ext" archimateElement="sw-postgres-ext">
-        <bounds x="200" y="640" width="180" height="55"/>
+        <bounds x="430" y="644" width="180" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-rep" archimateElement="sw-postgres-rep">
-        <bounds x="400" y="640" width="160" height="55"/>
+        <bounds x="630" y="644" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-not" archimateElement="sw-mongodb">
-        <bounds x="600" y="640" width="200" height="55"/>
+        <bounds x="830" y="644" width="200" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-db-not-node" source="n-db-not" target="n-node-not" archimateRelationship="rel-db-not"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-art-circ" targetConnections="cn-node-circ-art" archimateElement="art-jar-circ">
-        <bounds x="20" y="760" width="170" height="50"/>
+        <bounds x="250" y="764" width="170" height="50"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-art-mat" targetConnections="cn-node-mat-art" archimateElement="art-jar-mat">
-        <bounds x="210" y="760" width="170" height="50"/>
+        <bounds x="440" y="764" width="170" height="50"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-art-usr" targetConnections="cn-node-usr-art" archimateElement="art-jar-usr">
-        <bounds x="400" y="760" width="170" height="50"/>
+        <bounds x="630" y="764" width="170" height="50"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-art-mul" archimateElement="art-jar-mul">
-        <bounds x="590" y="760" width="170" height="50"/>
+        <bounds x="820" y="764" width="170" height="50"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-art-commons" archimateElement="art-commons">
-        <bounds x="780" y="760" width="190" height="50"/>
+        <bounds x="1010" y="764" width="190" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-docker-net" targetConnections="cn-net-circ cn-net-mat cn-net-rab" archimateElement="net-docker">
+        <bounds x="48" y="36" width="220" height="60"/>
       </child>
       <documentation>Contenedores Docker, bases de datos por servicio, RabbitMQ y Eureka sobre servidor host Linux.</documentation>
     </element>
