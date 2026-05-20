@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd"
-       identifier="elysium-biblioteca-upb">
+       identifier="elysium-biblioteca-upb"
+       version="3.1">
 
   <name xml:lang="es">Sistema de Gestión Bibliotecaria Elysium — Arquitectura Empresarial</name>
   <documentation xml:lang="es">
@@ -704,18 +704,18 @@
         <node identifier="n-princ2" elementRef="princ-bd-por-servicio" xsi:type="Element" x="420" y="490" w="180" h="55"/>
 
         <!-- Connections -->
-        <connection identifier="cn-stk-bib-drv1" relationshipRef="rel-stk-bib-drv1" source="n-stk-bib" target="n-drv1"/>
-        <connection identifier="cn-stk-bib-drv2" relationshipRef="rel-stk-bib-drv2" source="n-stk-bib" target="n-drv2"/>
-        <connection identifier="cn-stk-usr-drv3" relationshipRef="rel-stk-usr-drv3" source="n-stk-usr" target="n-drv3"/>
-        <connection identifier="cn-stk-ti-drv4" relationshipRef="rel-stk-ti-drv4" source="n-stk-ti" target="n-drv4"/>
-        <connection identifier="cn-drv1-g2" relationshipRef="rel-drv1-goal1" source="n-drv1" target="n-goal2"/>
-        <connection identifier="cn-drv2-g3" relationshipRef="rel-drv2-goal2" source="n-drv2" target="n-goal3"/>
-        <connection identifier="cn-drv3-g1" relationshipRef="rel-drv3-goal3" source="n-drv3" target="n-goal1"/>
-        <connection identifier="cn-drv4-g4" relationshipRef="rel-drv4-goal4" source="n-drv4" target="n-goal4"/>
-        <connection identifier="cn-g4-req1" relationshipRef="rel-goal-req-solid" source="n-goal4" target="n-req1"/>
-        <connection identifier="cn-g4-req2" relationshipRef="rel-goal-req-ddd" source="n-goal4" target="n-req2"/>
-        <connection identifier="cn-g3-req3" relationshipRef="rel-goal-req-eventos" source="n-goal3" target="n-req3"/>
-        <connection identifier="cn-g4-req4" relationshipRef="rel-goal-req-docker" source="n-goal4" target="n-req4"/>
+        <connection xsi:type="Relationship" identifier="cn-stk-bib-drv1" relationshipRef="rel-stk-bib-drv1" source="n-stk-bib" target="n-drv1"/>
+        <connection xsi:type="Relationship" identifier="cn-stk-bib-drv2" relationshipRef="rel-stk-bib-drv2" source="n-stk-bib" target="n-drv2"/>
+        <connection xsi:type="Relationship" identifier="cn-stk-usr-drv3" relationshipRef="rel-stk-usr-drv3" source="n-stk-usr" target="n-drv3"/>
+        <connection xsi:type="Relationship" identifier="cn-stk-ti-drv4" relationshipRef="rel-stk-ti-drv4" source="n-stk-ti" target="n-drv4"/>
+        <connection xsi:type="Relationship" identifier="cn-drv1-g2" relationshipRef="rel-drv1-goal1" source="n-drv1" target="n-goal2"/>
+        <connection xsi:type="Relationship" identifier="cn-drv2-g3" relationshipRef="rel-drv2-goal2" source="n-drv2" target="n-goal3"/>
+        <connection xsi:type="Relationship" identifier="cn-drv3-g1" relationshipRef="rel-drv3-goal3" source="n-drv3" target="n-goal1"/>
+        <connection xsi:type="Relationship" identifier="cn-drv4-g4" relationshipRef="rel-drv4-goal4" source="n-drv4" target="n-goal4"/>
+        <connection xsi:type="Relationship" identifier="cn-g4-req1" relationshipRef="rel-goal-req-solid" source="n-goal4" target="n-req1"/>
+        <connection xsi:type="Relationship" identifier="cn-g4-req2" relationshipRef="rel-goal-req-ddd" source="n-goal4" target="n-req2"/>
+        <connection xsi:type="Relationship" identifier="cn-g3-req3" relationshipRef="rel-goal-req-eventos" source="n-goal3" target="n-req3"/>
+        <connection xsi:type="Relationship" identifier="cn-g4-req4" relationshipRef="rel-goal-req-docker" source="n-goal4" target="n-req4"/>
       </view>
 
       <!-- ─── VISTA 2: Arquitectura de Negocio ─────────────────── -->
@@ -761,19 +761,19 @@
         <node identifier="n-bevt-blk" elementRef="bevt-usuario-bloqueado" xsi:type="Element" x="690" y="680" w="190" h="50"/>
 
         <!-- Connections -->
-        <connection identifier="cn-bib-role" relationshipRef="rel-actor-bib-role" source="n-act-bib" target="n-role-enc"/>
-        <connection identifier="cn-usr-role" relationshipRef="rel-actor-usr-role" source="n-act-usr" target="n-role-pre"/>
-        <connection identifier="cn-role-proc" relationshipRef="rel-role-proc-circ" source="n-role-enc" target="n-proc-circ"/>
-        <connection identifier="cn-proc-svc1" relationshipRef="rel-proc-circ-svc1" source="n-proc-circ" target="n-bsvc-pre"/>
-        <connection identifier="cn-proc-svc2" relationshipRef="rel-proc-circ-svc2" source="n-proc-circ" target="n-bsvc-dev"/>
-        <connection identifier="cn-proc-svc3" relationshipRef="rel-proc-circ-svc3" source="n-proc-circ" target="n-bsvc-ren"/>
-        <connection identifier="cn-proc-svc4" relationshipRef="rel-proc-res-svc4" source="n-proc-res" target="n-bsvc-res"/>
-        <connection identifier="cn-proc-svc5" relationshipRef="rel-proc-mul-svc5" source="n-proc-mul" target="n-bsvc-mul"/>
-        <connection identifier="cn-proc-svc6" relationshipRef="rel-proc-mul-svc6" source="n-proc-mul" target="n-bsvc-cob"/>
-        <connection identifier="cn-svc-evt-dev" relationshipRef="rel-svc-devolucion-evt" source="n-bsvc-dev" target="n-bevt-dev"/>
-        <connection identifier="cn-svc-evt-mul" relationshipRef="rel-svc-multas-evt" source="n-bsvc-mul" target="n-bevt-mul"/>
-        <connection identifier="cn-svc-evt-res" relationshipRef="rel-svc-reserva-evt" source="n-bsvc-res" target="n-bevt-res"/>
-        <connection identifier="cn-svc-evt-blk" relationshipRef="rel-svc-cobro-evt" source="n-bsvc-cob" target="n-bevt-blk"/>
+        <connection xsi:type="Relationship" identifier="cn-bib-role" relationshipRef="rel-actor-bib-role" source="n-act-bib" target="n-role-enc"/>
+        <connection xsi:type="Relationship" identifier="cn-usr-role" relationshipRef="rel-actor-usr-role" source="n-act-usr" target="n-role-pre"/>
+        <connection xsi:type="Relationship" identifier="cn-role-proc" relationshipRef="rel-role-proc-circ" source="n-role-enc" target="n-proc-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-proc-svc1" relationshipRef="rel-proc-circ-svc1" source="n-proc-circ" target="n-bsvc-pre"/>
+        <connection xsi:type="Relationship" identifier="cn-proc-svc2" relationshipRef="rel-proc-circ-svc2" source="n-proc-circ" target="n-bsvc-dev"/>
+        <connection xsi:type="Relationship" identifier="cn-proc-svc3" relationshipRef="rel-proc-circ-svc3" source="n-proc-circ" target="n-bsvc-ren"/>
+        <connection xsi:type="Relationship" identifier="cn-proc-svc4" relationshipRef="rel-proc-res-svc4" source="n-proc-res" target="n-bsvc-res"/>
+        <connection xsi:type="Relationship" identifier="cn-proc-svc5" relationshipRef="rel-proc-mul-svc5" source="n-proc-mul" target="n-bsvc-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-proc-svc6" relationshipRef="rel-proc-mul-svc6" source="n-proc-mul" target="n-bsvc-cob"/>
+        <connection xsi:type="Relationship" identifier="cn-svc-evt-dev" relationshipRef="rel-svc-devolucion-evt" source="n-bsvc-dev" target="n-bevt-dev"/>
+        <connection xsi:type="Relationship" identifier="cn-svc-evt-mul" relationshipRef="rel-svc-multas-evt" source="n-bsvc-mul" target="n-bevt-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-svc-evt-res" relationshipRef="rel-svc-reserva-evt" source="n-bsvc-res" target="n-bevt-res"/>
+        <connection xsi:type="Relationship" identifier="cn-svc-evt-blk" relationshipRef="rel-svc-cobro-evt" source="n-bsvc-cob" target="n-bevt-blk"/>
       </view>
 
       <!-- ─── VISTA 3: Arquitectura de Aplicaciones ─────────────── -->
@@ -811,43 +811,43 @@
         <node identifier="n-aevt-rexp" elementRef="aevt-reserva-expirada" xsi:type="Element" x="500" y="650" w="160" h="50"/>
 
         <!-- CLI → servicios REST -->
-        <connection identifier="cn-cli-circ" relationshipRef="rel-cli-circ" source="n-cli" target="n-circ"/>
-        <connection identifier="cn-cli-mat" relationshipRef="rel-cli-mat" source="n-cli" target="n-mat"/>
-        <connection identifier="cn-cli-usr" relationshipRef="rel-cli-usr" source="n-cli" target="n-usr"/>
-        <connection identifier="cn-cli-mul" relationshipRef="rel-cli-mul" source="n-cli" target="n-mul"/>
-        <connection identifier="cn-cli-res" relationshipRef="rel-cli-res" source="n-cli" target="n-res"/>
-        <connection identifier="cn-cli-cob" relationshipRef="rel-cli-cob" source="n-cli" target="n-cob"/>
+        <connection xsi:type="Relationship" identifier="cn-cli-circ" relationshipRef="rel-cli-circ" source="n-cli" target="n-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-cli-mat" relationshipRef="rel-cli-mat" source="n-cli" target="n-mat"/>
+        <connection xsi:type="Relationship" identifier="cn-cli-usr" relationshipRef="rel-cli-usr" source="n-cli" target="n-usr"/>
+        <connection xsi:type="Relationship" identifier="cn-cli-mul" relationshipRef="rel-cli-mul" source="n-cli" target="n-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-cli-res" relationshipRef="rel-cli-res" source="n-cli" target="n-res"/>
+        <connection xsi:type="Relationship" identifier="cn-cli-cob" relationshipRef="rel-cli-cob" source="n-cli" target="n-cob"/>
 
         <!-- BC1 consume síncronamente BC2, BC3, BC5 -->
-        <connection identifier="cn-circ-mat" relationshipRef="rel-circ-mat-sync" source="n-mat" target="n-circ"/>
-        <connection identifier="cn-circ-usr" relationshipRef="rel-circ-usr-sync" source="n-usr" target="n-circ"/>
-        <connection identifier="cn-circ-ext" relationshipRef="rel-circ-ext-sync" source="n-ext" target="n-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-circ-mat" relationshipRef="rel-circ-mat-sync" source="n-mat" target="n-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-circ-usr" relationshipRef="rel-circ-usr-sync" source="n-usr" target="n-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-circ-ext" relationshipRef="rel-circ-ext-sync" source="n-ext" target="n-circ"/>
 
         <!-- BC1 emite eventos asíncronos -->
-        <connection identifier="cn-circ-evt-dev" relationshipRef="rel-circ-evt-dev" source="n-circ" target="n-aevt-dev"/>
-        <connection identifier="cn-circ-evt-pre" relationshipRef="rel-circ-evt-pre" source="n-circ" target="n-aevt-rcre"/>
+        <connection xsi:type="Relationship" identifier="cn-circ-evt-dev" relationshipRef="rel-circ-evt-dev" source="n-circ" target="n-aevt-dev"/>
+        <connection xsi:type="Relationship" identifier="cn-circ-evt-pre" relationshipRef="rel-circ-evt-pre" source="n-circ" target="n-aevt-rcre"/>
 
         <!-- MaterialDevuelto → BC4, BC8, BC6, BC7 -->
-        <connection identifier="cn-aevt-dev-mul" relationshipRef="rel-aevt-dev-mul" source="n-aevt-dev" target="n-mul"/>
-        <connection identifier="cn-aevt-dev-res" relationshipRef="rel-aevt-dev-res" source="n-aevt-dev" target="n-res"/>
-        <connection identifier="cn-aevt-dev-not" relationshipRef="rel-aevt-dev-not" source="n-aevt-dev" target="n-not"/>
-        <connection identifier="cn-aevt-dev-rep" relationshipRef="rel-aevt-dev-rep" source="n-aevt-dev" target="n-rep"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-dev-mul" relationshipRef="rel-aevt-dev-mul" source="n-aevt-dev" target="n-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-dev-res" relationshipRef="rel-aevt-dev-res" source="n-aevt-dev" target="n-res"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-dev-not" relationshipRef="rel-aevt-dev-not" source="n-aevt-dev" target="n-not"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-dev-rep" relationshipRef="rel-aevt-dev-rep" source="n-aevt-dev" target="n-rep"/>
 
         <!-- BC4 emite MultaGenerada → BC9, BC6 -->
-        <connection identifier="cn-mul-evt-gen" relationshipRef="rel-mul-evt-gen" source="n-mul" target="n-aevt-gen"/>
-        <connection identifier="cn-aevt-gen-cob" relationshipRef="rel-aevt-gen-cob" source="n-aevt-gen" target="n-cob"/>
-        <connection identifier="cn-aevt-gen-not" relationshipRef="rel-aevt-gen-not" source="n-aevt-gen" target="n-not"/>
+        <connection xsi:type="Relationship" identifier="cn-mul-evt-gen" relationshipRef="rel-mul-evt-gen" source="n-mul" target="n-aevt-gen"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-gen-cob" relationshipRef="rel-aevt-gen-cob" source="n-aevt-gen" target="n-cob"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-gen-not" relationshipRef="rel-aevt-gen-not" source="n-aevt-gen" target="n-not"/>
 
         <!-- BC9 emite MultaPagada, UsuarioBloqueado -->
-        <connection identifier="cn-cob-evt-pag" relationshipRef="rel-cob-evt-pag" source="n-cob" target="n-aevt-pag"/>
-        <connection identifier="cn-cob-evt-blk" relationshipRef="rel-cob-evt-blk" source="n-cob" target="n-aevt-blk"/>
-        <connection identifier="cn-aevt-blk-usr" relationshipRef="rel-aevt-blk-usr" source="n-aevt-blk" target="n-usr"/>
+        <connection xsi:type="Relationship" identifier="cn-cob-evt-pag" relationshipRef="rel-cob-evt-pag" source="n-cob" target="n-aevt-pag"/>
+        <connection xsi:type="Relationship" identifier="cn-cob-evt-blk" relationshipRef="rel-cob-evt-blk" source="n-cob" target="n-aevt-blk"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-blk-usr" relationshipRef="rel-aevt-blk-usr" source="n-aevt-blk" target="n-usr"/>
 
         <!-- BC8 emite Reserva eventos -->
-        <connection identifier="cn-res-evt-not" relationshipRef="rel-res-evt-not" source="n-res" target="n-aevt-rnot"/>
-        <connection identifier="cn-res-evt-exp" relationshipRef="rel-res-evt-exp" source="n-res" target="n-aevt-rexp"/>
-        <connection identifier="cn-aevt-rnot-not" relationshipRef="rel-aevt-not-not" source="n-aevt-rnot" target="n-not"/>
-        <connection identifier="cn-aevt-exp-circ" relationshipRef="rel-aevt-exp-circ" source="n-aevt-rexp" target="n-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-res-evt-not" relationshipRef="rel-res-evt-not" source="n-res" target="n-aevt-rnot"/>
+        <connection xsi:type="Relationship" identifier="cn-res-evt-exp" relationshipRef="rel-res-evt-exp" source="n-res" target="n-aevt-rexp"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-rnot-not" relationshipRef="rel-aevt-not-not" source="n-aevt-rnot" target="n-not"/>
+        <connection xsi:type="Relationship" identifier="cn-aevt-exp-circ" relationshipRef="rel-aevt-exp-circ" source="n-aevt-rexp" target="n-circ"/>
       </view>
 
       <!-- ─── VISTA 4: Arquitectura de Tecnología ───────────────── -->
@@ -899,30 +899,30 @@
         <node identifier="n-art-commons" elementRef="art-commons" xsi:type="Element" x="780" y="760" w="190" h="50"/>
 
         <!-- Connections -->
-        <connection identifier="cn-host-circ" relationshipRef="rel-node-circ-host" source="n-host" target="n-node-circ"/>
-        <connection identifier="cn-host-mat" relationshipRef="rel-node-mat-host" source="n-host" target="n-node-mat"/>
-        <connection identifier="cn-host-usr" relationshipRef="rel-node-usr-host" source="n-host" target="n-node-usr"/>
-        <connection identifier="cn-host-mul" relationshipRef="rel-node-mul-host" source="n-host" target="n-node-mul"/>
-        <connection identifier="cn-host-rab" relationshipRef="rel-node-rab-host" source="n-host" target="n-node-rab"/>
-        <connection identifier="cn-host-eur" relationshipRef="rel-node-eur-host" source="n-host" target="n-node-eur"/>
-        <connection identifier="cn-net-circ" relationshipRef="rel-node-circ-net" source="n-node-circ" target="n-docker-net"/>
-        <connection identifier="cn-net-mat" relationshipRef="rel-node-mat-net" source="n-node-mat" target="n-docker-net"/>
-        <connection identifier="cn-net-rab" relationshipRef="rel-node-rab-net" source="n-node-rab" target="n-docker-net"/>
-        <connection identifier="cn-node-circ-art" relationshipRef="rel-art-circ-node" source="n-node-circ" target="n-art-circ"/>
-        <connection identifier="cn-node-mat-art" relationshipRef="rel-art-mat-node" source="n-node-mat" target="n-art-mat"/>
-        <connection identifier="cn-node-usr-art" relationshipRef="rel-art-usr-node" source="n-node-usr" target="n-art-usr"/>
-        <connection identifier="cn-db-circ-node" relationshipRef="rel-db-circ" source="n-db-circ" target="n-node-circ"/>
-        <connection identifier="cn-db-mat-node" relationshipRef="rel-db-mat" source="n-db-mat" target="n-node-mat"/>
-        <connection identifier="cn-db-usr-node" relationshipRef="rel-db-usr" source="n-db-usr" target="n-node-usr"/>
-        <connection identifier="cn-db-mul-node" relationshipRef="rel-db-mul" source="n-db-mul" target="n-node-mul"/>
-        <connection identifier="cn-db-not-node" relationshipRef="rel-db-not" source="n-db-not" target="n-node-not"/>
-        <connection identifier="cn-rabbit-circ" relationshipRef="rel-rabbit-circ" source="n-sw-rabbit" target="n-node-circ"/>
-        <connection identifier="cn-rabbit-mul" relationshipRef="rel-rabbit-mul" source="n-sw-rabbit" target="n-node-mul"/>
-        <connection identifier="cn-rabbit-not" relationshipRef="rel-rabbit-not" source="n-sw-rabbit" target="n-node-not"/>
-        <connection identifier="cn-eureka-circ" relationshipRef="rel-eureka-circ" source="n-sw-eureka" target="n-node-circ"/>
-        <connection identifier="cn-eureka-mat" relationshipRef="rel-eureka-mat" source="n-sw-eureka" target="n-node-mat"/>
-        <connection identifier="cn-jre-circ" relationshipRef="rel-jre17-circ" source="n-node-circ" target="n-sw-jre17"/>
-        <connection identifier="cn-jre-eur" relationshipRef="rel-jre21-eur" source="n-node-eur" target="n-sw-jre21"/>
+        <connection xsi:type="Relationship" identifier="cn-host-circ" relationshipRef="rel-node-circ-host" source="n-host" target="n-node-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-host-mat" relationshipRef="rel-node-mat-host" source="n-host" target="n-node-mat"/>
+        <connection xsi:type="Relationship" identifier="cn-host-usr" relationshipRef="rel-node-usr-host" source="n-host" target="n-node-usr"/>
+        <connection xsi:type="Relationship" identifier="cn-host-mul" relationshipRef="rel-node-mul-host" source="n-host" target="n-node-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-host-rab" relationshipRef="rel-node-rab-host" source="n-host" target="n-node-rab"/>
+        <connection xsi:type="Relationship" identifier="cn-host-eur" relationshipRef="rel-node-eur-host" source="n-host" target="n-node-eur"/>
+        <connection xsi:type="Relationship" identifier="cn-net-circ" relationshipRef="rel-node-circ-net" source="n-node-circ" target="n-docker-net"/>
+        <connection xsi:type="Relationship" identifier="cn-net-mat" relationshipRef="rel-node-mat-net" source="n-node-mat" target="n-docker-net"/>
+        <connection xsi:type="Relationship" identifier="cn-net-rab" relationshipRef="rel-node-rab-net" source="n-node-rab" target="n-docker-net"/>
+        <connection xsi:type="Relationship" identifier="cn-node-circ-art" relationshipRef="rel-art-circ-node" source="n-node-circ" target="n-art-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-node-mat-art" relationshipRef="rel-art-mat-node" source="n-node-mat" target="n-art-mat"/>
+        <connection xsi:type="Relationship" identifier="cn-node-usr-art" relationshipRef="rel-art-usr-node" source="n-node-usr" target="n-art-usr"/>
+        <connection xsi:type="Relationship" identifier="cn-db-circ-node" relationshipRef="rel-db-circ" source="n-db-circ" target="n-node-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-db-mat-node" relationshipRef="rel-db-mat" source="n-db-mat" target="n-node-mat"/>
+        <connection xsi:type="Relationship" identifier="cn-db-usr-node" relationshipRef="rel-db-usr" source="n-db-usr" target="n-node-usr"/>
+        <connection xsi:type="Relationship" identifier="cn-db-mul-node" relationshipRef="rel-db-mul" source="n-db-mul" target="n-node-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-db-not-node" relationshipRef="rel-db-not" source="n-db-not" target="n-node-not"/>
+        <connection xsi:type="Relationship" identifier="cn-rabbit-circ" relationshipRef="rel-rabbit-circ" source="n-sw-rabbit" target="n-node-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-rabbit-mul" relationshipRef="rel-rabbit-mul" source="n-sw-rabbit" target="n-node-mul"/>
+        <connection xsi:type="Relationship" identifier="cn-rabbit-not" relationshipRef="rel-rabbit-not" source="n-sw-rabbit" target="n-node-not"/>
+        <connection xsi:type="Relationship" identifier="cn-eureka-circ" relationshipRef="rel-eureka-circ" source="n-sw-eureka" target="n-node-circ"/>
+        <connection xsi:type="Relationship" identifier="cn-eureka-mat" relationshipRef="rel-eureka-mat" source="n-sw-eureka" target="n-node-mat"/>
+        <connection xsi:type="Relationship" identifier="cn-jre-circ" relationshipRef="rel-jre17-circ" source="n-node-circ" target="n-sw-jre17"/>
+        <connection xsi:type="Relationship" identifier="cn-jre-eur" relationshipRef="rel-jre21-eur" source="n-node-eur" target="n-sw-jre21"/>
       </view>
 
     </diagrams>
