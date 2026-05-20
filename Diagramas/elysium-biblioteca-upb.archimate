@@ -54,6 +54,16 @@
     <element xsi:type="archimate:BusinessEvent" name="UsuarioBloqueadoPorDeuda" id="bevt-usuario-bloqueado">
       <documentation>Emitido por BC9 cuando deuda supera umbral. Recibido por BC3.</documentation>
     </element>
+    <element xsi:type="archimate:BusinessEvent" name="Multa notificada" id="id-f4e13b9cf6a24828874193924b86f68a"/>
+    <element xsi:type="archimate:BusinessFunction" name="Gestión de Circulación" id="bfunc-circulacion">
+      <documentation>Coordina préstamos, devoluciones, renovaciones y la interacción con materiales, usuarios y multas.</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessFunction" name="Administración de Usuarios" id="bfunc-usuarios">
+      <documentation>Gestiona perfiles, límites de préstamo, estados de cuenta y bloqueos.</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessFunction" name="Mantenimiento de Catálogo" id="bfunc-catalogo">
+      <documentation>Administra el inventario de materiales, estados físicos y disponibilidad.</documentation>
+    </element>
   </folder>
   <folder name="Application" id="id-32ba7010665a4fc7bb7da2d96351b167" type="application">
     <element xsi:type="archimate:ApplicationComponent" name="circulacion-service (BC1)" id="app-circulacion">
@@ -83,7 +93,7 @@
     <element xsi:type="archimate:ApplicationComponent" name="cobros-service (BC9)" id="app-cobros">
       <documentation>Supporting. Puerto 8089. Pagos, condonaciones, umbral de bloqueo. PostgreSQL cobros_db.</documentation>
     </element>
-    <element xsi:type="archimate:ApplicationComponent" name="cli-service" id="app-cli">
+    <element xsi:type="archimate:ApplicationComponent" name="servicio cli " id="app-cli">
       <documentation>Puerto 8090. Menú interactivo de consola. Llama a BC1-BC4, BC8, BC9 via REST. Profile Docker: cli.</documentation>
     </element>
     <element xsi:type="archimate:ApplicationComponent" name="eureka-server" id="app-eureka">
@@ -98,6 +108,63 @@
     <element xsi:type="archimate:ApplicationEvent" name="UsuarioBloqueadoPorDeuda" id="aevt-usuario-bloqueado"/>
     <element xsi:type="archimate:ApplicationService" name="disponibilidad" id="id-e637c2d1a3fa486889a646031b3f10cc"/>
     <element xsi:type="archimate:ApplicationService" name="Notificar" id="id-fc4f9ab3ca074dab9f8b0bd06e82b898"/>
+    <element xsi:type="archimate:DataObject" name="Datos de Usuario" id="data-usuario">
+      <documentation>id, nombre, email, tipoUsuario, estadoUsuario, limiteMaximoPrestamos</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Material" id="data-material">
+      <documentation>id, titulo, autor, tipo, estado, precio</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Préstamo" id="data-prestamo">
+      <documentation>id, idUsuario, idMaterial, fechaPrestamo, fechaDevolucionEsperada, estado, renovacionesUsadas</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Multa" id="data-multa">
+      <documentation>id, idPrestamo, idUsuario, tipoMulta, montoTotal, estado, fechaGeneracion</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Pago" id="data-pago">
+      <documentation>id, multaId, usuarioId, monto, fechaPago</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Deuda Pendiente" id="data-deuda">
+      <documentation>id, usuarioId, multaId, montoRestante, pagado</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Reserva" id="data-reserva">
+      <documentation>id, idUsuario, idMaterial, posicionCola, estadoReserva, fechaReserva</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Notificación" id="data-notificacion">
+      <documentation>id, usuarioId, tipo, titulo, mensaje, leida, fechaCreacion</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Solicitud Externa" id="data-solicitud">
+      <documentation>id, prestamoId, idUsuario, idMaterial, bibliotecaOrigen, bibliotecaDestino, estado</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="Datos de Estadística" id="data-estadistica">
+      <documentation>id, tipo, descripcion, valor, fecha</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Usuarios" id="afunc-usuarios">
+      <documentation>Registrar (POST /usuarios), consultar estado (GET /usuarios/{id}/estado), consultar límite (GET /usuarios/{id}/limite-prestamos), bloquear y desbloquear.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Materiales" id="afunc-materiales">
+      <documentation>Agregar (POST /materiales), consultar disponibilidad (GET /materiales/{id}/disponibilidad), actualizar estado (PUT /materiales/{id}/estado), listar por tipo.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Circulación" id="afunc-circulacion">
+      <documentation>Registrar préstamo (POST /prestamos), devolver (PUT /prestamos/{id}/devolver), renovar (PUT /prestamos/{id}/renovar), consultar.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Multas" id="afunc-multas">
+      <documentation>Calcular multa, consultar deuda pendiente (GET /multas/usuario/{id}/deuda), pagar y condonar.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Cobros" id="afunc-cobros">
+      <documentation>Registrar pago (POST /cobros), evaluar bloqueo por deuda, consultar deuda restante.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Reservas" id="afunc-reservas">
+      <documentation>Crear reserva (POST /reservas), notificar disponibilidad (PUT /reservas/{id}/notificar), cancelar, limpiar expiradas (@Scheduled).</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Notificaciones" id="afunc-notificaciones">
+      <documentation>Enviar notificación, consultar (GET /notificaciones), marcar leída (PUT /notificaciones/{id}/leer).</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Reportes" id="afunc-reportes">
+      <documentation>Registrar estadísticas desde eventos y generar reportes (GET /reportes/estadisticas).</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationFunction" name="Gestión de Préstamos Externos" id="afunc-externos">
+      <documentation>Crear solicitud (POST /solicitudes-externas), autorizar, rechazar y consultar.</documentation>
+    </element>
   </folder>
   <folder name="Technology &amp; Physical" id="id-9fda60bcbdca4bccbbae54ce4f2fda47" type="technology">
     <element xsi:type="archimate:Device" name="Servidor Host Linux" id="device-host">
@@ -189,6 +256,13 @@
     <element xsi:type="archimate:Artifact" name="biblioteca-commons-1.0.0.jar" id="art-commons">
       <documentation>Librería compartida: eventos de dominio, enumeraciones, objetos de valor, interfaces de patrones.</documentation>
     </element>
+    <element xsi:type="archimate:Artifact" name="prestamos-externos-service-1.0.0.jar" id="art-jar-ext"/>
+    <element xsi:type="archimate:Artifact" name="notificaciones-service-1.0.0.jar" id="art-jar-not"/>
+    <element xsi:type="archimate:Artifact" name="reportes-service-1.0.0.jar" id="art-jar-rep"/>
+    <element xsi:type="archimate:Artifact" name="reservas-service-1.0.0.jar" id="art-jar-res"/>
+    <element xsi:type="archimate:Artifact" name="cobros-service-1.0.0.jar" id="art-jar-cob"/>
+    <element xsi:type="archimate:Artifact" name="cli-service-1.0.0.jar" id="art-jar-cli"/>
+    <element xsi:type="archimate:Artifact" name="eureka-server-1.0.0.jar" id="art-jar-eur"/>
   </folder>
   <folder name="Motivation" id="id-f941e377aa73436bb7a07dc054dd5be5" type="motivation">
     <element xsi:type="archimate:Stakeholder" name="Biblioteca" id="stk-biblioteca">
@@ -222,6 +296,15 @@
     <element xsi:type="archimate:Requirement" name="Despliegue de componentes en contenedores independientes" id="req-docker">
       <documentation>Cada microservicio con su propia base de datos y Dockerfile multi-stage.</documentation>
     </element>
+    <element xsi:type="archimate:Assessment" name="Procesos Manuales Ineficientes" id="asmt-manual">
+      <documentation>Préstamos, reservas y multas gestionadas en papel generan errores operativos, pérdida de trazabilidad y cuellos de botella en mostrador.</documentation>
+    </element>
+    <element xsi:type="archimate:Assessment" name="Reglas de Multa Heterogéneas" id="asmt-multas">
+      <documentation>Cada tipo de usuario (estudiante, profesor, investigador, público general) requiere reglas de cálculo de multa distintas que ningún sistema genérico resuelve.</documentation>
+    </element>
+    <element xsi:type="archimate:Assessment" name="Sistema Monolítico no Escalable" id="asmt-monolito">
+      <documentation>El backend actual es monolítico: desplegar cambios afecta todo el sistema y dificulta la escalabilidad independiente de cada módulo.</documentation>
+    </element>
   </folder>
   <folder name="Implementation &amp; Migration" id="id-d17fbfc664674c128c342e9657504ed6" type="implementation_migration"/>
   <folder name="Other" id="id-7cf6d68bed3c41f89c284bb57c982b0a" type="other"/>
@@ -239,8 +322,8 @@
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-multas-evt" source="bsvc-multas" target="bevt-multa-generada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-reserva-evt" source="bsvc-reserva" target="bevt-reserva-notificada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-cobro-evt" source="bsvc-cobro" target="bevt-usuario-bloqueado"/>
-    <element xsi:type="archimate:ServingRelationship" name="GET /materiales/{id}/disponibilidad" id="rel-circ-mat-sync" source="app-materiales" target="app-circulacion"/>
-    <element xsi:type="archimate:ServingRelationship" name="GET /usuarios/{id}/estado + límite" id="rel-circ-usr-sync" source="app-usuarios" target="app-circulacion"/>
+    <element xsi:type="archimate:ServingRelationship" name="GET disponibilidad del material" id="rel-circ-mat-sync" source="app-materiales" target="app-circulacion"/>
+    <element xsi:type="archimate:ServingRelationship" name="GET estado y límite del usuario" id="rel-circ-usr-sync" source="app-usuarios" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="POST /solicitudes-externas" id="rel-circ-ext-sync" source="app-prestamos-ext" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="REST API préstamos/devoluciones" id="rel-cli-circ" source="app-cli" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="REST API materiales" id="rel-cli-mat" source="app-cli" target="app-materiales"/>
@@ -320,6 +403,147 @@
     <element xsi:type="archimate:ServingRelationship" id="id-e925df0545a746ff9a4674b9a5039cf4" source="device-host" target="node-mul"/>
     <element xsi:type="archimate:ServingRelationship" id="id-f0eb061159a2444a830c85e8ff876196" source="device-host" target="node-eureka"/>
     <element xsi:type="archimate:ServingRelationship" id="id-b3d5be0ddb604e6ab77174959a183969" source="device-host" target="node-rabbit"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-d3a2604a5ea14e62a4ec0e0adeee54b1" source="device-host" target="node-ext"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-931c02a116b14b5fa0c2ed3f3534b122" source="device-host" target="node-not"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-fa47ff1debd84e14b3c3ae9c5dc6cfe7" source="device-host" target="node-rep"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-ad33dab8498b4adabad5c8f7b3692f34" source="device-host" target="node-res"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-8eea195e8fe748688ad9d32a8aad0a0d" source="device-host" target="node-cob"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-62766a14e2f94549b15a5892de296766" source="device-host" target="node-cli"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-db-cob" source="sw-postgres-cob" target="node-cob"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-db-res" source="sw-postgres-res" target="node-res"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-db-ext" source="sw-postgres-ext" target="node-ext"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-db-rep" source="sw-postgres-rep" target="node-rep"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-mul-net" source="node-mul" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-ext-net" source="node-ext" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-not-net" source="node-not" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-rep-net" source="node-rep" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-res-net" source="node-res" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-cob-net" source="node-cob" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-cli-net" source="node-cli" target="net-docker"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-node-eur-net" source="node-eureka" target="net-docker"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-mul" source="sw-eureka-server" target="node-mul"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-not" source="sw-eureka-server" target="node-not"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-rep" source="sw-eureka-server" target="node-rep"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-res" source="sw-eureka-server" target="node-res"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-cob" source="sw-eureka-server" target="node-cob"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-cli" source="sw-eureka-server" target="node-cli"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-ext" source="sw-eureka-server" target="node-ext"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-mat" source="app-eureka" target="app-materiales"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-usr" source="app-eureka" target="app-usuarios"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-mul" source="app-eureka" target="app-multas"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-not" source="app-eureka" target="app-notificaciones"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-rep" source="app-eureka" target="app-reportes"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-res" source="app-eureka" target="app-reservas"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-cob" source="app-eureka" target="app-cobros"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-ext" source="app-eureka" target="app-prestamos-ext"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-cli" source="app-eureka" target="app-cli"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-eureka-app-circ" source="app-eureka" target="app-circulacion"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-mat" source="sw-rabbitmq" target="node-mat"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-usr" source="sw-rabbitmq" target="node-usr"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-rep" source="sw-rabbitmq" target="node-rep"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-res" source="sw-rabbitmq" target="node-res"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-cob" source="sw-rabbitmq" target="node-cob"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-ext" source="sw-rabbitmq" target="node-ext"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-cli" source="sw-rabbitmq" target="node-cli"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-eur" source="sw-rabbitmq" target="node-eureka"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-mul-node" source="node-mul" target="art-jar-mul"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-ext-node" source="node-ext" target="art-jar-ext"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-not-node" source="node-not" target="art-jar-not"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-rep-node" source="node-rep" target="art-jar-rep"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-res-node" source="node-res" target="art-jar-res"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-cob-node" source="node-cob" target="art-jar-cob"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-cli-node" source="node-cli" target="art-jar-cli"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-eur-node" source="node-eureka" target="art-jar-eur"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-circ" source="art-commons" target="node-circ"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-mat" source="art-commons" target="node-mat"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-usr" source="art-commons" target="node-usr"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-mul" source="art-commons" target="node-mul"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-ext" source="art-commons" target="node-ext"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-not" source="art-commons" target="node-not"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-rep" source="art-commons" target="node-rep"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-res" source="art-commons" target="node-res"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-cob" source="art-commons" target="node-cob"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-cli" source="art-commons" target="node-cli"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-eur" source="art-commons" target="node-eureka"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-mat" source="node-mat" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-usr" source="node-usr" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-mul" source="node-mul" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-ext" source="node-ext" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-not" source="node-not" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-rep" source="node-rep" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-res" source="node-res" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-cob" source="node-cob" target="sw-jre-17"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-cli" source="node-cli" target="sw-jre-17"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-app-mat-dispo" source="app-materiales" target="id-e637c2d1a3fa486889a646031b3f10cc"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-app-not-notif" source="app-notificaciones" target="id-fc4f9ab3ca074dab9f8b0bd06e82b898"/>
+    <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-pag-not" source="aevt-multa-pagada" target="app-notificaciones"/>
+    <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-rcre-not" source="aevt-reserva-creada" target="app-notificaciones"/>
+    <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-rexp-not" source="aevt-reserva-expirada" target="app-notificaciones"/>
+    <element xsi:type="archimate:AccessRelationship" id="id-c0c84353b3914d3399010898a69c468e" source="bsvc-renovacion" target="bobj-prestamo"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-186c76e148094dedad7b21b152f25b4a" source="bevt-multa-generada" target="bobj-multa"/>
+    <element xsi:type="archimate:AccessRelationship" id="id-98d38b0f5f524fd4b7f7c769bf759e89" source="bsvc-cobro" target="bobj-multa"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-bc6ecd309ba54429acd36c038bbf34dc" source="bsvc-multas" target="id-f4e13b9cf6a24828874193924b86f68a"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-835cae53ec114c0bbf4064d0d660cfcc" source="id-f4e13b9cf6a24828874193924b86f68a" target="bsvc-notificacion"/>
+    <element xsi:type="archimate:TriggeringRelationship" id="id-62560e0812cd4c419d440da9ba962362" source="aevt-multa-pagada" target="app-reportes"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-asmt-manual-drv" source="asmt-manual" target="drv-gestion-manual"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-asmt-multas-drv" source="asmt-multas" target="goal-automatizacion"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-asmt-monolito-drv" source="asmt-monolito" target="drv-acceso-justo"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-role-bfunc-circ" source="role-encargado-circulacion" target="bfunc-circulacion"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-role-bfunc-usr" source="role-prestatario" target="bfunc-usuarios"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-role-bfunc-cat" source="role-gestor-reservas" target="bfunc-catalogo"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-usr" source="app-usuarios" target="afunc-usuarios"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-mat" source="app-materiales" target="afunc-materiales"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-circ" source="app-circulacion" target="afunc-circulacion"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-mul" source="app-multas" target="afunc-multas"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-cob" source="app-cobros" target="afunc-cobros"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-res" source="app-reservas" target="afunc-reservas"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-not" source="app-notificaciones" target="afunc-notificaciones"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-rep" source="app-reportes" target="afunc-reportes"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-app-afunc-ext" source="app-prestamos-ext" target="afunc-externos"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-usr" source="app-usuarios" target="data-usuario"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-mat" source="app-materiales" target="data-material"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-prest" source="app-circulacion" target="data-prestamo"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-multa" source="app-multas" target="data-multa"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-pago" source="app-cobros" target="data-pago"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-deuda" source="app-cobros" target="data-deuda"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-res" source="app-reservas" target="data-reserva"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-notif" source="app-notificaciones" target="data-notificacion"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-sol" source="app-prestamos-ext" target="data-solicitud"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-data-est" source="app-reportes" target="data-estadistica"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-circ-bsvc-pre" source="afunc-circulacion" target="bsvc-prestamo"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-circ-bsvc-dev" source="afunc-circulacion" target="bsvc-devolucion"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-circ-bsvc-ren" source="afunc-circulacion" target="bsvc-renovacion"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-mat-bsvc-cat" source="afunc-materiales" target="bsvc-catalogo"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-mul-bsvc-mul" source="afunc-multas" target="bsvc-multas"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-cob-bsvc-cob" source="afunc-cobros" target="bsvc-cobro"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-res-bsvc-res" source="afunc-reservas" target="bsvc-reserva"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-afunc-not-bsvc-not" source="afunc-notificaciones" target="bsvc-notificacion"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-data-usr-bobj" source="data-usuario" target="bobj-usuario"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-data-mat-bobj" source="data-material" target="bobj-material"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-data-prest-bobj" source="data-prestamo" target="bobj-prestamo"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-data-multa-bobj" source="data-multa" target="bobj-multa"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-data-pago-bobj" source="data-pago" target="bobj-pago"/>
+    <element xsi:type="archimate:AssociationRelationship" id="rel-data-res-bobj" source="data-reserva" target="bobj-reserva"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-e17f03ae7b6c483a92b5e4cd214dec2f" source="drv-gestion-manual" target="asmt-manual"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-164f4d4feebe494191b30a74dd630dc9" source="bsvc-prestamo" target="req-solid"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-6ccce9432487400b8d4ec3c6c3239c2c" source="bproc-circulacion" target="req-ddd"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-60a6bf9c499748f28185db480ac0be42" source="bsvc-notificacion" target="req-eventos-dominio"/>
+    <element xsi:type="archimate:TriggeringRelationship" id="id-d803cb485c2d4bb39ba591162788e09e" source="role-gestor-reservas" target="bfunc-catalogo"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-cebe62c84aa64779901318a13f836a81" source="sw-maven" target="art-commons"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-f7fa79b4e11243449cab547c5480c01a" source="sw-maven" target="art-jar-circ"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-4ddb8a03d2e342edb44caff0381622f7" source="sw-maven" target="art-jar-mat"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-ae8f29f1e55e4fc1a0317a2af719d28a" source="sw-maven" target="art-jar-usr"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-f192258d4d1248a69749f23ab4204b0b" source="sw-maven" target="art-jar-mul"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-f00b44428cd443ec9eb88d45b32735e7" source="sw-maven" target="art-jar-rep"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-d4efa339a8384f018529f0d8bc2413ec" source="sw-maven" target="art-jar-res"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-d831c59b63a6423695bbc8f2a8f5d376" source="sw-maven" target="art-jar-cob"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-527bc834212c4c71bc81ae4ad31c2a55" source="sw-maven" target="art-jar-cli"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-e04fa6f7f1394afbaca7ea8c94c47765" source="sw-maven" target="art-jar-eur"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-93f930233c3341129ac02c25cd7511b9" source="req-solid" target="bsvc-prestamo"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-93d5232ad11f41fa88cf1719bad36d16" source="req-ddd" target="bproc-circulacion"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-31a9b03c62854d6c93a7d3dad70d23dc" source="req-eventos-dominio" target="bsvc-notificacion"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-d00d2782dadf4655b728eed409cdd156" source="sw-maven" target="art-jar-ext"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="id-dab8fd7a105f47438b2b26d218939c57" source="sw-maven" target="art-jar-not"/>
   </folder>
   <folder name="Views" id="id-964f298f567e49e1ae60be507fd5eae6" type="diagrams">
     <element xsi:type="archimate:ArchimateDiagramModel" name="1. Motivacion y Estrategia" id="view-motivacion">
@@ -344,7 +568,7 @@
           <bounds x="24" y="48" width="180" height="55"/>
           <sourceConnection xsi:type="archimate:Connection" id="cn-drv2-g3" source="n-drv2" target="n-goal3" archimateRelationship="rel-drv2-goal2"/>
         </child>
-        <child xsi:type="archimate:DiagramObject" id="n-drv3" targetConnections="cn-stk-usr-drv3" archimateElement="drv-acceso-justo">
+        <child xsi:type="archimate:DiagramObject" id="n-drv3" targetConnections="cn-stk-usr-drv3 id-35ab935d3797430bb02f9cc4d2168950" archimateElement="drv-acceso-justo">
           <bounds x="492" y="36" width="160" height="55"/>
           <sourceConnection xsi:type="archimate:Connection" id="cn-drv3-g1" source="n-drv3" target="n-goal1" archimateRelationship="rel-drv3-goal3"/>
         </child>
@@ -352,11 +576,12 @@
           <bounds x="264" y="36" width="180" height="55"/>
           <sourceConnection xsi:type="archimate:Connection" id="cn-drv1-g2" source="n-drv1" target="n-goal2" archimateRelationship="rel-drv1-goal1"/>
           <sourceConnection xsi:type="archimate:Connection" id="id-c437bad9044a4801a8cbd8ca02f40733" source="n-drv1" target="n-goal4" archimateRelationship="id-3d182686c47d4b1d9c042598b5d3d434"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-b46d41e0dd814e499bc4dcf314dd82ac" source="n-drv1" target="n-asmt-manual" archimateRelationship="id-e17f03ae7b6c483a92b5e4cd214dec2f"/>
         </child>
       </child>
       <child xsi:type="archimate:Group" id="id-9d57aa2be33947a1a58baa970686d0f8" name="Objetives" textAlignment="1">
         <bounds x="36" y="336" width="998" height="133"/>
-        <child xsi:type="archimate:DiagramObject" id="n-goal3" targetConnections="cn-drv2-g3 id-30f03b7f767c4aaf9fcc297902402988" archimateElement="goal-automatizacion">
+        <child xsi:type="archimate:DiagramObject" id="n-goal3" targetConnections="cn-drv2-g3 id-30f03b7f767c4aaf9fcc297402402988 cn-asmt-multas-drv" archimateElement="goal-automatizacion">
           <bounds x="36" y="36" width="170" height="55"/>
         </child>
         <child xsi:type="archimate:DiagramObject" id="n-goal2" targetConnections="cn-drv1-g2 id-859a8392a9d04330993fc64f3e6ce20d" archimateElement="goal-trazabilidad">
@@ -369,11 +594,11 @@
           <bounds x="528" y="48" width="170" height="55"/>
         </child>
       </child>
-      <child xsi:type="archimate:Group" id="id-7f09c00810254f0a9e1a27951a5034d8" name="Requeriments" textAlignment="1">
+      <child xsi:type="archimate:Group" id="id-7f09c00810254f0a9e1a27951a5034d8" name="Requirements" textAlignment="1">
         <bounds x="36" y="480" width="937" height="109"/>
         <child xsi:type="archimate:DiagramObject" id="n-req3" archimateElement="req-eventos-dominio">
           <bounds x="36" y="36" width="180" height="55"/>
-          <sourceConnection xsi:type="archimate:Connection" id="id-30f03b7f767c4aaf9fcc297902402988" source="n-req3" target="n-goal3" archimateRelationship="id-040a42001c694d618b1bd0cb7d9c02b0"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-30f03b7f767c4aaf9fcc297402402988" source="n-req3" target="n-goal3" archimateRelationship="id-040a42001c694d618b1bd0cb7d9c02b0"/>
         </child>
         <child xsi:type="archimate:DiagramObject" id="n-req2" archimateElement="req-ddd">
           <bounds x="264" y="36" width="180" height="55"/>
@@ -389,7 +614,33 @@
           <sourceConnection xsi:type="archimate:Connection" id="id-a2b2f9bde5f24848ad1468f509c3ddad" source="n-req4" target="n-goal4" archimateRelationship="id-5a8225ad6e7c4b00966fd97df89b2805"/>
         </child>
       </child>
-      <documentation>Capa de Motivación TOGAF/ArchiMate: Stakeholders, Drivers, Goals y Requirements del sistema Elysium.</documentation>
+      <child xsi:type="archimate:Group" id="id-group-assessments" name="Assessments" textAlignment="1">
+        <bounds x="36" y="620" width="937" height="120"/>
+        <child xsi:type="archimate:DiagramObject" id="n-asmt-manual" targetConnections="id-b46d41e0dd814e499bc4dcf314dd82ac" archimateElement="asmt-manual">
+          <bounds x="36" y="36" width="220" height="55"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-asmt-multas" archimateElement="asmt-multas">
+          <bounds x="324" y="36" width="220" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="cn-asmt-multas-drv" source="n-asmt-multas" target="n-goal3" archimateRelationship="rel-asmt-multas-drv"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-asmt-monolito" archimateElement="asmt-monolito">
+          <bounds x="612" y="36" width="220" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-35ab935d3797430bb02f9cc4d2168950" source="n-asmt-monolito" target="n-drv3" archimateRelationship="rel-asmt-monolito-drv"/>
+        </child>
+      </child>
+      <child xsi:type="archimate:Group" id="id-group-crosslayer" name="Influencia hacia Negocio" textAlignment="1">
+        <bounds x="48" y="768" width="937" height="120"/>
+        <child xsi:type="archimate:DiagramObject" id="n-moti-bsvc-pre" archimateElement="bsvc-prestamo">
+          <bounds x="36" y="36" width="180" height="55"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-moti-bproc-circ" archimateElement="bproc-circulacion">
+          <bounds x="282" y="36" width="180" height="55"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-moti-bsvc-not" archimateElement="bsvc-notificacion">
+          <bounds x="528" y="36" width="180" height="55"/>
+        </child>
+      </child>
+      <documentation>Capa de Motivación TOGAF/ArchiMate: Stakeholders, Drivers, Goals, Requirements, Assessments e Influencias hacia la capa de Negocio.</documentation>
     </element>
     <element xsi:type="archimate:ArchimateDiagramModel" name="2. Arquitectura de Negocio " id="view-negocio">
       <child xsi:type="archimate:DiagramObject" id="n-act-bib" archimateElement="actor-bibliotecario">
@@ -402,25 +653,30 @@
         <sourceConnection xsi:type="archimate:Connection" id="cn-usr-role" source="n-act-usr" target="n-role-pre" archimateRelationship="rel-actor-usr-role"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-role-enc" targetConnections="cn-bib-role" archimateElement="role-encargado-circulacion">
-        <bounds x="410" y="132" width="180" height="55"/>
+        <bounds x="371" y="196" width="180" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-role-proc" source="n-role-enc" target="n-proc-circ" archimateRelationship="rel-role-proc-circ"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-8dca14a29f7940a6af643952498e1666" source="n-role-enc" target="n-biz-bfunc-circ" archimateRelationship="rel-role-bfunc-circ"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-role-pre" targetConnections="cn-usr-role" archimateElement="role-prestatario">
         <bounds x="1493" y="148" width="150" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-a6f54878a75b419ab18cc48d98ad6674" source="n-role-pre" target="n-bsvc-not" archimateRelationship="id-702a621a12d5430b8ad10d7606b1605a"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-a170e784c5ee403bac598470cebecb2d" source="n-role-pre" target="n-biz-bfunc-usr" archimateRelationship="rel-role-bfunc-usr"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-role-ges" targetConnections="id-4f9c3a7b9e5c47f1915354dc9896f5cd" archimateElement="role-gestor-reservas">
-        <bounds x="684" y="148" width="160" height="55"/>
+        <bounds x="742" y="173" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-7771b16dda7149b7bb1e4c5cfa8700e3" source="n-role-ges" target="n-proc-res" archimateRelationship="id-5af7996568bc4d4f83adc95d4bab41e4"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-735e5e80a3134f259955d34df74b0469" source="n-role-ges" target="n-biz-bfunc-cat" archimateRelationship="rel-role-bfunc-cat"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f65df100799541c4ba8d63e71361b261" source="n-role-ges" target="n-biz-bfunc-cat" archimateRelationship="id-d803cb485c2d4bb39ba591162788e09e"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-proc-circ" targetConnections="cn-role-proc" archimateElement="bproc-circulacion">
-        <bounds x="132" y="250" width="200" height="70"/>
+      <child xsi:type="archimate:DiagramObject" id="n-proc-circ" targetConnections="cn-role-proc id-f98a838a383846348cb111227a9d4d5e" archimateElement="bproc-circulacion">
+        <bounds x="69" y="255" width="200" height="70"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-b72240aa25cd4311bd05a9ed5a9060a3" source="n-proc-circ" target="n-bsvc-pre" archimateRelationship="id-936a57e434ea4be19c17fcf843abea60"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-68a6badd741d4efa8850e16760795cf9" source="n-proc-circ" target="n-bsvc-ren" archimateRelationship="id-3fd3642ec3b045fdba38319949731b7d"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-801018454bbc45dab46219af5513b7fe" source="n-proc-circ" target="n-bsvc-cat" archimateRelationship="id-0b16b4cf0f4c4425bc45ef889bcc292d"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-bdf851a23ec3472fa9a1e7fb2dbdfdbe" source="n-proc-circ" target="n-bobj-usr" archimateRelationship="id-218637ac519c422a8da4cfb9b4ea00bf"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-6984a2d5feb84e758421e62654ee6560" source="n-proc-circ" target="n-bobj-mat" archimateRelationship="id-1302416acae24af59a7bbf5894664ad0"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-9474e0b9ea5e41a69daec1c4b408b9dc" source="n-proc-circ" target="n-bsvc-dev" archimateRelationship="id-a1ccac017c414bbabe680275b1c8f48f"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f500c1c8c1dd44da8c85a7f9a16a71d8" source="n-proc-circ" target="n-biz-req-ddd" archimateRelationship="id-6ccce9432487400b8d4ec3c6c3239c2c"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-proc-res" targetConnections="id-7771b16dda7149b7bb1e4c5cfa8700e3" archimateElement="bproc-reservas">
         <bounds x="1001" y="300" width="200" height="70"/>
@@ -433,72 +689,78 @@
         <sourceConnection xsi:type="archimate:Connection" id="id-45c53fd024f44d239c750eff88a38e95" source="n-proc-mul" target="n-bobj-usr" archimateRelationship="id-3321336c0b9642d2a29628bedb609f01"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-9d57de7e8cbb4f63b015189e6151315b" source="n-proc-mul" target="n-bobj-pag" archimateRelationship="id-926c52293a17428697f14f4c13b96c7b"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-pre" targetConnections="id-b72240aa25cd4311bd05a9ed5a9060a3" archimateElement="bsvc-prestamo">
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-pre" targetConnections="id-b72240aa25cd4311bd05a9ed5a9060a3 id-eeb20a7251a04554abc211d799616eb7 id-516b7319b8364f2ca903cd7eb0f4e496" archimateElement="bsvc-prestamo">
         <bounds x="-168" y="492" width="140" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-b83a05d92f374213b78a459bea6b4558" source="n-bsvc-pre" target="n-bobj-pre" archimateRelationship="id-2046bd5274f448fcaa0285c91e81d517"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-c26e8242f7f047198021f177cb62a484" source="n-bsvc-pre" target="n-biz-req-solid" archimateRelationship="id-164f4d4feebe494191b30a74dd630dc9"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-dev" targetConnections="id-9474e0b9ea5e41a69daec1c4b408b9dc" archimateElement="bsvc-devolucion">
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-dev" targetConnections="id-9474e0b9ea5e41a69daec1c4b408b9dc id-cb8bff478dbb43ac85c2e98f9f34cd4e" archimateElement="bsvc-devolucion">
         <bounds x="203" y="504" width="130" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-svc-evt-dev" source="n-bsvc-dev" target="n-bevt-dev" archimateRelationship="rel-svc-devolucion-evt"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-78d1527dc44f4c7e9efbf824f0ffcba9" source="n-bsvc-dev" target="n-bobj-pre" archimateRelationship="id-3cbd3f3ec0eb433997355d97bc67dd8f"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-d846cd4e5f3c46cd9a5f94443c69ccff" source="n-bsvc-dev" target="n-bobj-mat" archimateRelationship="id-e7aaf4b5be444e2ca6754a40dc6fbae5"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-ren" targetConnections="id-68a6badd741d4efa8850e16760795cf9" archimateElement="bsvc-renovacion">
-        <bounds x="-216" y="371" width="130" height="50"/>
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-ren" targetConnections="id-68a6badd741d4efa8850e16760795cf9 id-297a8eeb39144701bf20fce2f1203772" archimateElement="bsvc-renovacion">
+        <bounds x="-312" y="372" width="130" height="50"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-3ce976c405804965af77a2943404c7c0" source="n-bsvc-ren" target="n-bobj-pre" archimateRelationship="id-c0c84353b3914d3399010898a69c468e"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-res" targetConnections="id-ebb053eba6354b3f91a504e6b6df18d6" archimateElement="bsvc-reserva">
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-res" targetConnections="id-ebb053eba6354b3f91a504e6b6df18d6 id-52e3f0b4f6f1475397bb9a935553ff7d" archimateElement="bsvc-reserva">
         <bounds x="1026" y="438" width="150" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-svc-evt-res" source="n-bsvc-res" target="n-bevt-res" archimateRelationship="rel-svc-reserva-evt"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-71393ce37580452d8b3d768854b9074b" source="n-bsvc-res" target="n-bobj-res" archimateRelationship="id-df91cbe26a0d482680c9e7255b5d83cd"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-7b025a85be00425f8fbbc23dfc3116b1" source="n-bsvc-res" target="n-bobj-mat" archimateRelationship="id-86e5be3f2e0449b893042c51e053ccab"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-mul" targetConnections="id-73a111a98c944f9a898faaa783c30b15" archimateElement="bsvc-multas">
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-mul" targetConnections="id-73a111a98c944f9a898faaa783c30b15 id-c0ab8691933646ebbfbab9e7e65112e8" archimateElement="bsvc-multas">
         <bounds x="198" y="924" width="157" height="66"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-svc-evt-mul" source="n-bsvc-mul" target="n-bevt-mul" archimateRelationship="rel-svc-multas-evt"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-324f110c6e674e0a97727b9a7b0e74a3" source="n-bsvc-mul" target="n-bobj-mul" archimateRelationship="id-035c5e60a154430aa3aac3cf42dd5253"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f2ecdb845dd34510b69ea16fae2b129b" source="n-bsvc-mul" target="id-dd452ac192f04620b6dd0e274061115c" archimateRelationship="id-bc6ecd309ba54429acd36c038bbf34dc"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-cob" targetConnections="id-91f96466bc5e47e78995af249545dd2b" archimateElement="bsvc-cobro">
-        <bounds x="589" y="912" width="177" height="61"/>
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-cob" targetConnections="id-91f96466bc5e47e78995af249545dd2b id-02e645500a9c4c4eb7cc4a795d4a15d5" archimateElement="bsvc-cobro">
+        <bounds x="589" y="828" width="177" height="61"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-svc-evt-blk" source="n-bsvc-cob" target="n-bevt-blk" archimateRelationship="rel-svc-cobro-evt"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-7791b2e1ed28418fa3b15717abc16ff2" source="n-bsvc-cob" target="n-bobj-mul" archimateRelationship="id-98d38b0f5f524fd4b7f7c769bf759e89"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-cat" targetConnections="id-801018454bbc45dab46219af5513b7fe id-fbb7b6440abd43f2b66f9ab0c4c8df2c" archimateElement="bsvc-catalogo">
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-cat" targetConnections="id-801018454bbc45dab46219af5513b7fe id-fbb7b6440abd43f2b66f9ab0c4c8df2c id-9d94a1bd3f00450183b753a1586803a3" archimateElement="bsvc-catalogo">
         <bounds x="367" y="468" width="150" height="62"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-8a14413ac2ba40618cdc294c79d6bf2e" source="n-bsvc-cat" target="n-bobj-mat" archimateRelationship="id-fb1cbfa262cf4804bfd93e2494e7e2a4"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bsvc-not" targetConnections="id-e0864dd55c6f4f2ea7923de3db46addc id-a6f54878a75b419ab18cc48d98ad6674 id-8581c12cdbdf4d22a4cc041c4c974525" archimateElement="bsvc-notificacion">
+      <child xsi:type="archimate:DiagramObject" id="n-bsvc-not" targetConnections="id-e0864dd55c6f4f2ea7923de3db46addc id-a6f54878a75b419ab18cc48d98ad6674 id-8581c12cdbdf4d22a4cc041c4c974525 id-f0824f0ce7f0425b936307fecf2aa2ef id-4987a0bdb8b748e5880fb089b284dd1e id-7de633a9e0f247b895062347128de086" archimateElement="bsvc-notificacion">
         <bounds x="1493" y="227" width="180" height="50"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-314e1128c6494df884a8e35ec533cf0c" source="n-bsvc-not" target="n-biz-req-eventos" archimateRelationship="id-60a6bf9c499748f28185db480ac0be42"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bobj-pre" targetConnections="id-b83a05d92f374213b78a459bea6b4558 id-78d1527dc44f4c7e9efbf824f0ffcba9" archimateElement="bobj-prestamo">
+      <child xsi:type="archimate:DiagramObject" id="n-bobj-pre" targetConnections="id-b83a05d92f374213b78a459bea6b4558 id-78d1527dc44f4c7e9efbf824f0ffcba9 id-3ce976c405804965af77a2943404c7c0 id-a87dc5153ffe4a86abda54e565d3096a" archimateElement="bobj-prestamo">
         <bounds x="-158" y="624" width="130" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bobj-res" targetConnections="id-71393ce37580452d8b3d768854b9074b" archimateElement="bobj-reserva">
-        <bounds x="1068" y="600" width="130" height="50"/>
+      <child xsi:type="archimate:DiagramObject" id="n-bobj-res" targetConnections="id-71393ce37580452d8b3d768854b9074b id-42c56a5a047a497e9393eef592fa2af6" archimateElement="bobj-reserva">
+        <bounds x="960" y="624" width="130" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bobj-mul" targetConnections="id-324f110c6e674e0a97727b9a7b0e74a3" archimateElement="bobj-multa">
-        <bounds x="361" y="1119" width="130" height="50"/>
+      <child xsi:type="archimate:DiagramObject" id="n-bobj-mul" targetConnections="id-324f110c6e674e0a97727b9a7b0e74a3 id-6afe197cb3984f298e7d0fdf3be9dbb2 id-7791b2e1ed28418fa3b15717abc16ff2 id-040719f396c44040a6af86e56edd1c22" archimateElement="bobj-multa">
+        <bounds x="396" y="1152" width="130" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bobj-mat" targetConnections="id-6984a2d5feb84e758421e62654ee6560 id-d846cd4e5f3c46cd9a5f94443c69ccff id-7b025a85be00425f8fbbc23dfc3116b1 id-8a14413ac2ba40618cdc294c79d6bf2e" archimateElement="bobj-material">
+      <child xsi:type="archimate:DiagramObject" id="n-bobj-mat" targetConnections="id-6984a2d5feb84e758421e62654ee6560 id-d846cd4e5f3c46cd9a5f94443c69ccff id-7b025a85be00425f8fbbc23dfc3116b1 id-8a14413ac2ba40618cdc294c79d6bf2e id-2a1c02e04c224335810c25707443e3f9" archimateElement="bobj-material">
         <bounds x="792" y="564" width="160" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bobj-usr" targetConnections="id-bdf851a23ec3472fa9a1e7fb2dbdfdbe id-45c53fd024f44d239c750eff88a38e95 id-1e645f46ec9b4a27a64a5adeae0443f1" archimateElement="bobj-usuario">
+      <child xsi:type="archimate:DiagramObject" id="n-bobj-usr" targetConnections="id-bdf851a23ec3472fa9a1e7fb2dbdfdbe id-45c53fd024f44d239c750eff88a38e95 id-1e645f46ec9b4a27a64a5adeae0443f1 id-804005005eb14063b501f058e1966dd5" archimateElement="bobj-usuario">
         <bounds x="-60" y="1067" width="130" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-bobj-pag" targetConnections="id-9d57de7e8cbb4f63b015189e6151315b" archimateElement="bobj-pago">
-        <bounds x="555" y="1116" width="130" height="50"/>
+      <child xsi:type="archimate:DiagramObject" id="n-bobj-pag" targetConnections="id-9d57de7e8cbb4f63b015189e6151315b id-40f05c99ebab4f3c8f8e0302f6bf064a" archimateElement="bobj-pago">
+        <bounds x="613" y="1152" width="130" height="50"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-bevt-dev" targetConnections="cn-svc-evt-dev" archimateElement="bevt-material-devuelto">
         <bounds x="192" y="660" width="170" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-145dc7a05a2b4831a0b3eb90276fc470" source="n-bevt-dev" target="n-proc-mul" archimateRelationship="id-ebf6ce472c7d477bbdbe015a9e3a844f"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-bevt-mul" targetConnections="cn-svc-evt-mul" archimateElement="bevt-multa-generada">
-        <bounds x="152" y="1116" width="160" height="50"/>
+        <bounds x="108" y="1164" width="160" height="50"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-6afe197cb3984f298e7d0fdf3be9dbb2" source="n-bevt-mul" target="n-bobj-mul" archimateRelationship="id-186c76e148094dedad7b21b152f25b4a"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-bevt-res" targetConnections="cn-svc-evt-res" archimateElement="bevt-reserva-notificada">
         <bounds x="1236" y="600" width="170" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-8581c12cdbdf4d22a4cc041c4c974525" source="n-bevt-res" target="n-bsvc-not" archimateRelationship="id-f8a5aff008d44074959726109eeea93f"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-bevt-blk" targetConnections="cn-svc-evt-blk" archimateElement="bevt-usuario-bloqueado">
-        <bounds x="623" y="1021" width="190" height="50"/>
+        <bounds x="623" y="948" width="190" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-1e645f46ec9b4a27a64a5adeae0443f1" source="n-bevt-blk" target="n-bobj-usr" archimateRelationship="id-c592e8d66eba4fc69f3cedd331fc3fb7"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="id-3f547b5a92c44625bab43dff1753dda9" archimateElement="id-e637c2d1a3fa486889a646031b3f10cc">
@@ -509,10 +771,104 @@
         <bounds x="1500" y="324" width="165" height="61"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-e0864dd55c6f4f2ea7923de3db46addc" source="id-deb2b35351804271879d75427af1db54" target="n-bsvc-not" archimateRelationship="id-4f426943f0fa4d0b946e5f2f90b2d073"/>
       </child>
-      <documentation>Actores, roles, procesos de negocio, servicios y objetos de dominio del sistema Elysium.</documentation>
+      <child xsi:type="archimate:DiagramObject" id="id-dd452ac192f04620b6dd0e274061115c" targetConnections="id-f2ecdb845dd34510b69ea16fae2b129b" archimateElement="id-f4e13b9cf6a24828874193924b86f68a">
+        <bounds x="336" y="1320" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f0824f0ce7f0425b936307fecf2aa2ef" source="id-dd452ac192f04620b6dd0e274061115c" target="n-bsvc-not" archimateRelationship="id-835cae53ec114c0bbf4064d0d660cfcc"/>
+      </child>
+      <child xsi:type="archimate:Group" id="id-biz-grp-req" name="Influencia desde Requisitos" textAlignment="1">
+        <bounds x="-930" y="180" width="768" height="132"/>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-req-solid" targetConnections="id-c26e8242f7f047198021f177cb62a484" archimateElement="req-solid">
+          <bounds x="48" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-516b7319b8364f2ca903cd7eb0f4e496" source="n-biz-req-solid" target="n-bsvc-pre" archimateRelationship="id-93f930233c3341129ac02c25cd7511b9"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-req-ddd" targetConnections="id-f500c1c8c1dd44da8c85a7f9a16a71d8" archimateElement="req-ddd">
+          <bounds x="264" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-f98a838a383846348cb111227a9d4d5e" source="n-biz-req-ddd" target="n-proc-circ" archimateRelationship="id-93d5232ad11f41fa88cf1719bad36d16"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-req-eventos" targetConnections="id-314e1128c6494df884a8e35ec533cf0c" archimateElement="req-eventos-dominio">
+          <bounds x="480" y="48" width="180" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-7de633a9e0f247b895062347128de086" source="n-biz-req-eventos" target="n-bsvc-not" archimateRelationship="id-31a9b03c62854d6c93a7d3dad70d23dc"/>
+        </child>
+      </child>
+      <child xsi:type="archimate:Group" id="id-biz-grp-bfunc" name="Funciones empresariales" textAlignment="1">
+        <bounds x="-912" y="12" width="636" height="145"/>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-bfunc-circ" archimateElement="bfunc-circulacion">
+          <targetConnections href="cn-role-bfunc-circ"/>
+          <targetConnections href="#id-8dca14a29f7940a6af643952498e1666"/>
+          <bounds x="12" y="72" width="180" height="55"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-bfunc-usr" archimateElement="bfunc-usuarios">
+          <targetConnections href="cn-role-bfunc-usr"/>
+          <targetConnections href="#id-a170e784c5ee403bac598470cebecb2d"/>
+          <bounds x="444" y="36" width="180" height="55"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-bfunc-cat" archimateElement="bfunc-catalogo">
+          <targetConnections href="cn-role-bfunc-cat"/>
+          <targetConnections href="#id-735e5e80a3134f259955d34df74b0469"/>
+          <targetConnections href="#id-f65df100799541c4ba8d63e71361b261"/>
+          <bounds x="228" y="48" width="180" height="55"/>
+        </child>
+      </child>
+      <child xsi:type="archimate:Group" id="id-biz-grp-afunc" name="Funciones de aplicacion" textAlignment="1">
+        <bounds x="-1296" y="888" width="1176" height="115"/>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-afunc-circ" archimateElement="afunc-circulacion">
+          <bounds x="24" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-297a8eeb39144701bf20fce2f1203772" source="n-biz-afunc-circ" target="n-bsvc-ren" archimateRelationship="rel-afunc-circ-bsvc-ren"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-cb8bff478dbb43ac85c2e98f9f34cd4e" source="n-biz-afunc-circ" target="n-bsvc-dev" archimateRelationship="rel-afunc-circ-bsvc-dev"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-eeb20a7251a04554abc211d799616eb7" source="n-biz-afunc-circ" target="n-bsvc-pre" archimateRelationship="rel-afunc-circ-bsvc-pre"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-afunc-mat" archimateElement="afunc-materiales">
+          <bounds x="240" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-9d94a1bd3f00450183b753a1586803a3" source="n-biz-afunc-mat" target="n-bsvc-cat" archimateRelationship="rel-afunc-mat-bsvc-cat"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-afunc-mul" archimateElement="afunc-multas">
+          <bounds x="420" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-c0ab8691933646ebbfbab9e7e65112e8" source="n-biz-afunc-mul" target="n-bsvc-mul" archimateRelationship="rel-afunc-mul-bsvc-mul"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-afunc-cob" archimateElement="afunc-cobros">
+          <bounds x="588" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-02e645500a9c4c4eb7cc4a795d4a15d5" source="n-biz-afunc-cob" target="n-bsvc-cob" archimateRelationship="rel-afunc-cob-bsvc-cob"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-afunc-res" archimateElement="afunc-reservas">
+          <bounds x="768" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-52e3f0b4f6f1475397bb9a935553ff7d" source="n-biz-afunc-res" target="n-bsvc-res" archimateRelationship="rel-afunc-res-bsvc-res"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-afunc-not" archimateElement="afunc-notificaciones">
+          <bounds x="948" y="48" width="160" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-4987a0bdb8b748e5880fb089b284dd1e" source="n-biz-afunc-not" target="n-bsvc-not" archimateRelationship="rel-afunc-not-bsvc-not"/>
+        </child>
+      </child>
+      <child xsi:type="archimate:Group" id="id-biz-grp-data" name="Data objects" textAlignment="1">
+        <bounds x="-168" y="1536" width="1069" height="120"/>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-data-usr" archimateElement="data-usuario">
+          <bounds x="206" y="36" width="130" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-804005005eb14063b501f058e1966dd5" source="n-biz-data-usr" target="n-bobj-usr" archimateRelationship="rel-data-usr-bobj"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-data-mat" archimateElement="data-material">
+          <bounds x="782" y="36" width="130" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-2a1c02e04c224335810c25707443e3f9" source="n-biz-data-mat" target="n-bobj-mat" archimateRelationship="rel-data-mat-bobj"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-data-pre" archimateElement="data-prestamo">
+          <bounds x="24" y="36" width="130" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-a87dc5153ffe4a86abda54e565d3096a" source="n-biz-data-pre" target="n-bobj-pre" archimateRelationship="rel-data-prest-bobj"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-data-mul" archimateElement="data-multa">
+          <bounds x="398" y="36" width="130" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-040719f396c44040a6af86e56edd1c22" source="n-biz-data-mul" target="n-bobj-mul" archimateRelationship="rel-data-multa-bobj"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-data-pag" archimateElement="data-pago">
+          <bounds x="590" y="36" width="130" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-40f05c99ebab4f3c8f8e0302f6bf064a" source="n-biz-data-pag" target="n-bobj-pag" archimateRelationship="rel-data-pago-bobj"/>
+        </child>
+        <child xsi:type="archimate:DiagramObject" id="n-biz-data-res" archimateElement="data-reserva">
+          <bounds x="950" y="36" width="130" height="55"/>
+          <sourceConnection xsi:type="archimate:Connection" id="id-42c56a5a047a497e9393eef592fa2af6" source="n-biz-data-res" target="n-bobj-res" archimateRelationship="rel-data-res-bobj"/>
+        </child>
+      </child>
+      <documentation>Actores, roles, procesos de negocio, servicios, objetos de dominio y elementos transversales de las capas de Motivación, Aplicación y Datos.</documentation>
     </element>
     <element xsi:type="archimate:ArchimateDiagramModel" name="3. Arquitectura de Aplicaciones" id="view-aplicaciones">
-      <child xsi:type="archimate:DiagramObject" id="n-cli" archimateElement="app-cli">
+      <child xsi:type="archimate:DiagramObject" id="n-cli" targetConnections="cn-eureka-app-cli" archimateElement="app-cli">
         <bounds x="-156" y="-96" width="200" height="60"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-circ" source="n-cli" target="n-circ" archimateRelationship="rel-cli-circ"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-mat" source="n-cli" target="n-mat" archimateRelationship="rel-cli-mat"/>
@@ -522,58 +878,91 @@
         <sourceConnection xsi:type="archimate:Connection" id="cn-cli-cob" source="n-cli" target="n-cob" archimateRelationship="rel-cli-cob"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-eureka-app" archimateElement="app-eureka">
-        <bounds x="756" width="180" height="60"/>
+        <bounds x="756" y="-96" width="180" height="60"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-circ" source="n-eureka-app" target="n-circ" archimateRelationship="rel-eureka-app-circ"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-mat" source="n-eureka-app" target="n-mat" archimateRelationship="rel-eureka-app-mat"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-usr" source="n-eureka-app" target="n-usr" archimateRelationship="rel-eureka-app-usr"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-mul" source="n-eureka-app" target="n-mul" archimateRelationship="rel-eureka-app-mul"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-not" source="n-eureka-app" target="n-not" archimateRelationship="rel-eureka-app-not"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-rep" source="n-eureka-app" target="n-rep" archimateRelationship="rel-eureka-app-rep"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-res" source="n-eureka-app" target="n-res" archimateRelationship="rel-eureka-app-res"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-cob" source="n-eureka-app" target="n-cob" archimateRelationship="rel-eureka-app-cob"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-ext" source="n-eureka-app" target="n-ext" archimateRelationship="rel-eureka-app-ext"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-app-cli" source="n-eureka-app" target="n-cli" archimateRelationship="rel-eureka-app-cli"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-circ" targetConnections="cn-cli-circ cn-circ-mat cn-circ-usr cn-circ-ext cn-aevt-exp-circ" archimateElement="app-circulacion">
+      <child xsi:type="archimate:DiagramObject" id="n-circ" targetConnections="cn-cli-circ cn-circ-mat cn-circ-usr cn-circ-ext cn-aevt-exp-circ cn-eureka-app-circ" archimateElement="app-circulacion">
         <bounds x="-252" y="244" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-circ-evt-dev" source="n-circ" target="n-aevt-dev" archimateRelationship="rel-circ-evt-dev"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-circ-afunc-circ" source="n-circ" target="n-afunc-circ" archimateRelationship="rel-app-afunc-circ"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-circ-data-prest" source="n-circ" target="n-data-prest" archimateRelationship="rel-app-data-prest"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-mul" targetConnections="cn-cli-mul cn-aevt-dev-mul" archimateElement="app-multas">
-        <bounds x="782" y="180" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-mul" targetConnections="cn-cli-mul cn-aevt-dev-mul cn-eureka-app-mul" archimateElement="app-multas">
+        <bounds x="756" y="162" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-mul-evt-gen" source="n-mul" target="n-aevt-gen" archimateRelationship="rel-mul-evt-gen"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-mul-afunc-mul" source="n-mul" target="n-afunc-mul" archimateRelationship="rel-app-afunc-mul"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-mul-data-multa" source="n-mul" target="n-data-multa" archimateRelationship="rel-app-data-multa"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-res" targetConnections="cn-cli-res cn-aevt-dev-res id-00178f73f1b64e03a27956eb2e85143d" archimateElement="app-reservas">
-        <bounds x="1392" y="156" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-res" targetConnections="cn-cli-res cn-aevt-dev-res id-00178f73f1b64e03a27956eb2e85143d cn-eureka-app-res" archimateElement="app-reservas">
+        <bounds x="1564" y="128" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-res-evt-not" source="n-res" target="n-aevt-rnot" archimateRelationship="rel-res-evt-not"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-res-evt-exp" source="n-res" target="n-aevt-rexp" archimateRelationship="rel-res-evt-exp"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-res-afunc-res" source="n-res" target="n-afunc-res" archimateRelationship="rel-app-afunc-res"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-res-data-res" source="n-res" target="n-data-res" archimateRelationship="rel-app-data-res"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-mat" targetConnections="cn-cli-mat" archimateElement="app-materiales">
-        <bounds x="-336" y="59" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-mat" targetConnections="cn-cli-mat cn-eureka-app-mat" archimateElement="app-materiales">
+        <bounds x="-528" y="24" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-circ-mat" source="n-mat" target="n-circ" archimateRelationship="rel-circ-mat-sync"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-92da385f75a24130b90b56aed8359427" source="n-mat" target="id-c70adf58c0f743b1804cf8741c70f3fc" archimateRelationship="rel-app-mat-dispo"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-mat-afunc-mat" source="n-mat" target="n-afunc-mat" archimateRelationship="rel-app-afunc-mat"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-mat-data-mat" source="n-mat" target="n-data-mat" archimateRelationship="rel-app-data-mat"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-usr" targetConnections="cn-cli-usr cn-aevt-blk-usr" archimateElement="app-usuarios">
+      <child xsi:type="archimate:DiagramObject" id="n-usr" targetConnections="cn-cli-usr cn-aevt-blk-usr cn-eureka-app-usr" archimateElement="app-usuarios">
         <bounds x="228" y="192" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-circ-usr" source="n-usr" target="n-circ" archimateRelationship="rel-circ-usr-sync"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-usr-afunc-usr" source="n-usr" target="n-afunc-usr" archimateRelationship="rel-app-afunc-usr"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-usr-data-usr" source="n-usr" target="n-data-usr" archimateRelationship="rel-app-data-usr"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-ext" archimateElement="app-prestamos-ext">
-        <bounds x="-684" y="192" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-ext" targetConnections="cn-eureka-app-ext" archimateElement="app-prestamos-ext">
+        <bounds x="-727" y="244" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-circ-ext" source="n-ext" target="n-circ" archimateRelationship="rel-circ-ext-sync"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-ext-afunc-ext" source="n-ext" target="n-afunc-ext" archimateRelationship="rel-app-afunc-ext"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-ext-data-sol" source="n-ext" target="n-data-sol" archimateRelationship="rel-app-data-sol"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-cob" targetConnections="cn-cli-cob cn-aevt-gen-cob" archimateElement="app-cobros">
-        <bounds x="526" y="192" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-cob" targetConnections="cn-cli-cob cn-aevt-gen-cob cn-eureka-app-cob" archimateElement="app-cobros">
+        <bounds x="516" y="276" width="200" height="65"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cob-evt-pag" source="n-cob" target="n-aevt-pag" archimateRelationship="rel-cob-evt-pag"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-cob-evt-blk" source="n-cob" target="n-aevt-blk" archimateRelationship="rel-cob-evt-blk"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-cob-afunc-cob" source="n-cob" target="n-afunc-cob" archimateRelationship="rel-app-afunc-cob"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-cob-data-pago" source="n-cob" target="n-data-pago" archimateRelationship="rel-app-data-pago"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-cob-data-deuda" source="n-cob" target="n-data-deuda" archimateRelationship="rel-app-data-deuda"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-not" targetConnections="cn-aevt-dev-not cn-aevt-gen-not cn-aevt-rnot-not" archimateElement="app-notificaciones">
+      <child xsi:type="archimate:DiagramObject" id="n-not" targetConnections="cn-aevt-dev-not cn-aevt-gen-not cn-aevt-rnot-not cn-aevt-pag-not cn-aevt-rcre-not cn-aevt-rexp-not cn-eureka-app-not" archimateElement="app-notificaciones">
         <bounds x="1128" y="180" width="200" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-03cb55c8741d4243992cd6acceadda7e" source="n-not" target="id-3b04810a2e0241da9568fceeee73b3aa" archimateRelationship="rel-app-not-notif"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-not-afunc-not" source="n-not" target="n-afunc-not" archimateRelationship="rel-app-afunc-not"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-not-data-notif" source="n-not" target="n-data-notif" archimateRelationship="rel-app-data-notif"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-rep" targetConnections="cn-aevt-dev-rep" archimateElement="app-reportes">
-        <bounds x="1608" y="156" width="200" height="65"/>
+      <child xsi:type="archimate:DiagramObject" id="n-rep" targetConnections="cn-aevt-dev-rep cn-eureka-app-rep id-183a99cdceec448296b1f2531a63cfbe" archimateElement="app-reportes">
+        <bounds x="-168" y="750" width="200" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rep-afunc-rep" source="n-rep" target="n-afunc-rep" archimateRelationship="rel-app-afunc-rep"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rep-data-est" source="n-rep" target="n-data-est" archimateRelationship="rel-app-data-est"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-dev" targetConnections="cn-circ-evt-dev" archimateElement="aevt-material-devuelto">
-        <bounds x="792" y="600" width="180" height="50"/>
+        <bounds x="696" y="600" width="180" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-dev-mul" source="n-aevt-dev" target="n-mul" archimateRelationship="rel-aevt-dev-mul"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-dev-res" source="n-aevt-dev" target="n-res" archimateRelationship="rel-aevt-dev-res"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-dev-not" source="n-aevt-dev" target="n-not" archimateRelationship="rel-aevt-dev-not"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-dev-rep" source="n-aevt-dev" target="n-rep" archimateRelationship="rel-aevt-dev-rep"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-gen" targetConnections="cn-mul-evt-gen" archimateElement="aevt-multa-generada">
-        <bounds x="900" y="276" width="160" height="50"/>
+        <bounds x="888" y="264" width="160" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-gen-cob" source="n-aevt-gen" target="n-cob" archimateRelationship="rel-aevt-gen-cob"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-gen-not" source="n-aevt-gen" target="n-not" archimateRelationship="rel-aevt-gen-not"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-pag" targetConnections="cn-cob-evt-pag" archimateElement="aevt-multa-pagada">
         <bounds x="648" y="396" width="160" height="50"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-pag-not" source="n-aevt-pag" target="n-not" archimateRelationship="rel-aevt-pag-not"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-183a99cdceec448296b1f2531a63cfbe" source="n-aevt-pag" target="n-rep" archimateRelationship="id-62560e0812cd4c419d440da9ba962362"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-blk" targetConnections="cn-cob-evt-blk" archimateElement="aevt-usuario-bloqueado">
         <bounds x="444" y="383" width="180" height="50"/>
@@ -582,90 +971,184 @@
       <child xsi:type="archimate:DiagramObject" id="n-aevt-rcre" archimateElement="aevt-reserva-creada">
         <bounds x="1392" y="383" width="160" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="id-00178f73f1b64e03a27956eb2e85143d" source="n-aevt-rcre" target="n-res" archimateRelationship="id-c942e714bc9f48af85c70c4dd6c5ca3f"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-rcre-not" source="n-aevt-rcre" target="n-not" archimateRelationship="rel-aevt-rcre-not"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-rnot" targetConnections="cn-res-evt-not" archimateElement="aevt-reserva-notificada">
-        <bounds x="1148" y="579" width="180" height="49"/>
+        <bounds x="1584" y="383" width="180" height="49"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-rnot-not" source="n-aevt-rnot" target="n-not" archimateRelationship="rel-aevt-not-not"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-aevt-rexp" targetConnections="cn-res-evt-exp" archimateElement="aevt-reserva-expirada">
         <bounds x="420" y="612" width="160" height="50"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-exp-circ" source="n-aevt-rexp" target="n-circ" archimateRelationship="rel-aevt-exp-circ"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-aevt-rexp-not" source="n-aevt-rexp" target="n-not" archimateRelationship="rel-aevt-rexp-not"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-c70adf58c0f743b1804cf8741c70f3fc" targetConnections="id-92da385f75a24130b90b56aed8359427" archimateElement="id-e637c2d1a3fa486889a646031b3f10cc">
+        <bounds x="-708" y="61" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-3b04810a2e0241da9568fceeee73b3aa" targetConnections="id-03cb55c8741d4243992cd6acceadda7e" archimateElement="id-fc4f9ab3ca074dab9f8b0bd06e82b898">
+        <bounds x="1260" y="576" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-mat" targetConnections="cn-mat-afunc-mat" archimateElement="afunc-materiales">
+        <bounds x="-528" y="-60" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-usr" targetConnections="cn-usr-afunc-usr" archimateElement="afunc-usuarios">
+        <bounds x="228" y="115" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-circ" targetConnections="cn-circ-afunc-circ" archimateElement="afunc-circulacion">
+        <bounds x="-252" y="170" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-mul" targetConnections="cn-mul-afunc-mul" archimateElement="afunc-multas">
+        <bounds x="860" y="79" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-cob" targetConnections="cn-cob-afunc-cob" archimateElement="afunc-cobros">
+        <bounds x="526" y="188" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-res" targetConnections="cn-res-afunc-res" archimateElement="afunc-reservas">
+        <bounds x="1464" y="-25" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-not" targetConnections="cn-not-afunc-not" archimateElement="afunc-notificaciones">
+        <bounds x="1128" y="105" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-rep" targetConnections="cn-rep-afunc-rep" archimateElement="afunc-reportes">
+        <bounds x="-180" y="649" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-afunc-ext" targetConnections="cn-ext-afunc-ext" archimateElement="afunc-externos">
+        <bounds x="-727" y="170" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-mat" targetConnections="cn-mat-data-mat" archimateElement="data-material">
+        <bounds x="-492" y="516" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-prest" targetConnections="cn-circ-data-prest" archimateElement="data-prestamo">
+        <bounds x="-240" y="540" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-usr" targetConnections="cn-usr-data-usr" archimateElement="data-usuario">
+        <bounds x="228" y="750" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-deuda" targetConnections="cn-cob-data-deuda" archimateElement="data-deuda">
+        <bounds x="526" y="750" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-pago" targetConnections="cn-cob-data-pago" archimateElement="data-pago">
+        <bounds x="526" y="820" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-multa" targetConnections="cn-mul-data-multa" archimateElement="data-multa">
+        <bounds x="782" y="750" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-notif" targetConnections="cn-not-data-notif" archimateElement="data-notificacion">
+        <bounds x="1128" y="750" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-res" targetConnections="cn-res-data-res" archimateElement="data-reserva">
+        <bounds x="1392" y="750" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-sol" targetConnections="cn-ext-data-sol" archimateElement="data-solicitud">
+        <bounds x="-716" y="504" width="200" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-data-est" targetConnections="cn-rep-data-est" archimateElement="data-estadistica">
+        <bounds x="-156" y="860" width="200" height="50"/>
       </child>
       <documentation>Microservicios DDD: 3 Core BCs, 4 Supporting BCs, 2 Generic BCs + CLI + Eureka. Comunicación síncrona REST y asíncrona RabbitMQ.</documentation>
     </element>
     <element xsi:type="archimate:ArchimateDiagramModel" name="4. Arquitectura de tecnologia" id="view-tecnologia">
       <child xsi:type="archimate:DiagramObject" id="n-host" archimateElement="device-host">
-        <bounds x="1010" y="12" width="200" height="60"/>
+        <bounds x="1029" y="22" width="200" height="60"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-host-circ" source="n-host" target="n-node-circ" archimateRelationship="id-af547c89f2e84d3cb272e3ae68a9cbf7"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-host-mat" source="n-host" target="n-node-mat" archimateRelationship="id-f1e7df2b1a7145bca6e14db9948e67f4"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-host-usr" source="n-host" target="n-node-usr" archimateRelationship="id-c13af6682a084aa6bd3cd2ba218dfe8f"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-host-mul" source="n-host" target="n-node-mul" archimateRelationship="id-e925df0545a746ff9a4674b9a5039cf4"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-host-rab" source="n-host" target="n-node-rab" archimateRelationship="id-b3d5be0ddb604e6ab77174959a183969"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-host-eur" source="n-host" target="n-node-eur" archimateRelationship="id-f0eb061159a2444a830c85e8ff876196"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-ext" source="n-host" target="n-node-ext" archimateRelationship="id-d3a2604a5ea14e62a4ec0e0adeee54b1"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-not" source="n-host" target="n-node-not" archimateRelationship="id-931c02a116b14b5fa0c2ed3f3534b122"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-rep" source="n-host" target="n-node-rep" archimateRelationship="id-fa47ff1debd84e14b3c3ae9c5dc6cfe7"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-res" source="n-host" target="n-node-res" archimateRelationship="id-ad33dab8498b4adabad5c8f7b3692f34"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-cob" source="n-host" target="n-node-cob" archimateRelationship="id-8eea195e8fe748688ad9d32a8aad0a0d"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-host-cli" source="n-host" target="n-node-cli" archimateRelationship="id-62766a14e2f94549b15a5892de296766"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-rabbit" archimateElement="sw-rabbitmq">
-        <bounds x="372" y="95" width="200" height="55"/>
+        <bounds x="1129" y="144" width="200" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-circ" source="n-sw-rabbit" target="n-node-circ" archimateRelationship="rel-rabbit-circ"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-mul" source="n-sw-rabbit" target="n-node-mul" archimateRelationship="rel-rabbit-mul"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-not" source="n-sw-rabbit" target="n-node-not" archimateRelationship="rel-rabbit-not"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-mat" source="n-sw-rabbit" target="n-node-mat" archimateRelationship="rel-rabbit-mat"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-usr" source="n-sw-rabbit" target="n-node-usr" archimateRelationship="rel-rabbit-usr"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-rep" source="n-sw-rabbit" target="n-node-rep" archimateRelationship="rel-rabbit-rep"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-res" source="n-sw-rabbit" target="n-node-res" archimateRelationship="rel-rabbit-res"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-cob" source="n-sw-rabbit" target="n-node-cob" archimateRelationship="rel-rabbit-cob"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-ext" source="n-sw-rabbit" target="n-node-ext" archimateRelationship="rel-rabbit-ext"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-cli" source="n-sw-rabbit" target="n-node-cli" archimateRelationship="rel-rabbit-cli"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-rabbit-eur" source="n-sw-rabbit" target="n-node-eur" archimateRelationship="rel-rabbit-eur"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-eureka" archimateElement="sw-eureka-server">
-        <bounds x="480" y="154" width="200" height="55"/>
+        <bounds x="410" y="-108" width="200" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-circ" source="n-sw-eureka" target="n-node-circ" archimateRelationship="rel-eureka-circ"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-mat" source="n-sw-eureka" target="n-node-mat" archimateRelationship="rel-eureka-mat"/>
-      </child>
-      <child xsi:type="archimate:DiagramObject" id="n-sw-maven" archimateElement="sw-maven">
-        <bounds x="708" y="154" width="200" height="55"/>
-      </child>
-      <child xsi:type="archimate:DiagramObject" id="n-sw-jre17" targetConnections="cn-jre-circ" archimateElement="sw-jre-17">
-        <bounds x="930" y="154" width="200" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-mul" source="n-sw-eureka" target="n-node-mul" archimateRelationship="rel-eureka-mul"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-not" source="n-sw-eureka" target="n-node-not" archimateRelationship="rel-eureka-not"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-rep" source="n-sw-eureka" target="n-node-rep" archimateRelationship="rel-eureka-rep"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-res" source="n-sw-eureka" target="n-node-res" archimateRelationship="rel-eureka-res"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-cob" source="n-sw-eureka" target="n-node-cob" archimateRelationship="rel-eureka-cob"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-cli" source="n-sw-eureka" target="n-node-cli" archimateRelationship="rel-eureka-cli"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-eureka-ext" source="n-sw-eureka" target="n-node-ext" archimateRelationship="rel-eureka-ext"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-sw-jre21" targetConnections="cn-jre-eur" archimateElement="sw-jre-21">
-        <bounds x="930" y="224" width="200" height="55"/>
+        <bounds x="-132" y="456" width="200" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-circ" targetConnections="cn-host-circ cn-db-circ-node cn-rabbit-circ cn-eureka-circ" archimateElement="node-circ">
-        <bounds x="60" y="284" width="160" height="55"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-net-circ" source="n-node-circ" target="n-docker-net" archimateRelationship="rel-node-circ-net"/>
+        <bounds x="-36" y="252" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-node-circ-art" source="n-node-circ" target="n-art-circ" archimateRelationship="rel-art-circ-node"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-jre-circ" source="n-node-circ" target="n-sw-jre17" archimateRelationship="rel-jre17-circ"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f324821a0e7741d4bd1f7efaddfaaa3c" source="n-node-circ" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-circ"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-mat" targetConnections="cn-host-mat cn-db-mat-node cn-eureka-mat" archimateElement="node-mat">
-        <bounds x="430" y="284" width="160" height="55"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-net-mat" source="n-node-mat" target="n-docker-net" archimateRelationship="rel-node-mat-net"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-mat" targetConnections="cn-host-mat cn-db-mat-node cn-eureka-mat cn-rabbit-mat" archimateElement="node-mat">
+        <bounds x="430" y="306" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-node-mat-art" source="n-node-mat" target="n-art-mat" archimateRelationship="rel-art-mat-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-d369e5868c8a4ffbb13603361efd9ab1" source="n-node-mat" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-mat"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-usr" targetConnections="cn-host-usr cn-db-usr-node" archimateElement="node-usr">
+      <child xsi:type="archimate:DiagramObject" id="n-node-usr" targetConnections="cn-host-usr cn-db-usr-node cn-rabbit-usr" archimateElement="node-usr">
         <bounds x="610" y="284" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-node-usr-art" source="n-node-usr" target="n-art-usr" archimateRelationship="rel-art-usr-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-af29ed6c513845f2856f8392fe9871d3" source="n-node-usr" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-usr"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-mul" targetConnections="cn-host-mul cn-db-mul-node cn-rabbit-mul" archimateElement="node-mul">
+      <child xsi:type="archimate:DiagramObject" id="n-node-mul" targetConnections="cn-host-mul cn-db-mul-node cn-rabbit-mul cn-eureka-mul" archimateElement="node-mul">
         <bounds x="790" y="284" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-mul-art" source="n-node-mul" target="n-art-mul" archimateRelationship="rel-art-mul-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-c6d99c9c95934b479d7c6fd752340fdf" source="n-node-mul" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-mul"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-ext" archimateElement="node-ext">
-        <bounds x="970" y="284" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-ext" targetConnections="cn-host-ext cn-db-ext-node cn-eureka-ext cn-rabbit-ext" archimateElement="node-ext">
+        <bounds x="998" y="338" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-ext-art" source="n-node-ext" target="n-art-ext" archimateRelationship="rel-art-ext-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-8da73d1fcc894d849b56691445cc0063" source="n-node-ext" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-ext"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-not" targetConnections="cn-db-not-node cn-rabbit-not" archimateElement="node-not">
-        <bounds x="250" y="364" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-not" targetConnections="cn-host-not cn-db-not-node cn-rabbit-not cn-eureka-not" archimateElement="node-not">
+        <bounds x="180" y="264" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-not-art" source="n-node-not" target="n-art-not" archimateRelationship="rel-art-not-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-fb3c4d5c9bf54014a4e43963cdf08e44" source="n-node-not" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-not"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-rep" archimateElement="node-rep">
-        <bounds x="430" y="364" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-rep" targetConnections="cn-host-rep cn-db-rep-node cn-eureka-rep cn-rabbit-rep" archimateElement="node-rep">
+        <bounds x="430" y="378" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-rep-art" source="n-node-rep" target="n-art-rep" archimateRelationship="rel-art-rep-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-79cb4ee356d744d3b04eee223ac33fd4" source="n-node-rep" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-rep"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-res" archimateElement="node-res">
-        <bounds x="610" y="364" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-res" targetConnections="cn-host-res cn-db-res-node cn-eureka-res cn-rabbit-res" archimateElement="node-res">
+        <bounds x="635" y="456" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-res-art" source="n-node-res" target="n-art-res" archimateRelationship="rel-art-res-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-a6b93abbf27e40d68e2276deda78bf39" source="n-node-res" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-res"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-cob" archimateElement="node-cob">
-        <bounds x="790" y="364" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-cob" targetConnections="cn-host-cob cn-db-cob-node cn-eureka-cob cn-rabbit-cob" archimateElement="node-cob">
+        <bounds x="825" y="432" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-cob-art" source="n-node-cob" target="n-art-cob" archimateRelationship="rel-art-cob-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-8a6de68d9c654455bae07004ce2d4bdc" source="n-node-cob" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-cob"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-cli" archimateElement="node-cli">
-        <bounds x="970" y="364" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-cli" targetConnections="cn-host-cli cn-eureka-cli cn-rabbit-cli" archimateElement="node-cli">
+        <bounds x="660" y="392" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-cli-art" source="n-node-cli" target="n-art-cli" archimateRelationship="rel-art-cli-node"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f8cacfa58daf4631b9463af1a1015b29" source="n-node-cli" target="id-782ed966a97444559d822d5323f22dac" archimateRelationship="rel-jre17-cli"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-node-eur" targetConnections="cn-host-eur" archimateElement="node-eureka">
-        <bounds x="250" y="444" width="160" height="55"/>
+      <child xsi:type="archimate:DiagramObject" id="n-node-eur" targetConnections="cn-host-eur cn-rabbit-eur" archimateElement="node-eureka">
+        <bounds x="228" y="468" width="160" height="55"/>
         <sourceConnection xsi:type="archimate:Connection" id="cn-jre-eur" source="n-node-eur" target="n-sw-jre21" archimateRelationship="rel-jre21-eur"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-node-eur-art" source="n-node-eur" target="n-art-eur" archimateRelationship="rel-art-eur-node"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-node-rab" targetConnections="cn-host-rab" archimateElement="node-rabbit">
-        <bounds x="430" y="444" width="160" height="55"/>
-        <sourceConnection xsi:type="archimate:Connection" id="cn-net-rab" source="n-node-rab" target="n-docker-net" archimateRelationship="rel-node-rab-net"/>
+        <bounds x="430" y="468" width="160" height="55"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-circ" archimateElement="sw-postgres-circ">
         <bounds x="250" y="564" width="160" height="55"/>
@@ -685,15 +1168,19 @@
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-cob" archimateElement="sw-postgres-cob">
         <bounds x="970" y="564" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-db-cob-node" source="n-db-cob" target="n-node-cob" archimateRelationship="rel-db-cob"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-res" archimateElement="sw-postgres-res">
         <bounds x="250" y="644" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-db-res-node" source="n-db-res" target="n-node-res" archimateRelationship="rel-db-res"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-ext" archimateElement="sw-postgres-ext">
         <bounds x="430" y="644" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-db-ext-node" source="n-db-ext" target="n-node-ext" archimateRelationship="rel-db-ext"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-rep" archimateElement="sw-postgres-rep">
         <bounds x="630" y="644" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="cn-db-rep-node" source="n-db-rep" target="n-node-rep" archimateRelationship="rel-db-rep"/>
       </child>
       <child xsi:type="archimate:DiagramObject" id="n-db-not" archimateElement="sw-mongodb">
         <bounds x="830" y="644" width="200" height="55"/>
@@ -708,14 +1195,32 @@
       <child xsi:type="archimate:DiagramObject" id="n-art-usr" targetConnections="cn-node-usr-art" archimateElement="art-jar-usr">
         <bounds x="630" y="764" width="170" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-art-mul" archimateElement="art-jar-mul">
+      <child xsi:type="archimate:DiagramObject" id="n-art-mul" targetConnections="cn-node-mul-art" archimateElement="art-jar-mul">
         <bounds x="820" y="764" width="170" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-art-commons" archimateElement="art-commons">
-        <bounds x="1010" y="764" width="190" height="50"/>
+      <child xsi:type="archimate:DiagramObject" id="n-art-ext" targetConnections="cn-node-ext-art" archimateElement="art-jar-ext">
+        <bounds x="1010" y="764" width="170" height="50"/>
       </child>
-      <child xsi:type="archimate:DiagramObject" id="n-docker-net" targetConnections="cn-net-circ cn-net-mat cn-net-rab" archimateElement="net-docker">
-        <bounds x="48" y="36" width="220" height="60"/>
+      <child xsi:type="archimate:DiagramObject" id="n-art-not" targetConnections="cn-node-not-art" archimateElement="art-jar-not">
+        <bounds x="250" y="844" width="170" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-art-rep" targetConnections="cn-node-rep-art" archimateElement="art-jar-rep">
+        <bounds x="440" y="844" width="170" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-art-res" targetConnections="cn-node-res-art" archimateElement="art-jar-res">
+        <bounds x="630" y="844" width="170" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-art-cob" targetConnections="cn-node-cob-art" archimateElement="art-jar-cob">
+        <bounds x="820" y="844" width="170" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-art-cli" targetConnections="cn-node-cli-art" archimateElement="art-jar-cli">
+        <bounds x="1010" y="844" width="170" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="n-art-eur" targetConnections="cn-node-eur-art" archimateElement="art-jar-eur">
+        <bounds x="1200" y="844" width="170" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-782ed966a97444559d822d5323f22dac" targetConnections="id-af29ed6c513845f2856f8392fe9871d3 id-c6d99c9c95934b479d7c6fd752340fdf id-f8cacfa58daf4631b9463af1a1015b29 id-8da73d1fcc894d849b56691445cc0063 id-d369e5868c8a4ffbb13603361efd9ab1 id-f324821a0e7741d4bd1f7efaddfaaa3c id-fb3c4d5c9bf54014a4e43963cdf08e44 id-79cb4ee356d744d3b04eee223ac33fd4 id-a6b93abbf27e40d68e2276deda78bf39 id-8a6de68d9c654455bae07004ce2d4bdc" archimateElement="sw-jre-17">
+        <bounds x="-36" y="-48" width="120" height="55"/>
       </child>
       <documentation>Contenedores Docker, bases de datos por servicio, RabbitMQ y Eureka sobre servidor host Linux.</documentation>
     </element>
