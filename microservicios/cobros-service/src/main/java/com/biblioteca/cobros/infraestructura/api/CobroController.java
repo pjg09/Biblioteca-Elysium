@@ -34,8 +34,11 @@ public class CobroController {
     }
 
     @GetMapping("/pagos")
-    public ResponseEntity<List<RegistroPagoEntity>> obtenerPorUsuario(@RequestParam String usuarioId) {
-        List<RegistroPagoEntity> pagos = cobroService.obtenerPorUsuario(usuarioId);
+    public ResponseEntity<List<RegistroPagoEntity>> obtenerPagos(
+            @RequestParam(required = false) String usuarioId) {
+        List<RegistroPagoEntity> pagos = (usuarioId != null && !usuarioId.isBlank())
+                ? cobroService.obtenerPorUsuario(usuarioId)
+                : cobroService.obtenerTodos();
         return ResponseEntity.ok(pagos);
     }
 }

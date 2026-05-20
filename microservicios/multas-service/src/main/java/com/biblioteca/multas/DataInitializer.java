@@ -32,7 +32,7 @@ public class DataInitializer implements ApplicationRunner {
         multa.setIdUsuario("USR-000002");
         multa.setTipoMulta("POR_RETRASO");
         multa.setMontoTotal(30000.0); // 15 días × 2000
-        multa.setEstado("PENDIENTE");
+        multa.setEstado("GENERADA");
         multa.setFechaGeneracion(LocalDateTime.now());
         multa.setMotivo("Retraso de 15 días en devolución de MAT-000002");
         repo.save(multa);

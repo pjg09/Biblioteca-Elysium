@@ -47,27 +47,31 @@ public class CobroService {
         log.info("Payment recorded: id={} multaId={} usuarioId={} monto={}",
             savedEntity.getId(), savedEntity.getMultaId(), savedEntity.getUsuarioId(), savedEntity.getMonto());
 
-        // Step 2: Publish MultaPagada event
-        Map<String, Object> multaPagadaEvent = new HashMap<>();
-        multaPagadaEvent.put("multaId", req.getMultaId());
-        multaPagadaEvent.put("usuarioId", req.getUsuarioId());
-        multaPagadaEvent.put("montoPagado", req.getMonto());
-        multaPagadaEvent.put("fechaPago", registroPago.getFechaPago().toString());
-
-        rabbitTemplate.convertAndSend(
-            RabbitMQConfig.EXCHANGE_NAME,
-            RabbitMQConfig.ROUTING_KEY_MULTA_PAGADA,
-            multaPagadaEvent
-        );
-        log.debug("Published multa.pagada event for multaId={}", req.getMultaId());
-
-        // Step 3: Mark debt as paid in DeudaPendienteEntity
+        // Step 2: Check if payment completes the debt (support partial payments)
         Optional<DeudaPendienteEntity> deudaOpt = deudaPendienteJpaRepository.findByMultaId(req.getMultaId());
         if (deudaOpt.isPresent()) {
             DeudaPendienteEntity deuda = deudaOpt.get();
-            deuda.setPagado(true);
-            deudaPendienteJpaRepository.save(deuda);
-            log.debug("Marked debt as paid for multaId={}", req.getMultaId());
+            double yaRegistrado = registroPagoJpaRepository.findByMultaId(req.getMultaId())
+                .stream().mapToDouble(p -> p.getMonto()).sum();
+            // yaRegistrado already includes the new payment we just saved
+            if (yaRegistrado >= deuda.getMonto()) {
+                deuda.setPagado(true);
+                deudaPendienteJpaRepository.save(deuda);
+                log.info("Debt fully paid for multaId={} totalPaid={}", req.getMultaId(), yaRegistrado);
+
+                // Emit MultaPagada only when fully paid
+                Map<String, Object> multaPagadaEvent = new HashMap<>();
+                multaPagadaEvent.put("multaId", req.getMultaId());
+                multaPagadaEvent.put("usuarioId", req.getUsuarioId());
+                multaPagadaEvent.put("montoPagado", yaRegistrado);
+                multaPagadaEvent.put("fechaPago", registroPago.getFechaPago().toString());
+                rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConfig.ROUTING_KEY_MULTA_PAGADA, multaPagadaEvent);
+                log.debug("Published multa.pagada event for multaId={}", req.getMultaId());
+            } else {
+                double restante = deuda.getMonto() - yaRegistrado;
+                log.info("Partial payment for multaId={}: paid={} remaining={}", req.getMultaId(), yaRegistrado, restante);
+            }
         } else {
             log.warn("No tracked debt found for multaId={}, payment still recorded", req.getMultaId());
         }
@@ -106,5 +110,9 @@ public class CobroService {
 
     public List<RegistroPagoEntity> obtenerPorUsuario(String usuarioId) {
         return registroPagoJpaRepository.findByUsuarioId(usuarioId);
+    }
+
+    public List<RegistroPagoEntity> obtenerTodos() {
+        return registroPagoJpaRepository.findAll();
     }
 }

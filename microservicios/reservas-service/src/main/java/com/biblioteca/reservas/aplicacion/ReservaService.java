@@ -53,7 +53,8 @@ public class ReservaService {
         int posicion = activas.size() + 1;
 
         // Usar builder para crear y validar la reserva
-        String id = UUID.randomUUID().toString();
+        long count = reservaJpaRepository.count();
+        String id = String.format("RES-%06d", count + 1);
         ReservaBuilder builder = new ReservaBuilder()
                 .conId(id)
                 .conIdUsuario(req.getIdUsuario())
