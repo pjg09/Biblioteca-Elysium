@@ -89,17 +89,6 @@
     <element xsi:type="archimate:ApplicationComponent" name="eureka-server" id="app-eureka">
       <documentation>Service Registry. Puerto 8761. Registro y descubrimiento de todos los microservicios.</documentation>
     </element>
-    <element xsi:type="archimate:ApplicationService" name="POST /prestamos" id="asvc-registrar-prestamo"/>
-    <element xsi:type="archimate:ApplicationService" name="POST /prestamos/{id}/devolucion" id="asvc-devolver"/>
-    <element xsi:type="archimate:ApplicationService" name="POST /prestamos/{id}/renovacion" id="asvc-renovar"/>
-    <element xsi:type="archimate:ApplicationService" name="GET /materiales/{id}/disponibilidad" id="asvc-disponibilidad"/>
-    <element xsi:type="archimate:ApplicationService" name="GET /usuarios/{id}/estado" id="asvc-estado-usuario"/>
-    <element xsi:type="archimate:ApplicationService" name="GET /multas — Calcular Multa" id="asvc-calcular-multa"/>
-    <element xsi:type="archimate:ApplicationService" name="POST /pagos" id="asvc-registrar-pago"/>
-    <element xsi:type="archimate:ApplicationService" name="POST /reservas" id="asvc-crear-reserva"/>
-    <element xsi:type="archimate:ApplicationService" name="Notificacion Handler (evento)" id="asvc-notificar"/>
-    <element xsi:type="archimate:ApplicationService" name="Estadistica Handler (evento)" id="asvc-reportes"/>
-    <element xsi:type="archimate:ApplicationEvent" name="PrestamoRegistrado" id="aevt-prestamo-registrado"/>
     <element xsi:type="archimate:ApplicationEvent" name="MaterialDevuelto" id="aevt-material-devuelto"/>
     <element xsi:type="archimate:ApplicationEvent" name="MultaGenerada" id="aevt-multa-generada"/>
     <element xsi:type="archimate:ApplicationEvent" name="MultaPagada" id="aevt-multa-pagada"/>
@@ -107,16 +96,6 @@
     <element xsi:type="archimate:ApplicationEvent" name="ReservaNotificada" id="aevt-reserva-notificada"/>
     <element xsi:type="archimate:ApplicationEvent" name="ReservaExpirada" id="aevt-reserva-expirada"/>
     <element xsi:type="archimate:ApplicationEvent" name="UsuarioBloqueadoPorDeuda" id="aevt-usuario-bloqueado"/>
-    <element xsi:type="archimate:DataObject" name="PrestamoEntity (JPA)" id="data-prestamo-entity"/>
-    <element xsi:type="archimate:DataObject" name="MaterialEntity (JPA)" id="data-material-entity"/>
-    <element xsi:type="archimate:DataObject" name="UsuarioEntity (JPA)" id="data-usuario-entity"/>
-    <element xsi:type="archimate:DataObject" name="MultaEntity (JPA)" id="data-multa-entity"/>
-    <element xsi:type="archimate:DataObject" name="ReservaEntity (JPA)" id="data-reserva-entity"/>
-    <element xsi:type="archimate:DataObject" name="RegistroPagoEntity (JPA)" id="data-pago-entity"/>
-    <element xsi:type="archimate:DataObject" name="Notificacion (MongoDB Document)" id="data-notificacion-doc"/>
-    <element xsi:type="archimate:DataObject" name="DomainEvent (AMQP Message)" id="data-evento-amqp">
-      <documentation>Exchange: biblioteca.events (topic). Routing keys: prestamo.registrado, material.devuelto, multa.generada, etc.</documentation>
-    </element>
     <element xsi:type="archimate:ApplicationService" name="disponibilidad" id="id-e637c2d1a3fa486889a646031b3f10cc"/>
     <element xsi:type="archimate:ApplicationService" name="Notificar" id="id-fc4f9ab3ca074dab9f8b0bd06e82b898"/>
   </folder>
@@ -130,9 +109,6 @@
     <element xsi:type="archimate:SystemSoftware" name="Eclipse Temurin JRE 17 Alpine" id="sw-jre-17"/>
     <element xsi:type="archimate:SystemSoftware" name="Eclipse Temurin JRE 21 Alpine" id="sw-jre-21">
       <documentation>Usado exclusivamente por eureka-server (JAR compilado con Java 21).</documentation>
-    </element>
-    <element xsi:type="archimate:SystemSoftware" name="Spring Boot 3.2.3" id="sw-springboot">
-      <documentation>Framework base. Spring Cloud 2023.0.1 para Eureka. Spring Data JPA + Spring AMQP.</documentation>
     </element>
     <element xsi:type="archimate:SystemSoftware" name="RabbitMQ 3.12-management" id="sw-rabbitmq">
       <documentation>Bus de mensajería. Puerto 5672 (AMQP), 15672 (UI). Exchange tipo topic: biblioteca.events.</documentation>
@@ -210,8 +186,6 @@
     <element xsi:type="archimate:Artifact" name="materiales-service-1.0.0.jar" id="art-jar-mat"/>
     <element xsi:type="archimate:Artifact" name="usuarios-service-1.0.0.jar" id="art-jar-usr"/>
     <element xsi:type="archimate:Artifact" name="multas-service-1.0.0.jar" id="art-jar-mul"/>
-    <element xsi:type="archimate:Artifact" name="reservas-service-1.0.0.jar" id="art-jar-res"/>
-    <element xsi:type="archimate:Artifact" name="cobros-service-1.0.0.jar" id="art-jar-cob"/>
     <element xsi:type="archimate:Artifact" name="biblioteca-commons-1.0.0.jar" id="art-commons">
       <documentation>Librería compartida: eventos de dominio, enumeraciones, objetos de valor, interfaces de patrones.</documentation>
     </element>
@@ -223,9 +197,6 @@
     <element xsi:type="archimate:Stakeholder" name="Usuario Biblioteca" id="stk-usuario">
       <documentation>Estudiante, Profesor, Investigador o Público General con acceso al sistema.</documentation>
     </element>
-    <element xsi:type="archimate:Stakeholder" name="Administrador TI" id="stk-admin-ti">
-      <documentation>Equipo técnico responsable de la operación de los microservicios.</documentation>
-    </element>
     <element xsi:type="archimate:Driver" name="Gestión manual de préstamos" id="drv-gestion-manual">
       <documentation>Procesos en papel generan errores, pérdida de trazabilidad y cuellos de botella en mostrador.</documentation>
     </element>
@@ -234,9 +205,6 @@
     </element>
     <element xsi:type="archimate:Driver" name="Acceso justo a recursos" id="drv-acceso-justo">
       <documentation>Cola de reservas manual no garantiza equidad ni notificación oportuna al siguiente usuario.</documentation>
-    </element>
-    <element xsi:type="archimate:Driver" name="Escalabilidad del sistema" id="drv-escalabilidad">
-      <documentation>El monolito no permite escalar de forma independiente los contextos de alta demanda.</documentation>
     </element>
     <element xsi:type="archimate:Goal" name="Maximizar disponibilidad de materiales" id="goal-disponibilidad"/>
     <element xsi:type="archimate:Goal" name="Trazabilidad completa de transacciones" id="goal-trazabilidad"/>
@@ -254,18 +222,6 @@
     <element xsi:type="archimate:Requirement" name="Despliegue de componentes en contenedores independientes" id="req-docker">
       <documentation>Cada microservicio con su propia base de datos y Dockerfile multi-stage.</documentation>
     </element>
-    <element xsi:type="archimate:Principle" name="Separación estricta de Bounded Contexts" id="princ-separacion-contextos">
-      <documentation>Ningún BC accede directamente a la base de datos de otro. Comunicación solo por API o eventos.</documentation>
-    </element>
-    <element xsi:type="archimate:Principle" name="Base de datos por servicio" id="princ-bd-por-servicio">
-      <documentation>Cada microservicio posee su esquema de datos exclusivo. Ningún JOIN entre BCs.</documentation>
-    </element>
-    <element xsi:type="archimate:Stakeholder" name="Biblioteca (copy)" id="id-a791557672514856ba988c5a4a8344d0">
-      <documentation>Institución responsable de la gestión de recursos bibliográficos y acceso cultural.</documentation>
-    </element>
-    <element xsi:type="archimate:Stakeholder" name="Usuario Biblioteca (copy)" id="id-dd05430d62504caaa221117aecaf0a6c">
-      <documentation>Estudiante, Profesor, Investigador o Público General con acceso al sistema.</documentation>
-    </element>
   </folder>
   <folder name="Implementation &amp; Migration" id="id-d17fbfc664674c128c342e9657504ed6" type="implementation_migration"/>
   <folder name="Other" id="id-7cf6d68bed3c41f89c284bb57c982b0a" type="other"/>
@@ -273,15 +229,9 @@
     <element xsi:type="archimate:InfluenceRelationship" id="rel-stk-bib-drv1" source="stk-biblioteca" target="drv-gestion-manual"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-stk-bib-drv2" source="stk-biblioteca" target="drv-sancion-diferenciada"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-stk-usr-drv3" source="stk-usuario" target="drv-acceso-justo"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-stk-ti-drv4" source="stk-admin-ti" target="drv-escalabilidad"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-drv1-goal1" source="drv-gestion-manual" target="goal-trazabilidad"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-drv2-goal2" source="drv-sancion-diferenciada" target="goal-automatizacion"/>
     <element xsi:type="archimate:InfluenceRelationship" id="rel-drv3-goal3" source="drv-acceso-justo" target="goal-disponibilidad"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-drv4-goal4" source="drv-escalabilidad" target="goal-escalabilidad"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-solid" source="goal-escalabilidad" target="req-solid"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-ddd" source="goal-escalabilidad" target="req-ddd"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-eventos" source="goal-automatizacion" target="req-eventos-dominio"/>
-    <element xsi:type="archimate:InfluenceRelationship" id="rel-goal-req-docker" source="goal-escalabilidad" target="req-docker"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-actor-bib-role" source="actor-bibliotecario" target="role-encargado-circulacion"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-actor-usr-role" source="actor-usuario-final" target="role-prestatario"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-role-proc-circ" source="role-encargado-circulacion" target="bproc-circulacion"/>
@@ -289,13 +239,6 @@
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-multas-evt" source="bsvc-multas" target="bevt-multa-generada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-reserva-evt" source="bsvc-reserva" target="bevt-reserva-notificada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-svc-cobro-evt" source="bsvc-cobro" target="bevt-usuario-bloqueado"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-prestamo" source="asvc-registrar-prestamo" target="bsvc-prestamo"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-devolucion" source="asvc-devolver" target="bsvc-devolucion"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-renovar" source="asvc-renovar" target="bsvc-renovacion"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-reserva" source="asvc-crear-reserva" target="bsvc-reserva"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-multa" source="asvc-calcular-multa" target="bsvc-multas"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-cobro" source="asvc-registrar-pago" target="bsvc-cobro"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-bsvc-asvc-notif" source="asvc-notificar" target="bsvc-notificacion"/>
     <element xsi:type="archimate:ServingRelationship" name="GET /materiales/{id}/disponibilidad" id="rel-circ-mat-sync" source="app-materiales" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="GET /usuarios/{id}/estado + límite" id="rel-circ-usr-sync" source="app-usuarios" target="app-circulacion"/>
     <element xsi:type="archimate:ServingRelationship" name="POST /solicitudes-externas" id="rel-circ-ext-sync" source="app-prestamos-ext" target="app-circulacion"/>
@@ -306,7 +249,6 @@
     <element xsi:type="archimate:ServingRelationship" name="REST API reservas" id="rel-cli-res" source="app-cli" target="app-reservas"/>
     <element xsi:type="archimate:ServingRelationship" name="REST API pagos" id="rel-cli-cob" source="app-cli" target="app-cobros"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-circ-evt-dev" source="app-circulacion" target="aevt-material-devuelto"/>
-    <element xsi:type="archimate:TriggeringRelationship" id="rel-circ-evt-pre" source="app-circulacion" target="aevt-reserva-creada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-dev-mul" source="aevt-material-devuelto" target="app-multas"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-dev-res" source="aevt-material-devuelto" target="app-reservas"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-dev-not" source="aevt-material-devuelto" target="app-notificaciones"/>
@@ -317,63 +259,28 @@
     <element xsi:type="archimate:TriggeringRelationship" id="rel-cob-evt-pag" source="app-cobros" target="aevt-multa-pagada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-cob-evt-blk" source="app-cobros" target="aevt-usuario-bloqueado"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-blk-usr" source="aevt-usuario-bloqueado" target="app-usuarios"/>
-    <element xsi:type="archimate:TriggeringRelationship" id="rel-res-evt-cre" source="app-reservas" target="aevt-reserva-creada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-res-evt-not" source="app-reservas" target="aevt-reserva-notificada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-res-evt-exp" source="app-reservas" target="aevt-reserva-expirada"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-not-not" source="aevt-reserva-notificada" target="app-notificaciones"/>
-    <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-exp-not" source="aevt-reserva-expirada" target="app-notificaciones"/>
     <element xsi:type="archimate:TriggeringRelationship" id="rel-aevt-exp-circ" source="aevt-reserva-expirada" target="app-circulacion"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-circ-data" source="app-circulacion" target="data-prestamo-entity"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-mat-data" source="app-materiales" target="data-material-entity"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-usr-data" source="app-usuarios" target="data-usuario-entity"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-mul-data" source="app-multas" target="data-multa-entity"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-res-data" source="app-reservas" target="data-reserva-entity"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-cob-data" source="app-cobros" target="data-pago-entity"/>
-    <element xsi:type="archimate:AccessRelationship" id="rel-not-data" source="app-notificaciones" target="data-notificacion-doc"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-art-circ-node" source="node-circ" target="art-jar-circ"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-art-mat-node" source="node-mat" target="art-jar-mat"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-art-usr-node" source="node-usr" target="art-jar-usr"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-mul-node" source="node-mul" target="art-jar-mul"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-res-node" source="node-res" target="art-jar-res"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-art-cob-node" source="node-cob" target="art-jar-cob"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-app-circ-art" source="art-jar-circ" target="app-circulacion"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-app-mat-art" source="art-jar-mat" target="app-materiales"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-app-usr-art" source="art-jar-usr" target="app-usuarios"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-app-mul-art" source="art-jar-mul" target="app-multas"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-app-res-art" source="art-jar-res" target="app-reservas"/>
-    <element xsi:type="archimate:RealizationRelationship" id="rel-app-cob-art" source="art-jar-cob" target="app-cobros"/>
     <element xsi:type="archimate:AssociationRelationship" id="rel-node-circ-net" source="node-circ" target="net-docker"/>
     <element xsi:type="archimate:AssociationRelationship" id="rel-node-mat-net" source="node-mat" target="net-docker"/>
-    <element xsi:type="archimate:AssociationRelationship" id="rel-node-usr-net" source="node-usr" target="net-docker"/>
-    <element xsi:type="archimate:AssociationRelationship" id="rel-node-mul-net" source="node-mul" target="net-docker"/>
-    <element xsi:type="archimate:AssociationRelationship" id="rel-node-res-net" source="node-res" target="net-docker"/>
     <element xsi:type="archimate:AssociationRelationship" id="rel-node-rab-net" source="node-rabbit" target="net-docker"/>
-    <element xsi:type="archimate:AssociationRelationship" id="rel-node-eur-net" source="node-eureka" target="net-docker"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-jre17-circ" source="node-circ" target="sw-jre-17"/>
     <element xsi:type="archimate:AssignmentRelationship" id="rel-jre21-eur" source="node-eureka" target="sw-jre-21"/>
-    <element xsi:type="archimate:AssignmentRelationship" id="rel-rabbit-node" source="node-rabbit" target="sw-rabbitmq"/>
-    <element xsi:type="archimate:AssociationRelationship" id="rel-commons-shared" source="art-commons" target="art-jar-circ"/>
     <element xsi:type="archimate:ServingRelationship" name="Service Discovery" id="rel-eureka-circ" source="sw-eureka-server" target="node-circ"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-eureka-mat" source="sw-eureka-server" target="node-mat"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-usr" source="sw-eureka-server" target="app-usuarios"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-mul" source="sw-eureka-server" target="app-multas"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-res" source="sw-eureka-server" target="app-reservas"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-eureka-cob" source="sw-eureka-server" target="app-cobros"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-db-circ" source="sw-postgres-circ" target="node-circ"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-db-mat" source="sw-postgres-mat" target="node-mat"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-db-usr" source="sw-postgres-usr" target="node-usr"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-db-mul" source="sw-postgres-mul" target="node-mul"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-db-cob" source="sw-postgres-cob" target="app-cobros"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-db-res" source="sw-postgres-res" target="app-reservas"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-db-ext" source="sw-postgres-ext" target="app-prestamos-ext"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-db-rep" source="sw-postgres-rep" target="app-reportes"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-db-not" source="sw-mongodb" target="node-not"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-circ" source="sw-rabbitmq" target="node-circ"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-mul" source="sw-rabbitmq" target="node-mul"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-res" source="sw-rabbitmq" target="app-reservas"/>
     <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-not" source="sw-rabbitmq" target="node-not"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-rep" source="sw-rabbitmq" target="app-reportes"/>
-    <element xsi:type="archimate:ServingRelationship" id="rel-rabbit-cob" source="sw-rabbitmq" target="app-cobros"/>
     <element xsi:type="archimate:RealizationRelationship" id="id-040a42001c694d618b1bd0cb7d9c02b0" source="req-eventos-dominio" target="goal-automatizacion"/>
     <element xsi:type="archimate:InfluenceRelationship" id="id-3d182686c47d4b1d9c042598b5d3d434" source="drv-gestion-manual" target="goal-escalabilidad"/>
     <element xsi:type="archimate:RealizationRelationship" id="id-3dd08d9bfe434f9db5374fc6b2b7205a" source="req-ddd" target="goal-trazabilidad"/>
@@ -382,32 +289,18 @@
     <element xsi:type="archimate:RealizationRelationship" id="id-5a8225ad6e7c4b00966fd97df89b2805" source="req-docker" target="goal-escalabilidad"/>
     <element xsi:type="archimate:AssignmentRelationship" id="id-71dd0c495d094670922fa30f5f6b8060" source="actor-bibliotecario" target="role-gestor-reservas"/>
     <element xsi:type="archimate:AssignmentRelationship" id="id-5af7996568bc4d4f83adc95d4bab41e4" source="role-gestor-reservas" target="bproc-reservas"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-ed7f509379ab4160bd7d16eeb210fc9b" source="bproc-circulacion" target="bsvc-catalogo"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-c5a600020819462fb7962236ea6475c4" source="bsvc-catalogo" target="bproc-circulacion"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-4df911f5f8434192bd1141af05597111" source="bproc-circulacion" target="bsvc-catalogo"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-ce5c8bf02111403680c1cffa197e64b5" source="bproc-circulacion" target="bsvc-renovacion"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-a0362c3009dc466f9cad5872a402f32b" source="bproc-circulacion" target="bsvc-prestamo"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-3e1a13f29a3e4435a9ecde6dfe3b4302" source="bproc-reservas" target="bsvc-reserva"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-e5011b7b1ec742b89a9e4294eaf82dd3" source="bproc-multas" target="bsvc-multas"/>
-    <element xsi:type="archimate:RealizationRelationship" id="id-c9daa184addc42a7bec2c6e5bd2b8459" source="bproc-multas" target="bsvc-cobro"/>
     <element xsi:type="archimate:ServingRelationship" id="id-936a57e434ea4be19c17fcf843abea60" source="bproc-circulacion" target="bsvc-prestamo"/>
     <element xsi:type="archimate:ServingRelationship" id="id-3fd3642ec3b045fdba38319949731b7d" source="bproc-circulacion" target="bsvc-renovacion"/>
     <element xsi:type="archimate:ServingRelationship" id="id-0b16b4cf0f4c4425bc45ef889bcc292d" source="bproc-circulacion" target="bsvc-catalogo"/>
     <element xsi:type="archimate:ServingRelationship" id="id-c60825ed034a4ad2a29ae1624deb1398" source="bproc-reservas" target="bsvc-reserva"/>
     <element xsi:type="archimate:ServingRelationship" id="id-59f883358fb04ad288d0b8ac2d3f3939" source="bproc-multas" target="bsvc-multas"/>
     <element xsi:type="archimate:ServingRelationship" id="id-b8a7bfa223f04310abaaa40d2f0bfbff" source="bproc-multas" target="bsvc-cobro"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-159f1daec97248608da1fa9ff04f802d" source="bsvc-catalogo" target="id-e637c2d1a3fa486889a646031b3f10cc"/>
     <element xsi:type="archimate:RealizationRelationship" id="id-54ffd110e747483ea8f83a2d37702456" source="id-e637c2d1a3fa486889a646031b3f10cc" target="bsvc-catalogo"/>
     <element xsi:type="archimate:RealizationRelationship" id="id-4f426943f0fa4d0b946e5f2f90b2d073" source="id-fc4f9ab3ca074dab9f8b0bd06e82b898" target="bsvc-notificacion"/>
-    <element xsi:type="archimate:CompositionRelationship" id="id-25be26721e944a45b94636fb8afac3e0" source="bproc-circulacion" target="bproc-multas"/>
     <element xsi:type="archimate:ServingRelationship" id="id-702a621a12d5430b8ad10d7606b1605a" source="role-prestatario" target="bsvc-notificacion"/>
-    <element xsi:type="archimate:AccessRelationship" id="id-f7bd39b9e3994a08898525b676397efe" source="bproc-circulacion" target="bobj-prestamo"/>
     <element xsi:type="archimate:AccessRelationship" id="id-218637ac519c422a8da4cfb9b4ea00bf" source="bproc-circulacion" target="bobj-usuario"/>
     <element xsi:type="archimate:AccessRelationship" id="id-1302416acae24af59a7bbf5894664ad0" source="bproc-circulacion" target="bobj-material"/>
-    <element xsi:type="archimate:AccessRelationship" id="id-75293045ed2d47fba7c87e4916f36440" source="bproc-reservas" target="bobj-reserva"/>
-    <element xsi:type="archimate:AccessRelationship" id="id-4bc8fe2a38b44158ab8e10bce0bb2be2" source="bproc-reservas" target="bobj-material"/>
     <element xsi:type="archimate:AccessRelationship" id="id-3321336c0b9642d2a29628bedb609f01" source="bproc-multas" target="bobj-usuario"/>
-    <element xsi:type="archimate:AccessRelationship" id="id-97fbc2b5ff0f4d3ab307d53590cdae1f" source="bproc-multas" target="bobj-multa"/>
     <element xsi:type="archimate:AccessRelationship" id="id-926c52293a17428697f14f4c13b96c7b" source="bproc-multas" target="bobj-pago"/>
     <element xsi:type="archimate:ServingRelationship" id="id-a1ccac017c414bbabe680275b1c8f48f" source="bproc-circulacion" target="bsvc-devolucion"/>
     <element xsi:type="archimate:AccessRelationship" id="id-2046bd5274f448fcaa0285c91e81d517" source="bsvc-prestamo" target="bobj-prestamo"/>
@@ -418,22 +311,13 @@
     <element xsi:type="archimate:AccessRelationship" id="id-035c5e60a154430aa3aac3cf42dd5253" source="bsvc-multas" target="bobj-multa"/>
     <element xsi:type="archimate:AccessRelationship" id="id-fb1cbfa262cf4804bfd93e2494e7e2a4" source="bsvc-catalogo" target="bobj-material"/>
     <element xsi:type="archimate:TriggeringRelationship" id="id-ebf6ce472c7d477bbdbe015a9e3a844f" source="bevt-material-devuelto" target="bproc-multas"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-43bbda3cdf974e66b6179e1e2a48279e" source="bevt-reserva-notificada" target="bsvc-notificacion"/>
-    <element xsi:type="archimate:TriggeringRelationship" id="id-1fdf2ad08bd64c5ea094871db09ba4b7" source="bevt-reserva-notificada" target="bsvc-notificacion"/>
     <element xsi:type="archimate:FlowRelationship" id="id-f8a5aff008d44074959726109eeea93f" source="bevt-reserva-notificada" target="bsvc-notificacion"/>
     <element xsi:type="archimate:AccessRelationship" id="id-c592e8d66eba4fc69f3cedd331fc3fb7" source="bevt-usuario-bloqueado" target="bobj-usuario"/>
     <element xsi:type="archimate:TriggeringRelationship" id="id-c942e714bc9f48af85c70c4dd6c5ca3f" source="aevt-reserva-creada" target="app-reservas"/>
-    <element xsi:type="archimate:AccessRelationship" id="id-6cd5503823c945e8a6c0d9b491a3d9bb" source="aevt-material-devuelto" target="data-evento-amqp"/>
     <element xsi:type="archimate:ServingRelationship" id="id-af547c89f2e84d3cb272e3ae68a9cbf7" source="device-host" target="node-circ"/>
     <element xsi:type="archimate:ServingRelationship" id="id-f1e7df2b1a7145bca6e14db9948e67f4" source="device-host" target="node-mat"/>
     <element xsi:type="archimate:ServingRelationship" id="id-c13af6682a084aa6bd3cd2ba218dfe8f" source="device-host" target="node-usr"/>
     <element xsi:type="archimate:ServingRelationship" id="id-e925df0545a746ff9a4674b9a5039cf4" source="device-host" target="node-mul"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-cf32b28a889546528a744bf3ff0fc90a" source="device-host" target="node-ext"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-22ede442b5064ba8a48200b8a2141dee" source="device-host" target="node-not"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-fbb861f86fd64d18a0b97a062a6a07c4" source="device-host" target="node-rep"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-73cde4a51c93421ca814fa39fc9869e8" source="device-host" target="node-res"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-6adae83b161f4a38be8c70469d05da72" source="device-host" target="node-cob"/>
-    <element xsi:type="archimate:ServingRelationship" id="id-a23cffbb3bc744edadad471dca970e41" source="device-host" target="node-cli"/>
     <element xsi:type="archimate:ServingRelationship" id="id-f0eb061159a2444a830c85e8ff876196" source="device-host" target="node-eureka"/>
     <element xsi:type="archimate:ServingRelationship" id="id-b3d5be0ddb604e6ab77174959a183969" source="device-host" target="node-rabbit"/>
   </folder>

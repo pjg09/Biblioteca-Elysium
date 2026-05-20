@@ -32,9 +32,11 @@ public class DataInitializer implements ApplicationRunner {
         repo.save(material("MAT-000002", "El principito",           "Antoine de Saint-Exupéry","LIBRO_NORMAL", 50000.0, "PRESTADO"));
         repo.save(material("MAT-000003", "Don Quijote de la Mancha","Miguel de Cervantes",     "REFERENCIA",  120000.0, "PRESTADO"));
         repo.save(material("MAT-000004", "Inception",               "Christopher Nolan",       "DVD",          35000.0, "PRESTADO"));
-        repo.save(material("MAT-000005", "El Padrino",              "Francis Ford Coppola",    "DVD",          40000.0, "DISPONIBLE"));
-        repo.save(material("MAT-000006", "National Geographic",     "Varios",                  "REVISTA",      20000.0, "DISPONIBLE"));
-        repo.save(material("MAT-000007", "Muy Interesante",         "Varios",                  "REVISTA",      15000.0, "DISPONIBLE"));
+        // MAT-000005/006/007: prestados a USR-000008 (3 préstamos activos = límite máximo)
+        repo.save(material("MAT-000005", "El Padrino",              "Francis Ford Coppola",    "DVD",          40000.0, "PRESTADO"));
+        repo.save(material("MAT-000006", "National Geographic",     "Varios",                  "REVISTA",      20000.0, "PRESTADO"));
+        repo.save(material("MAT-000007", "Muy Interesante",         "Varios",                  "REVISTA",      15000.0, "PRESTADO"));
+        // MAT-000008/009: disponibles — usar para probar préstamos con usuarios especiales
         repo.save(material("MAT-000008", "Clean Code",              "Robert Martin",           "EBOOK",        60000.0, "DISPONIBLE"));
         repo.save(material("MAT-000009", "The Pragmatic Programmer","David Thomas",            "EBOOK",        60000.0, "DISPONIBLE"));
 
