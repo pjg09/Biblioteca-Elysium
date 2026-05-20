@@ -48,7 +48,9 @@ public class MaterialService {
 
     @Transactional
     public MaterialEntity agregarMaterial(CrearMaterialRequest req) {
-        // Usar el builder para validar y construir el Material de dominio
+        if (req.getId() != null && !req.getId().isBlank() && materialJpaRepository.existsById(req.getId())) {
+            throw new IllegalArgumentException("Ya existe un material con el ID: " + req.getId() + ". Use otro ID.");
+        }
         MaterialBuilder builder = new MaterialBuilder()
                 .conId(req.getId())
                 .conTitulo(req.getTitulo())

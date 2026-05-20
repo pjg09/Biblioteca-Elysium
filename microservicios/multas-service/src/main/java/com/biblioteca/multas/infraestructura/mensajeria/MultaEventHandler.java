@@ -81,7 +81,7 @@ public class MultaEventHandler {
                 usuarioId,
                 "POR_RETRASO",
                 monto,
-                "PENDIENTE",
+                "GENERADA",
                 LocalDateTime.now(),
                 null,
                 "Retraso de " + diasRetraso + " días en la devolución del material " + materialId
@@ -104,7 +104,7 @@ public class MultaEventHandler {
                 usuarioId,
                 "POR_DANO",
                 montoDano,
-                "PENDIENTE",
+                "GENERADA",
                 LocalDateTime.now(),
                 null,
                 "Material " + materialId + " devuelto en condición no apta para uso"

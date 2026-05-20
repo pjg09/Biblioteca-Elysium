@@ -40,11 +40,19 @@ public class DataInitializer implements ApplicationRunner {
         repo.save(prestamo("PRE-000003", "USR-000005", "MAT-000003",
                 hoy.minusDays(1), hoy.plusDays(20), null, "ACTIVO", "INTERBIBLIOTECARIO", "Biblioteca Central"));
 
-        // Préstamo vencido
+        // Préstamo vencido (genera multa a USR-000002)
         repo.save(prestamo("PRE-000004", "USR-000002", "MAT-000002",
                 hoy.minusDays(30), hoy.minusDays(15), null, "ACTIVO", "NORMAL", "Estante B2"));
 
-        log.info("4 préstamos mock cargados.");
+        // USR-000008 (PUBLICO_GENERAL, límite=3) con 3 préstamos activos — para probar límite máximo
+        repo.save(prestamo("PRE-000005", "USR-000008", "MAT-000005",
+                hoy.minusDays(2), hoy.plusDays(7), null, "ACTIVO", "NORMAL", "Sede Central"));
+        repo.save(prestamo("PRE-000006", "USR-000008", "MAT-000006",
+                hoy.minusDays(1), hoy.plusDays(8), null, "ACTIVO", "NORMAL", "Sede Central"));
+        repo.save(prestamo("PRE-000007", "USR-000008", "MAT-000007",
+                hoy.minusDays(1), hoy.plusDays(8), null, "ACTIVO", "NORMAL", "Sede Central"));
+
+        log.info("7 préstamos mock cargados.");
     }
 
     private PrestamoEntity prestamo(String id, String idUsuario, String idMaterial,

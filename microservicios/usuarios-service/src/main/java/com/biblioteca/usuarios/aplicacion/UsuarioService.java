@@ -74,6 +74,10 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioEntity registrarUsuario(CrearUsuarioRequest req) {
+        if (req.getId() != null && !req.getId().isBlank() && usuarioJpaRepository.existsById(req.getId())) {
+            throw new IllegalArgumentException("Ya existe un usuario con el ID: " + req.getId() + ". Use otro ID u opción de edición.");
+        }
+
         int limite = limitePorTipo(req.getTipoUsuario());
 
         UsuarioBuilder builder = new UsuarioBuilder()

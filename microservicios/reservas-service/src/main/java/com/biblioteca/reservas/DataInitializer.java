@@ -26,10 +26,13 @@ public class DataInitializer implements ApplicationRunner {
 
         log.info("Cargando datos mock de reservas...");
 
+        // MAT-000001 está PRESTADO por USR-000001 — 2 reservas en cola
         repo.save(reserva("RES-000001", "USR-000004", "MAT-000001", 1, "Sede Central"));
-        repo.save(reserva("RES-000002", "USR-000006", "MAT-000004", 1, "Sede Norte"));
+        repo.save(reserva("RES-000002", "USR-000003", "MAT-000001", 2, "Sede Central"));
+        // MAT-000004 está PRESTADO por USR-000003 — 1 reserva en cola
+        repo.save(reserva("RES-000003", "USR-000006", "MAT-000004", 1, "Sede Norte"));
 
-        log.info("2 reservas mock cargadas.");
+        log.info("3 reservas mock cargadas.");
     }
 
     private ReservaEntity reserva(String id, String idUsuario, String idMaterial, int posicion, String sede) {

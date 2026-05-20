@@ -98,7 +98,8 @@ public class CirculacionService {
         LocalDateTime fechaDevolucion = calcularFechaDevolucion(estadoUsuario.getTipoUsuario(), req.getTipoPrestamo());
 
         // 6. Crear objeto de dominio usando builder con validaciones
-        String id = UUID.randomUUID().toString();
+        long count = prestamoRepository.count();
+        String id = String.format("PRE-%06d", count + 1);
         PrestamoBuilder builder = new PrestamoBuilder()
                 .conId(id)
                 .conIdUsuario(req.getIdUsuario())
