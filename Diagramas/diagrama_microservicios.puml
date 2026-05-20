@@ -1,0 +1,747 @@
+@startuml Elysium_Microservicios
+
+skinparam classAttributeIconSize 0
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam linetype ortho
+
+skinparam class {
+    BackgroundColor<<component>>   #DDEEFF
+    BackgroundColor<<domain>>      LightYellow
+    BackgroundColor<<interface>>   LightBlue
+    BackgroundColor<<event>>       LightCyan
+    BackgroundColor<<entity>>      #FFF8DC
+    BackgroundColor<<repository>>  #E8F5E9
+    BackgroundColor<<strategy>>    #FCE4EC
+    BackgroundColor<<state>>       #FFF3E0
+    BackgroundColor<<builder>>     #F3E5F5
+    BackgroundColor<<dto>>         #ECEFF1
+    BackgroundColor<<infra>>       #E0F2F1
+    BorderColor Black
+    ArrowColor Black
+}
+
+' ============================================================
+' BIBLIOTECA-COMMONS (librería compartida)
+' ============================================================
+
+package "biblioteca-commons" #FFFDE7 {
+
+    interface IDomainEvent <<interface>> {
+        +eventId() : String
+        +eventType() : String
+        +occurredOn() : Instant
+        +aggregateId() : String
+    }
+
+    class PrestamoRegistrado <<event>>
+    class MaterialDevuelto <<event>>
+    class PrestamoRenovado <<event>>
+    class RenovacionRechazada <<event>>
+    class MultaGenerada <<event>>
+    class MultaPagada <<event>>
+    class MultaCondonada <<event>>
+    class UsuarioBloqueadoPorDeuda <<event>>
+    class PeticionDesbloqueoUsuario <<event>>
+    class ReservaCreada <<event>>
+    class ReservaNotificada <<event>>
+    class ReservaExpirada <<event>>
+    class ReservaCancelada <<event>>
+
+    IDomainEvent <|.. PrestamoRegistrado
+    IDomainEvent <|.. MaterialDevuelto
+    IDomainEvent <|.. PrestamoRenovado
+    IDomainEvent <|.. RenovacionRechazada
+    IDomainEvent <|.. MultaGenerada
+    IDomainEvent <|.. MultaPagada
+    IDomainEvent <|.. MultaCondonada
+    IDomainEvent <|.. UsuarioBloqueadoPorDeuda
+    IDomainEvent <|.. PeticionDesbloqueoUsuario
+    IDomainEvent <|.. ReservaCreada
+    IDomainEvent <|.. ReservaNotificada
+    IDomainEvent <|.. ReservaExpirada
+    IDomainEvent <|.. ReservaCancelada
+
+    class Resultado<T> <<domain>> {
+        -T valor
+        -String mensajeError
+        -boolean esError
+        +exitoso(valor: T) : Resultado<T>
+        +fallo(msg: String) : Resultado<T>
+        +esError() : boolean
+        +getValor() : T
+    }
+
+    enum TipoUsuario {
+        ESTUDIANTE
+        PROFESOR
+        INVESTIGADOR
+        PUBLICO_GENERAL
+    }
+
+    enum TipoMaterial {
+        LIBRO_NORMAL
+        BESTSELLER
+        REFERENCIA
+        DVD
+        REVISTA
+        EBOOK
+    }
+
+    enum TipoMulta {
+        POR_RETRASO
+        POR_DANO
+        POR_PERDIDA
+    }
+}
+
+' ============================================================
+' BC1 — CIRCULACION-SERVICE (Core)
+' ============================================================
+
+package "circulacion-service :8081\n[BC1 Core — Circulación Bibliográfica]" #EFF8FF {
+
+    ' --- Dominio ---
+    class Prestamo <<domain>> {
+        -String id
+        -String idUsuario
+        -String idMaterial
+        -LocalDateTime fechaPrestamo
+        -LocalDateTime fechaDevolucionEsperada
+        -LocalDateTime fechaDevolucionReal
+        -int renovacionesUsadas
+        -String estado
+        -String tipoPrestamo
+        -String sede
+        +registrar()
+        +devolver(esUsable: boolean) : List<IDomainEvent>
+        +renovar(nuevaFecha: LocalDateTime) : IDomainEvent
+        +reconstruir(...) : Prestamo
+        +pullEvents() : List<IDomainEvent>
+    }
+
+    ' --- Estado (State Pattern) ---
+    interface IEstadoPrestamo <<interface>> {
+        +devolver(prestamo, esUsable)
+        +renovar(prestamo, nuevaFecha)
+    }
+    class PrestamoActivoState <<state>> {
+        +devolver(prestamo, esUsable)
+        +renovar(prestamo, nuevaFecha)
+    }
+    class PrestamoCompletadoState <<state>> {
+        +devolver() throws OperacionNoPermitida
+        +renovar() throws OperacionNoPermitida
+    }
+    class PrestamoCanceladoState <<state>> {
+        +devolver() throws OperacionNoPermitida
+    }
+
+    IEstadoPrestamo <|.. PrestamoActivoState
+    IEstadoPrestamo <|.. PrestamoCompletadoState
+    IEstadoPrestamo <|.. PrestamoCanceladoState
+    Prestamo o-- IEstadoPrestamo
+
+    ' --- Builder (Builder Pattern) ---
+    class PrestamoBuilder <<builder>> {
+        -String id
+        -String idUsuario
+        -String idMaterial
+        -LocalDateTime fechaDevolucionEsperada
+        -String tipoPrestamo
+        -String sede
+        +conId(id) : PrestamoBuilder
+        +conIdUsuario(id) : PrestamoBuilder
+        +conIdMaterial(id) : PrestamoBuilder
+        +conSede(sede) : PrestamoBuilder
+        +construir() : Resultado<Prestamo>
+    }
+    PrestamoBuilder ..> Prestamo : crea
+
+    ' --- Reglas de Validación (Strategy Pattern) ---
+    interface IReglaValidacion <<interface>> {
+        +validar(ctx: ContextoValidacionPrestamo) : ResultadoValidacion
+    }
+    class ReglaUsuarioActivo <<strategy>>
+    class ReglaUsuarioNoMoroso <<strategy>>
+    class ReglaLimitePrestamos <<strategy>>
+    class ReglaMaterialDisponible <<strategy>>
+    class ValidadorReglasService <<service>> {
+        -List<IReglaValidacion> reglas
+        +validar(ctx) : ResultadoValidacion
+    }
+
+    IReglaValidacion <|.. ReglaUsuarioActivo
+    IReglaValidacion <|.. ReglaUsuarioNoMoroso
+    IReglaValidacion <|.. ReglaLimitePrestamos
+    IReglaValidacion <|.. ReglaMaterialDisponible
+    ValidadorReglasService o-- IReglaValidacion
+
+    ' --- Aplicación ---
+    class CirculacionService <<service>> {
+        +registrarPrestamo(req) : ResultadoOperacion
+        +devolverMaterial(id, esUsable) : ResultadoOperacion
+        +renovarPrestamo(id) : ResultadoOperacion
+        +listarPrestamos(usuarioId) : List<PrestamoEntity>
+    }
+    class CirculacionFacade <<service>> {
+        +registrarPrestamo(req)
+        +devolverMaterial(id, req)
+        +renovarPrestamo(id)
+    }
+
+    CirculacionService --> ValidadorReglasService
+    CirculacionService --> PrestamoBuilder
+    CirculacionFacade --> CirculacionService
+
+    ' --- Clientes REST síncronos ---
+    class MaterialesClient <<infra>> {
+        +consultarDisponibilidad(id) : DisponibilidadDTO
+    }
+    class UsuariosClient <<infra>> {
+        +consultarEstado(id) : EstadoUsuarioDTO
+        +consultarLimite(id) : LimitePrestamoDTO
+    }
+    class MultasClient <<infra>> {
+        +consultarDeuda(usuarioId) : DeudaPendienteDTO
+    }
+    class PrestamosExternosClient <<infra>> {
+        +crearSolicitud(req) : SolicitudExternaDTO
+    }
+
+    CirculacionService --> MaterialesClient : GET /materiales/{id}/disponibilidad
+    CirculacionService --> UsuariosClient   : GET /usuarios/{id}/estado
+    CirculacionService --> MultasClient     : GET /usuarios/{id}/deuda-pendiente
+    CirculacionService --> PrestamosExternosClient : POST /solicitudes-externas
+
+    ' --- Infraestructura ---
+    class PrestamoJpaRepository <<repository>> {
+        +findByIdUsuario(id)
+        +findByIdUsuarioAndEstado(id, estado)
+        +countByIdUsuarioAndEstado(id, estado)
+    }
+    class EventoPublisher <<infra>> {
+        +publicar(events: List<IDomainEvent>)
+    }
+
+    CirculacionService --> PrestamoJpaRepository
+    CirculacionService --> EventoPublisher
+}
+
+' ============================================================
+' BC2 — MATERIALES-SERVICE (Supporting)
+' ============================================================
+
+package "materiales-service :8082\n[BC2 Supporting — Gestión de Materiales]" #F0FFF0 {
+
+    class Material <<domain>> {
+        -String id
+        -String titulo
+        -String autor
+        -String tipo
+        -String estado
+        -double precio
+        +marcarComoPrestado()
+        +marcarComoDisponible()
+        +isDisponible() : boolean
+    }
+
+    class MaterialBuilder <<builder>> {
+        +conId() +conTitulo() +conAutor()
+        +conTipo() +conPrecio() +conEstado()
+        +construir() : Resultado<Material>
+    }
+    MaterialBuilder ..> Material : crea
+
+    class MaterialService <<service>> {
+        +agregarMaterial(req) : MaterialEntity
+        +consultarDisponibilidad(id) : DisponibilidadDTO
+        +actualizarEstado(id, estado) : MaterialEntity
+        +listarTodos() : List<MaterialEntity>
+    }
+
+    class MaterialJpaRepository <<repository>>
+    class MaterialEventHandler <<infra>> {
+        +handleMaterialDevuelto(payload)
+    }
+
+    MaterialService --> MaterialBuilder
+    MaterialService --> MaterialJpaRepository
+    MaterialEventHandler --> MaterialJpaRepository
+}
+
+' ============================================================
+' BC3 — USUARIOS-SERVICE (Supporting)
+' ============================================================
+
+package "usuarios-service :8083\n[BC3 Supporting — Gestión de Usuarios]" #FFF8F0 {
+
+    class Usuario <<domain>> {
+        -String id
+        -String nombre
+        -String email
+        -String tipoUsuario
+        -String estadoUsuario
+        -int limiteMaximoPrestamos
+        +isActivo() : boolean
+    }
+
+    class UsuarioBuilder <<builder>> {
+        +conId() +conNombre() +conEmail()
+        +conTipoUsuario() +conLimiteMaximoPrestamos()
+        +construir() : Resultado<Usuario>
+    }
+    UsuarioBuilder ..> Usuario : crea
+
+    class UsuarioService <<service>> {
+        +registrarUsuario(req) : UsuarioEntity
+        +consultarEstado(id) : EstadoUsuarioDTO
+        +consultarLimite(id) : LimitePrestamoDTO
+        +listarTodos() : List<UsuarioEntity>
+        -limitePorTipo(tipo) : int
+    }
+
+    note right of UsuarioService
+      Límites automáticos por tipo:
+      ESTUDIANTE=5, PROFESOR=10,
+      INVESTIGADOR=15, PUBLICO_GENERAL=3
+    end note
+
+    class SancionesACLHandler <<infra>> {
+        +handleUsuarioBloqueado(payload)
+        +handlePeticionDesbloqueo(payload)
+    }
+
+    class UsuarioJpaRepository <<repository>>
+
+    UsuarioService --> UsuarioBuilder
+    UsuarioService --> UsuarioJpaRepository
+    SancionesACLHandler --> UsuarioJpaRepository
+}
+
+' ============================================================
+' BC4 — MULTAS-SERVICE (Core)
+' ============================================================
+
+package "multas-service :8084\n[BC4 Core — Cálculo de Multas]" #FFF0F5 {
+
+    class Multa <<domain>> {
+        -String id
+        -String idPrestamo
+        -String idUsuario
+        -String tipoMulta
+        -double montoTotal
+        -String estado
+        -LocalDateTime fechaGeneracion
+        -LocalDateTime fechaPago
+        -String motivo
+        +pagar(fechaPago)
+        +condonar()
+    }
+
+    ' --- Estado de Multa (State Pattern) ---
+    interface IEstadoMulta <<interface>> {
+        +pagar(multa, fecha)
+        +condonar(multa)
+    }
+    class MultaGeneradaState <<state>>
+    class MultaPagadaState <<state>>
+    class MultaCondonadaState <<state>>
+
+    IEstadoMulta <|.. MultaGeneradaState
+    IEstadoMulta <|.. MultaPagadaState
+    IEstadoMulta <|.. MultaCondonadaState
+    Multa o-- IEstadoMulta
+
+    ' --- Calculadores de Multa (Strategy Pattern) ---
+    interface ICalculadorMulta <<interface>> {
+        +calcular(ctx: ContextoMulta) : double
+    }
+    class CalculadorMultaEstudiante <<strategy>>
+    class CalculadorMultaProfesor <<strategy>>
+    class CalculadorMultaInvestigador <<strategy>>
+    class CalculadorMultaPublico <<strategy>>
+    class CalculadorMultaContext <<strategy>> {
+        -Map<TipoUsuario, ICalculadorMulta> calculadores
+        +calcular(tipoUsuario, ctx) : double
+    }
+
+    ICalculadorMulta <|.. CalculadorMultaEstudiante
+    ICalculadorMulta <|.. CalculadorMultaProfesor
+    ICalculadorMulta <|.. CalculadorMultaInvestigador
+    ICalculadorMulta <|.. CalculadorMultaPublico
+    CalculadorMultaContext o-- ICalculadorMulta
+
+    ' --- Builder ---
+    class MultaBuilder <<builder>> {
+        +conId() +conIdPrestamo() +conIdUsuario()
+        +conTipoMulta() +conMonto() +conMotivo()
+        +construir() : Resultado<Multa>
+    }
+    MultaBuilder ..> Multa : crea
+
+    class MultaService <<service>> {
+        +obtenerPorUsuario(id) : List<MultaEntity>
+        +consultarDeudaPendiente(id) : DeudaPendienteDTO
+        +pagarMulta(id)
+        +obtenerTodas() : List<MultaEntity>
+    }
+    class MultaEventHandler <<infra>> {
+        +handleMaterialDevuelto(payload)
+        +handleMultaPagada(payload)
+        -publishMultaGenerada(entity)
+    }
+    class MultaJpaRepository <<repository>>
+    class CalculadorMultaService <<service>> {
+        +calcularMontoRetraso(dias, tipoUsuario) : double
+        +calcularMontoDano(valor, gravedad) : double
+    }
+
+    MultaEventHandler --> CalculadorMultaService
+    MultaEventHandler --> CalculadorMultaContext
+    MultaEventHandler --> MultaBuilder
+    MultaEventHandler --> MultaJpaRepository
+    MultaService --> MultaJpaRepository
+    CalculadorMultaService --> CalculadorMultaContext
+}
+
+' ============================================================
+' BC8 — RESERVAS-SERVICE (Core)
+' ============================================================
+
+package "reservas-service :8088\n[BC8 Core — Gestión de Reservas]" #F5F0FF {
+
+    class Reserva <<domain>> {
+        -String id
+        -String idUsuario
+        -String idMaterial
+        -int posicionCola
+        -String estadoReserva
+        -LocalDateTime fechaReserva
+        -LocalDateTime fechaExpiracion
+        +cancelar()
+        +notificarDisponibilidad()
+        +expirar()
+    }
+
+    ' --- Estado de Reserva (State Pattern) ---
+    interface IEstadoReserva <<interface>> {
+        +cancelar(reserva)
+        +notificar(reserva)
+        +expirar(reserva)
+    }
+    class ReservaEnEsperaState <<state>>
+    class ReservaNotificadaState <<state>>
+    class ReservaCompletadaState <<state>>
+    class ReservaCanceladaState <<state>>
+    class ReservaExpiradaState <<state>>
+
+    IEstadoReserva <|.. ReservaEnEsperaState
+    IEstadoReserva <|.. ReservaNotificadaState
+    IEstadoReserva <|.. ReservaCompletadaState
+    IEstadoReserva <|.. ReservaCanceladaState
+    IEstadoReserva <|.. ReservaExpiradaState
+    Reserva o-- IEstadoReserva
+
+    class ReservaBuilder <<builder>> {
+        +conId() +conIdUsuario() +conIdMaterial()
+        +conPosicion() +conSede()
+        +construir() : Resultado<Reserva>
+    }
+    ReservaBuilder ..> Reserva : crea
+
+    class ReservaService <<service>> {
+        +crearReserva(req) : ReservaEntity
+        +cancelarReserva(id) : ReservaEntity
+        +listarPorMaterial(id)
+        +listarPorUsuario(id)
+        +listarTodas()
+    }
+    class LimpiezaReservasScheduler <<service>> {
+        +limpiarExpiradas()
+    }
+    class ReservaEventHandler <<infra>> {
+        +handleMaterialDevuelto(payload)
+    }
+    class ReservaJpaRepository <<repository>>
+
+    ReservaService --> ReservaBuilder
+    ReservaService --> ReservaJpaRepository
+    ReservaEventHandler --> ReservaJpaRepository
+    LimpiezaReservasScheduler --> ReservaJpaRepository
+}
+
+' ============================================================
+' BC9 — COBROS-SERVICE (Supporting)
+' ============================================================
+
+package "cobros-service :8089\n[BC9 Supporting — Cobro de Multas]" #F0FFFF {
+
+    class RegistroPago <<domain>> {
+        -String id
+        -String multaId
+        -String usuarioId
+        -double monto
+        -LocalDateTime fechaPago
+        -String estado
+        +crear(multaId, usuarioId, monto) : RegistroPago
+    }
+
+    class CobroService <<service>> {
+        +registrarPago(req) : RegistroPagoEntity
+        +obtenerPorUsuario(usuarioId)
+        +obtenerTodos()
+    }
+
+    note right of CobroService
+      Pago parcial: solo emite
+      multa.pagada cuando el
+      acumulado >= deuda total.
+    end note
+
+    class CobroEventHandler <<infra>> {
+        +handleMultaGenerada(payload)
+    }
+    class RegistroPagoJpaRepository <<repository>>
+    class DeudaPendienteJpaRepository <<repository>>
+
+    class DeudaPendienteEntity <<entity>> {
+        -String multaId
+        -String usuarioId
+        -double monto
+        -boolean pagado
+    }
+
+    CobroService --> RegistroPagoJpaRepository
+    CobroService --> DeudaPendienteJpaRepository
+    CobroEventHandler --> DeudaPendienteJpaRepository
+    DeudaPendienteJpaRepository ..> DeudaPendienteEntity
+}
+
+' ============================================================
+' BC5 — PRESTAMOS-EXTERNOS-SERVICE (Supporting)
+' ============================================================
+
+package "prestamos-externos-service :8085\n[BC5 Supporting — Préstamos Interbibliotecarios]" #F5FFF5 {
+
+    class SolicitudExterna <<domain>> {
+        -String id
+        -String idUsuario
+        -String idMaterial
+        -String bibliotecaSolicitante
+        -String estado
+        -LocalDateTime fecha
+    }
+    class SolicitudExternaService <<service>> {
+        +crearSolicitud(req) : SolicitudExternaEntity
+        +listarTodas()
+    }
+    class SolicitudExternaJpaRepository <<repository>>
+    SolicitudExternaService --> SolicitudExternaJpaRepository
+}
+
+' ============================================================
+' BC6 — NOTIFICACIONES-SERVICE (Generic)
+' ============================================================
+
+package "notificaciones-service :8086\n[BC6 Generic — Notificaciones]" #FFFFF0 {
+
+    class Notificacion <<domain>> {
+        -String id
+        -String tipo
+        -String destinatario
+        -String mensaje
+        -LocalDateTime fecha
+    }
+    class EventosBibliotecaHandler <<infra>> {
+        +handlePrestamoRegistrado(payload)
+        +handleMaterialDevuelto(payload)
+        +handleMultaGenerada(payload)
+        +handleMultaPagada(payload)
+        +handleReservaNotificada(payload)
+        +handleUsuarioBloqueado(payload)
+    }
+    class NotificacionRepository <<repository>> {
+        ' MongoDB Document Store
+    }
+
+    note right of NotificacionRepository
+      Usa MongoDB — los
+      eventos son semiestructurados
+      (cada tipo tiene campos distintos).
+    end note
+
+    EventosBibliotecaHandler --> NotificacionRepository
+}
+
+' ============================================================
+' BC7 — REPORTES-SERVICE (Generic)
+' ============================================================
+
+package "reportes-service :8087\n[BC7 Generic — Reportes y Estadísticas]" #FFF5F5 {
+
+    class RegistroEstadistica <<domain>> {
+        -String tipo
+        -String referenciaId
+        -LocalDateTime fecha
+        -Map<String, Object> datos
+    }
+    class EventosEstadisticaHandler <<infra>> {
+        +handlePrestamoRegistrado(payload)
+        +handleMaterialDevuelto(payload)
+        +handleMultaGenerada(payload)
+        +handleReservaCreada(payload)
+    }
+    class EstadisticaRepository <<repository>>
+    EventosEstadisticaHandler --> EstadisticaRepository
+}
+
+' ============================================================
+' CLI-SERVICE
+' ============================================================
+
+package "cli-service :8090\n[Interfaz de Consola — Profile: cli]" #F5F5F5 {
+
+    class CliApplication <<service>> {
+        +run(args) : void
+    }
+    class MenuCli <<service>> {
+        +iniciar()
+        -menuMateriales()
+        -menuUsuarios()
+        -menuPrestamos()
+        -menuDevoluciones()
+        -menuReservas()
+        -menuMultas()
+        -menuReportes()
+    }
+
+    class MaterialesClient2 <<infra>> #F5F5F5
+    class UsuariosClient2   <<infra>> #F5F5F5
+    class CirculacionClient <<infra>> #F5F5F5
+    class MultasClient2     <<infra>> #F5F5F5
+    class ReservasClient    <<infra>> #F5F5F5
+    class CobrosClient      <<infra>> #F5F5F5
+
+    CliApplication --> MenuCli
+    MenuCli --> MaterialesClient2
+    MenuCli --> UsuariosClient2
+    MenuCli --> CirculacionClient
+    MenuCli --> MultasClient2
+    MenuCli --> ReservasClient
+    MenuCli --> CobrosClient
+}
+
+' ============================================================
+' INFRAESTRUCTURA TRANSVERSAL
+' ============================================================
+
+package "Infraestructura" #EEEEEE {
+
+    class EurekaServer <<infra>> {
+        ' Puerto 8761
+        ' Service Registry & Discovery
+    }
+
+    class RabbitMQ <<infra>> {
+        ' Exchange: biblioteca.events (topic)
+        ' Puertos: 5672 / 15672
+    }
+
+    note right of RabbitMQ
+      Routing keys:
+      prestamo.registrado
+      material.devuelto
+      multa.generada
+      multa.pagada
+      reserva.creada
+      reserva.notificada
+      reserva.expirada
+      usuario.bloqueado.deuda
+      usuario.desbloqueo.peticion
+    end note
+}
+
+' ============================================================
+' RELACIONES ENTRE BOUNDED CONTEXTS
+' ============================================================
+
+' Llamadas síncronas REST desde BC1
+MaterialesClient  ..> "materiales-service :8082\n[BC2 Supporting — Gestión de Materiales]"  : REST GET disponibilidad
+UsuariosClient    ..> "usuarios-service :8083\n[BC3 Supporting — Gestión de Usuarios]"      : REST GET estado/límite
+MultasClient      ..> "multas-service :8084\n[BC4 Core — Cálculo de Multas]"                : REST GET deuda
+PrestamosExternosClient ..> "prestamos-externos-service :8085\n[BC5 Supporting — Préstamos Interbibliotecarios]" : REST POST
+
+' Eventos asíncronos vía RabbitMQ (BC1 → varios)
+EventoPublisher ..> RabbitMQ : publica eventos
+
+RabbitMQ ..> MaterialEventHandler       : material.devuelto
+RabbitMQ ..> MultaEventHandler          : material.devuelto, multa.pagada
+RabbitMQ ..> ReservaEventHandler        : material.devuelto
+RabbitMQ ..> CobroEventHandler          : multa.generada
+RabbitMQ ..> SancionesACLHandler        : usuario.bloqueado, usuario.desbloqueo
+RabbitMQ ..> EventosBibliotecaHandler   : todos los eventos
+RabbitMQ ..> EventosEstadisticaHandler  : estadísticas
+
+' BC4 publica MultaGenerada → BC9 crea DeudaPendiente
+MultaEventHandler ..> RabbitMQ : multa.generada
+
+' BC9 publica MultaPagada, UsuarioBloqueado → BC3, BC6
+CobroService ..> RabbitMQ : multa.pagada, usuario.desbloqueo
+
+' BC8 publica eventos de reserva
+ReservaService ..> RabbitMQ : reserva.creada / notificada / expirada
+
+' CLI conecta a servicios REST
+MaterialesClient2 ..> "materiales-service :8082\n[BC2 Supporting — Gestión de Materiales]" : REST
+UsuariosClient2   ..> "usuarios-service :8083\n[BC3 Supporting — Gestión de Usuarios]"    : REST
+CirculacionClient ..> "circulacion-service :8081\n[BC1 Core — Circulación Bibliográfica]" : REST
+MultasClient2     ..> "multas-service :8084\n[BC4 Core — Cálculo de Multas]"              : REST
+ReservasClient    ..> "reservas-service :8088\n[BC8 Core — Gestión de Reservas]"          : REST
+CobrosClient      ..> "cobros-service :8089\n[BC9 Supporting — Cobro de Multas]"          : REST
+
+' Todos los servicios se registran en Eureka
+EurekaServer ..> "circulacion-service :8081\n[BC1 Core — Circulación Bibliográfica]" : discovery
+EurekaServer ..> "materiales-service :8082\n[BC2 Supporting — Gestión de Materiales]" : discovery
+EurekaServer ..> "usuarios-service :8083\n[BC3 Supporting — Gestión de Usuarios]" : discovery
+EurekaServer ..> "multas-service :8084\n[BC4 Core — Cálculo de Multas]" : discovery
+EurekaServer ..> "reservas-service :8088\n[BC8 Core — Gestión de Reservas]" : discovery
+EurekaServer ..> "cobros-service :8089\n[BC9 Supporting — Cobro de Multas]" : discovery
+
+' ============================================================
+' NOTAS ARQUITECTURALES
+' ============================================================
+
+note as N1
+  <b>Principios SOLID aplicados:</b>
+  S — Cada servicio tiene una responsabilidad (BC)
+  O — Nuevos tipos de multa = nueva impl. ICalculadorMulta
+  L — Agregados sustitutos vía interfaces de estado
+  I — REST APIs específicas por BC (no monolítico)
+  D — Servicios dependen de interfaces, no implementaciones
+end note
+
+note as N2
+  <b>Patrones de diseño por BC:</b>
+  Builder      → Prestamo, Material, Usuario, Multa, Reserva
+  State        → Prestamo, Multa, Reserva (ciclo de vida)
+  Strategy     → ICalculadorMulta (por tipo usuario)
+  Strategy     → IReglaValidacion (BC1 validaciones)
+  Repository   → *JpaRepository por servicio
+  Facade       → CirculacionFacade (entry point BC1)
+end note
+
+note as N3
+  <b>BD por servicio (principio DDD):</b>
+  BC1 circulacion   → PostgreSQL :5433
+  BC2 materiales    → PostgreSQL :5434
+  BC3 usuarios      → PostgreSQL :5435
+  BC4 multas        → PostgreSQL :5436
+  BC5 externos      → PostgreSQL :5439
+  BC6 notificaciones→ MongoDB    :27017
+  BC7 reportes      → PostgreSQL :5440
+  BC8 reservas      → PostgreSQL :5438
+  BC9 cobros        → PostgreSQL :5437
+end note
+
+@enduml
