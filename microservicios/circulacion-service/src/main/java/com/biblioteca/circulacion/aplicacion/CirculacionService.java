@@ -7,7 +7,7 @@ import com.biblioteca.circulacion.aplicacion.dto.EstadoUsuarioDTO;
 import com.biblioteca.circulacion.aplicacion.dto.LimitePrestamoDTO;
 import com.biblioteca.circulacion.aplicacion.dto.RegistrarPrestamoRequest;
 import com.biblioteca.circulacion.aplicacion.dto.ResultadoOperacion;
-import com.biblioteca.circulacion.dominio.Prestamo;
+import com.biblioteca.circulacion.dominio.agregados.Prestamo;
 import com.biblioteca.circulacion.dominio.builders.PrestamoBuilder;
 import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoException;
 import com.biblioteca.commons.objetosvalor.Resultado;

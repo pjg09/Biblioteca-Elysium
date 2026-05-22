@@ -1,6 +1,6 @@
 package com.biblioteca.cobros.infraestructura.persistencia;
 
-import com.biblioteca.cobros.dominio.RegistroPago;
+import com.biblioteca.cobros.dominio.agregados.RegistroPago;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

@@ -1,6 +1,6 @@
 package com.biblioteca.materiales.infraestructura.persistencia;
 
-import com.biblioteca.materiales.dominio.Material;
+import com.biblioteca.materiales.dominio.agregados.Material;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

@@ -1,6 +1,6 @@
 package com.biblioteca.prestamosexternos.infraestructura.persistencia;
 
-import com.biblioteca.prestamosexternos.dominio.SolicitudExterna;
+import com.biblioteca.prestamosexternos.dominio.agregados.SolicitudExterna;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

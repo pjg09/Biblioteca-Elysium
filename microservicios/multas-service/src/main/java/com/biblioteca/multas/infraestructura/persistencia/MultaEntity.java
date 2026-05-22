@@ -1,6 +1,6 @@
 package com.biblioteca.multas.infraestructura.persistencia;
 
-import com.biblioteca.multas.dominio.Multa;
+import com.biblioteca.multas.dominio.agregados.Multa;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

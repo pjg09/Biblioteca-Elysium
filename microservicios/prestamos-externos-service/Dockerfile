@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY prestamos-externos-service/pom.xml prestamos-externos-service/
 COPY prestamos-externos-service/src prestamos-externos-service/src
-RUN mvn package -f prestamos-externos-service/pom.xml -DskipTests -q
+RUN mvn clean package -f prestamos-externos-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

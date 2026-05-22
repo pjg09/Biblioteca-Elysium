@@ -1,6 +1,6 @@
 package com.biblioteca.multas.dominio.builders;
 
-import com.biblioteca.multas.dominio.Multa;
+import com.biblioteca.multas.dominio.agregados.Multa;
 import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.commons.patrones.IBuilder;
 

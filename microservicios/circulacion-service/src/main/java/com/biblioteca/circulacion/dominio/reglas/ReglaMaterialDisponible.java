@@ -1,5 +1,6 @@
 package com.biblioteca.circulacion.dominio.reglas;
 
+import com.biblioteca.circulacion.dominio.objetosvalor.ContextoValidacionPrestamo;
 import com.biblioteca.commons.patrones.IReglaValidacion;
 
 /**

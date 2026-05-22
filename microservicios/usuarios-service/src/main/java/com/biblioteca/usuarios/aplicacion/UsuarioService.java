@@ -3,7 +3,7 @@ package com.biblioteca.usuarios.aplicacion;
 import com.biblioteca.usuarios.aplicacion.dto.CrearUsuarioRequest;
 import com.biblioteca.usuarios.aplicacion.dto.EstadoUsuarioDTO;
 import com.biblioteca.usuarios.aplicacion.dto.LimitePrestamoDTO;
-import com.biblioteca.usuarios.dominio.Usuario;
+import com.biblioteca.usuarios.dominio.agregados.Usuario;
 import com.biblioteca.usuarios.dominio.builders.UsuarioBuilder;
 import com.biblioteca.usuarios.infraestructura.persistencia.UsuarioEntity;
 import com.biblioteca.usuarios.infraestructura.persistencia.UsuarioJpaRepository;

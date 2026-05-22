@@ -2,7 +2,7 @@ package com.biblioteca.reservas.dominio.builders;
 
 import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.commons.patrones.IBuilder;
-import com.biblioteca.reservas.dominio.Reserva;
+import com.biblioteca.reservas.dominio.agregados.Reserva;
 
 import java.time.LocalDateTime;
 

@@ -1,7 +1,7 @@
 package com.biblioteca.prestamosexternos.aplicacion;
 
 import com.biblioteca.prestamosexternos.aplicacion.dto.CrearSolicitudRequest;
-import com.biblioteca.prestamosexternos.dominio.SolicitudExterna;
+import com.biblioteca.prestamosexternos.dominio.agregados.SolicitudExterna;
 import com.biblioteca.prestamosexternos.infraestructura.persistencia.SolicitudExternaEntity;
 import com.biblioteca.prestamosexternos.infraestructura.persistencia.SolicitudExternaJpaRepository;
 import org.slf4j.Logger;

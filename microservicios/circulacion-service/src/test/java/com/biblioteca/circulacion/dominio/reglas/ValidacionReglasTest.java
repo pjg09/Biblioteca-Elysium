@@ -1,5 +1,7 @@
 package com.biblioteca.circulacion.dominio.reglas;
 
+import com.biblioteca.circulacion.dominio.objetosvalor.ContextoValidacionPrestamo;
+import com.biblioteca.circulacion.dominio.servicios.ValidadorReglasService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

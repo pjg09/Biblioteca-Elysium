@@ -2,7 +2,7 @@ package com.biblioteca.circulacion.dominio.builders;
 
 import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.commons.patrones.IBuilder;
-import com.biblioteca.circulacion.dominio.Prestamo;
+import com.biblioteca.circulacion.dominio.agregados.Prestamo;
 
 import java.time.LocalDateTime;
 

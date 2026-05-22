@@ -1,7 +1,7 @@
 package com.biblioteca.multas.aplicacion;
 
 import com.biblioteca.multas.aplicacion.dto.DeudaPendienteDTO;
-import com.biblioteca.multas.dominio.Multa;
+import com.biblioteca.multas.dominio.agregados.Multa;
 import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoMultaException;
 import com.biblioteca.multas.infraestructura.persistencia.MultaEntity;
 import com.biblioteca.multas.infraestructura.persistencia.MultaJpaRepository;

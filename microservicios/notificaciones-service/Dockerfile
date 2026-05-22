@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY notificaciones-service/pom.xml notificaciones-service/
 COPY notificaciones-service/src notificaciones-service/src
-RUN mvn package -f notificaciones-service/pom.xml -DskipTests -q
+RUN mvn clean package -f notificaciones-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

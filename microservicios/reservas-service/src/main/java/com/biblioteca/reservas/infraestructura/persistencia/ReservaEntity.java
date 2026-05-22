@@ -1,6 +1,6 @@
 package com.biblioteca.reservas.infraestructura.persistencia;
 
-import com.biblioteca.reservas.dominio.Reserva;
+import com.biblioteca.reservas.dominio.agregados.Reserva;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

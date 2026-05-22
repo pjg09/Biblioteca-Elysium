@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY circulacion-service/pom.xml circulacion-service/
 COPY circulacion-service/src circulacion-service/src
-RUN mvn package -f circulacion-service/pom.xml -DskipTests -q
+RUN mvn clean package -f circulacion-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

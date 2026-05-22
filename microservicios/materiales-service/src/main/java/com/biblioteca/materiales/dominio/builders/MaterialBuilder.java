@@ -2,7 +2,7 @@ package com.biblioteca.materiales.dominio.builders;
 
 import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.commons.patrones.IBuilder;
-import com.biblioteca.materiales.dominio.Material;
+import com.biblioteca.materiales.dominio.agregados.Material;
 
 /**
  * Builder para Material que implementa validaciones de dominio.

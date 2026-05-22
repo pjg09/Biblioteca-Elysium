@@ -2,7 +2,7 @@ package com.biblioteca.usuarios.dominio.builders;
 
 import com.biblioteca.commons.objetosvalor.Resultado;
 import com.biblioteca.commons.patrones.IBuilder;
-import com.biblioteca.usuarios.dominio.Usuario;
+import com.biblioteca.usuarios.dominio.agregados.Usuario;
 
 /**
  * Builder para Usuario que implementa validaciones de dominio.

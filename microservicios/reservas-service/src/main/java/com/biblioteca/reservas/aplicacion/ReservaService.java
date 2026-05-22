@@ -1,7 +1,7 @@
 package com.biblioteca.reservas.aplicacion;
 
 import com.biblioteca.reservas.aplicacion.dto.CrearReservaRequest;
-import com.biblioteca.reservas.dominio.Reserva;
+import com.biblioteca.reservas.dominio.agregados.Reserva;
 import com.biblioteca.reservas.dominio.builders.ReservaBuilder;
 import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
 import com.biblioteca.reservas.infraestructura.mensajeria.RabbitMQConfig;

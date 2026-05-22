@@ -1,7 +1,7 @@
 package com.biblioteca.cobros.aplicacion;
 
 import com.biblioteca.cobros.aplicacion.dto.RegistrarPagoRequest;
-import com.biblioteca.cobros.dominio.RegistroPago;
+import com.biblioteca.cobros.dominio.agregados.RegistroPago;
 import com.biblioteca.cobros.infraestructura.mensajeria.RabbitMQConfig;
 import com.biblioteca.cobros.infraestructura.persistencia.DeudaPendienteEntity;
 import com.biblioteca.cobros.infraestructura.persistencia.DeudaPendienteJpaRepository;

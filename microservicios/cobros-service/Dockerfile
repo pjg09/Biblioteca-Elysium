@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY cobros-service/pom.xml cobros-service/
 COPY cobros-service/src cobros-service/src
-RUN mvn package -f cobros-service/pom.xml -DskipTests -q
+RUN mvn clean package -f cobros-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

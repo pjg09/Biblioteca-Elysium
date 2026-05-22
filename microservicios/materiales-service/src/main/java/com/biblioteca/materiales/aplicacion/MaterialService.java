@@ -2,7 +2,7 @@ package com.biblioteca.materiales.aplicacion;
 
 import com.biblioteca.materiales.aplicacion.dto.CrearMaterialRequest;
 import com.biblioteca.materiales.aplicacion.dto.DisponibilidadDTO;
-import com.biblioteca.materiales.dominio.Material;
+import com.biblioteca.materiales.dominio.agregados.Material;
 import com.biblioteca.materiales.dominio.builders.MaterialBuilder;
 import com.biblioteca.materiales.infraestructura.persistencia.MaterialEntity;
 import com.biblioteca.materiales.infraestructura.persistencia.MaterialJpaRepository;

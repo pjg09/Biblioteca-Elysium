@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY materiales-service/pom.xml materiales-service/
 COPY materiales-service/src materiales-service/src
-RUN mvn package -f materiales-service/pom.xml -DskipTests -q
+RUN mvn clean package -f materiales-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

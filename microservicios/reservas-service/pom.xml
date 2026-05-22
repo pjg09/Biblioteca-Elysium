@@ -67,7 +67,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.biblioteca.reservas.ReservasApplication</mainClass>
+                    <mainClass>com.biblioteca.reservas.api.ReservasApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -69,7 +69,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.biblioteca.usuarios.UsuariosApplication</mainClass>
+                    <mainClass>com.biblioteca.usuarios.api.UsuariosApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

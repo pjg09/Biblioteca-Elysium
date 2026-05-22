@@ -1,6 +1,6 @@
 package com.biblioteca.circulacion.infraestructura.persistencia;
 
-import com.biblioteca.circulacion.dominio.Prestamo;
+import com.biblioteca.circulacion.dominio.agregados.Prestamo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

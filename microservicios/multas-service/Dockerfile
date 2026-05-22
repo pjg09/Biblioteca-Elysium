@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY multas-service/pom.xml multas-service/
 COPY multas-service/src multas-service/src
-RUN mvn package -f multas-service/pom.xml -DskipTests -q
+RUN mvn clean package -f multas-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

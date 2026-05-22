@@ -7,7 +7,7 @@ COPY biblioteca-commons/src biblioteca-commons/src
 RUN mvn install -f biblioteca-commons/pom.xml -DskipTests -q
 COPY usuarios-service/pom.xml usuarios-service/
 COPY usuarios-service/src usuarios-service/src
-RUN mvn package -f usuarios-service/pom.xml -DskipTests -q
+RUN mvn clean package -f usuarios-service/pom.xml -DskipTests -q
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

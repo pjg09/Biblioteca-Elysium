@@ -1,6 +1,6 @@
 package com.biblioteca.usuarios.infraestructura.persistencia;
 
-import com.biblioteca.usuarios.dominio.Usuario;
+import com.biblioteca.usuarios.dominio.agregados.Usuario;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

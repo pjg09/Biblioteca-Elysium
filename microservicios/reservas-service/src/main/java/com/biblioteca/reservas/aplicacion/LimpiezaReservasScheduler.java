@@ -1,7 +1,7 @@
 package com.biblioteca.reservas.aplicacion;
 
 import com.biblioteca.commons.excepciones.OperacionNoPermitidaEnEstadoReservaException;
-import com.biblioteca.reservas.dominio.Reserva;
+import com.biblioteca.reservas.dominio.agregados.Reserva;
 import com.biblioteca.reservas.infraestructura.mensajeria.RabbitMQConfig;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaEntity;
 import com.biblioteca.reservas.infraestructura.persistencia.ReservaJpaRepository;
